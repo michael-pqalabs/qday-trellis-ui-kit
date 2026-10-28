@@ -1,0 +1,10 @@
+- Keep the post-onboarding wallet overview at `/wallet`, separate from setup, so opening the wallet never restarts onboarding.
+- Wallet overview data is explicitly a client-only demo with zero balances and illustrative addresses; never imply it is derived from the demo recovery phrase.
+- Wallet send/receive screens and action dialogs are client-only previews with real transfers, purchases and swaps disabled; wallet history shows clearly labelled sample rows (not on-chain records) for layout review.
+- Apply the shared screen background through the root's `trellis-screen` wrapper and global CSS to each route's phone-column main, so new screens inherit it without per-route background changes.
+- ThemeProvider owns the app-wide theme preference, and global semantic tokens define both palettes; keep theme switching out of individual routes so dialogs and menus inherit it too.
+- Keep the interactive component catalogue at `/design-kit`, using the same UI primitives as wallet screens so examples remain representative.
+- Model QPass accounts separately from terminal approval requests, linked agents and CLI logins; logout must not silently revoke spending permissions.
+- QPass is a client-only session-scoped preview initialized after hydration; use a versioned store, keep balances zero and use explicitly non-payment demo identifiers and QR payloads to avoid implying a real smart account exists.
+- QDayPreviewProvider owns session-scoped presentation-only sign-in and setup progress; QDayEntry wraps both QPass surfaces so direct navigation cannot skip setup. It is not an authentication or wallet-security boundary.
+- Only successful recovery confirmation marks the wallet prerequisite for QDay UI previews; this marker never establishes a real wallet connection. QDay setup simulations do not invoke email, WebAuthn or chain services.
