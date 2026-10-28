@@ -198,6 +198,9 @@
 @utility animate-modal-out { animation: modal-out .18s ease-in both; }
 @utility animate-fade-up { animation: fade-up .3s cubic-bezier(.16,1,.3,1) both; }
 
+/* Comment pick mode: crosshair everywhere except the comment UI itself. */
+html.comment-picking *:not([data-comment-ui], [data-comment-ui] *) { cursor: crosshair !important; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }

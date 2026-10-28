@@ -6,6 +6,12 @@ import tsConfigPaths from "vite-tsconfig-paths";
 import { nitro } from "nitro/vite";
 
 export default defineConfig(({ command, mode }) => {
+  // Server-only settings (GITHUB_*) are not VITE_-prefixed, so Vite never exposes them to the
+  // browser; load them into process.env so server functions can read them during dev.
+  for (const [key, value] of Object.entries(loadEnv(mode, process.cwd(), "GITHUB_"))) {
+    process.env[key] ??= value;
+  }
+
   const envDefine: Record<string, string> = {};
   for (const [key, value] of Object.entries(loadEnv(mode, process.cwd(), "VITE_"))) {
     envDefine[`import.meta.env.${key}`] = JSON.stringify(value);

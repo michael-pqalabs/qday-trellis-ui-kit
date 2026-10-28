@@ -11,6 +11,7 @@ import {
 import type { ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import { CommentLayer } from "@/components/comment";
 import { ThemeProvider, ThemeToggle } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
@@ -135,6 +136,7 @@ function RootComponent() {
           </div>
         </div>
         <QDayPreviewProvider><div className="trellis-screen"><Outlet /></div></QDayPreviewProvider>
+        <CommentLayer />
         <Toaster />
       </ThemeProvider>
     </QueryClientProvider>
