@@ -6,6 +6,7 @@ import { z } from "zod";
  *  - open issue            → open comment
  *  - closed as completed   → resolved comment
  *  - closed as not planned → deleted comment (the REST API cannot delete issues)
+ * Replies are ordinary comments on that same issue, so they show up on GitHub and in the app.
  * The token stays on the server; the browser only calls these server functions.
  */
 
@@ -22,7 +23,11 @@ export type PinComment = {
   createdAt: number;
   /** Set for comments stored on GitHub. */
   url?: string;
+  /** Number of replies on the GitHub issue. */
+  replies?: number;
 };
+
+export type Reply = { id: string; text: string; createdAt: number; url: string };
 
 export type CommentList = { configured: boolean; comments: PinComment[] };
 
@@ -40,6 +45,10 @@ const createSchema = z.object({
 
 const updateSchema = z.object({ id: z.string().regex(/^\d+$/), resolved: z.boolean() });
 const deleteSchema = z.object({ id: z.string().regex(/^\d+$/) });
+const replySchema = z.object({
+  id: z.string().regex(/^\d+$/),
+  text: z.string().trim().min(1).max(2000),
+});
 
 type GithubIssue = {
   number: number;
@@ -49,9 +58,12 @@ type GithubIssue = {
   state_reason?: string | null;
   html_url: string;
   created_at: string;
+  comments: number;
   labels: Array<string | { name?: string }>;
   pull_request?: unknown;
 };
+
+type GithubReply = { id: number; body: string | null; created_at: string; html_url: string };
 
 function config() {
   const token = process.env["GITHUB_TOKEN"]?.trim();
@@ -112,6 +124,16 @@ function toComment(issue: GithubIssue): PinComment | null {
     resolved: issue.state === "closed",
     createdAt: Date.parse(issue.created_at),
     url: issue.html_url,
+    replies: issue.comments,
+  };
+}
+
+function toReply(reply: GithubReply): Reply {
+  return {
+    id: String(reply.id),
+    text: reply.body ?? "",
+    createdAt: Date.parse(reply.created_at),
+    url: reply.html_url,
   };
 }
 
@@ -194,4 +216,25 @@ export const deleteComment = createServerFn({ method: "POST" })
       body: JSON.stringify({ state: "closed", state_reason: "not_planned" }),
     });
     return { ok: true };
+  });
+
+export const listReplies = createServerFn({ method: "GET" })
+  .validator(deleteSchema)
+  .handler(async ({ data }): Promise<Reply[]> => {
+    await assertCommentIssue(data.id);
+    const replies = await github<GithubReply[]>(`/issues/${data.id}/comments?per_page=100`);
+    return replies.map(toReply);
+  });
+
+export const createReply = createServerFn({ method: "POST" })
+  .validator(replySchema)
+  .handler(async ({ data }): Promise<Reply> => {
+    await assertCommentIssue(data.id);
+    // Zero-width space after "@" so a reply never pings people on GitHub.
+    const body = data.text.replace(/@/g, "@\u200b");
+    const reply = await github<GithubReply>(`/issues/${data.id}/comments`, {
+      method: "POST",
+      body: JSON.stringify({ body }),
+    });
+    return toReply(reply);
   });

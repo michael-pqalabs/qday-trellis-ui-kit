@@ -14,7 +14,7 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import type { PinComment } from "@/lib/comments-api";
+import type { PinComment, Reply } from "@/lib/comments-api";
 import { useCommentStore } from "@/lib/comment-store";
 import { cn } from "@/lib/utils";
 
@@ -69,16 +69,18 @@ function locate(selector: string, x: number, y: number) {
 
 function Card({ left, top, children }: { left: number; top: number; children: ReactNode }) {
   const width = 288;
+  const cardTop = clamp(top + 14, 8, Math.max(8, window.innerHeight - 220));
   return (
     <div
       role="dialog"
       aria-label="Comment"
       style={{
         left: clamp(left + 14, 8, Math.max(8, window.innerWidth - width - 8)),
-        top: clamp(top + 14, 8, Math.max(8, window.innerHeight - 220)),
+        top: cardTop,
         width,
+        maxHeight: window.innerHeight - cardTop - 8,
       }}
-      className="pointer-events-auto fixed z-[100] rounded-2xl border border-border bg-card p-3 text-card-foreground shadow-lg"
+      className="pointer-events-auto fixed z-[100] overflow-y-auto rounded-2xl border border-border bg-card p-3 text-card-foreground shadow-lg"
     >
       {children}
     </div>
@@ -124,11 +126,81 @@ function Composer({
   );
 }
 
+function Thread({
+  id,
+  loadReplies,
+  addReply,
+}: {
+  id: string;
+  loadReplies: (id: string) => Promise<Reply[] | null>;
+  addReply: (id: string, text: string) => Promise<Reply | null>;
+}) {
+  const [replies, setReplies] = useState<Reply[] | null>(null);
+  const [text, setText] = useState("");
+  const [sending, setSending] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    setReplies(null);
+    void loadReplies(id).then((loaded) => alive && setReplies(loaded ?? []));
+    return () => {
+      alive = false;
+    };
+  }, [id, loadReplies]);
+
+  const send = async () => {
+    const value = text.trim();
+    if (!value || sending) return;
+    setSending(true);
+    const reply = await addReply(id, value);
+    setSending(false);
+    // On failure the text stays in the box so it isn't lost.
+    if (!reply) return;
+    setText("");
+    setReplies((list) => [...(list ?? []), reply]);
+  };
+
+  return (
+    <div className="space-y-2 border-t border-border pt-2">
+      {replies === null ? (
+        <p className="text-xs text-muted-foreground">Loading replies…</p>
+      ) : (
+        replies.map((reply) => (
+          <div key={reply.id}>
+            <p className="whitespace-pre-wrap break-words text-sm">{reply.text}</p>
+            <p className="text-xs text-muted-foreground">
+              {new Date(reply.createdAt).toLocaleString()}
+            </p>
+          </div>
+        ))
+      )}
+      <div className="flex items-end gap-2">
+        <Textarea
+          value={text}
+          disabled={sending}
+          placeholder="Reply…"
+          aria-label="Reply"
+          className="min-h-[40px] px-3 py-2"
+          rows={2}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) void send();
+          }}
+        />
+        <Button size="sm" disabled={sending || !text.trim()} onClick={() => void send()}>
+          {sending ? "Sending…" : "Reply"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export function CommentLayer() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [mounted, setMounted] = useState(false);
   const [saving, setSaving] = useState(false);
-  const { comments, mode, add, setResolved, remove } = useCommentStore(mounted);
+  const { comments, mode, add, setResolved, remove, loadReplies, addReply } =
+    useCommentStore(mounted);
   const [picking, setPicking] = useState(false);
   const [hoverEl, setHoverEl] = useState<Element | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -317,6 +389,11 @@ export function CommentLayer() {
             }}
           >
             {c.resolved ? <Check className="size-3.5" /> : numberOf(c.id)}
+            {!!c.replies && (
+              <span className="absolute -right-2 -top-2 grid h-4 min-w-4 place-items-center rounded-full bg-foreground px-1 text-[9px] font-semibold text-background">
+                {c.replies}
+              </span>
+            )}
           </button>
         );
       })}
@@ -368,6 +445,9 @@ export function CommentLayer() {
                 </>
               )}
             </p>
+            {mode === "remote" && (
+              <Thread id={opened.id} loadReplies={loadReplies} addReply={addReply} />
+            )}
             <div className="flex justify-end gap-2">
               <Button
                 size="sm"
@@ -449,6 +529,11 @@ export function CommentLayer() {
                         >
                           {c.text}
                         </span>
+                        {!!c.replies && (
+                          <span className="block text-xs text-muted-foreground">
+                            {c.replies} {c.replies === 1 ? "reply" : "replies"}
+                          </span>
+                        )}
                         {!locate(c.selector, c.x, c.y) && (
                           <span className="block text-xs text-destructive">
                             Element not found on this page

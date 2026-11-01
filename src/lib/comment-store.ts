@@ -2,10 +2,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   createComment,
+  createReply,
   deleteComment,
   listComments,
+  listReplies,
   setCommentResolved,
   type PinComment,
+  type Reply,
 } from "@/lib/comments-api";
 
 const STORAGE_KEY = "trellis-comments-v1";
@@ -151,5 +154,28 @@ export function useCommentStore(enabled: boolean) {
       "Could not delete the comment on GitHub",
     );
 
-  return { comments, mode, add, setResolved, remove };
+  // Replies exist only for comments stored on GitHub; they are fetched when a pin is opened.
+  const loadReplies = useCallback(async (id: string): Promise<Reply[] | null> => {
+    try {
+      return await listReplies({ data: { id } });
+    } catch {
+      toast.error("Could not load replies from GitHub");
+      return null;
+    }
+  }, []);
+
+  const addReply = useCallback(async (id: string, text: string): Promise<Reply | null> => {
+    try {
+      const reply = await createReply({ data: { id, text } });
+      setComments((list) =>
+        list.map((c) => (c.id === id ? { ...c, replies: (c.replies ?? 0) + 1 } : c)),
+      );
+      return reply;
+    } catch {
+      toast.error("Could not post the reply to GitHub");
+      return null;
+    }
+  }, []);
+
+  return { comments, mode, add, setResolved, remove, loadReplies, addReply };
 }
