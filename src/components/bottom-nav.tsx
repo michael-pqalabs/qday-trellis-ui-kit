@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { isWalletTabBlocked } from '@/lib/qday-preview';
 
 const items = [
-  { to: "/wallet", label: "Qday Wallet", icon: Wallet },
+  { to: "/wallet", label: "QDay Wallet", icon: Wallet },
   { to: "/agentic", label: "Agentic Payment", icon: Bot },
 ] as const;
 

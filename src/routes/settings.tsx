@@ -38,7 +38,7 @@ function Row({ icon: Icon, label, detail, right, onClick, href }: { icon: typeof
       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"><Icon className="h-4 w-4" /></span>
       <span className="min-w-0 flex-1 text-left">
         <span className="block text-sm font-medium">{label}</span>
-        {detail && <span className="block truncate text-xs text-muted-foreground">{detail}</span>}
+        {detail && <span className="block text-xs text-muted-foreground">{detail}</span>}
       </span>
       {right ?? (href ? <ExternalLink className="h-4 w-4 text-muted-foreground" /> : onClick ? <ChevronRight className="h-4 w-4 text-muted-foreground" /> : null)}
     </>
@@ -83,7 +83,7 @@ function Settings() {
           <Row icon={Fingerprint} label="Biometric unlock" detail="Face ID or fingerprint" right={<Switch checked={biometric} onCheckedChange={setBiometric} aria-label="Biometric unlock" />} />
           <Row icon={Lock} label="Auto-lock" detail="Lock after 5 minutes" right={<Switch checked={autoLock} onCheckedChange={setAutoLock} aria-label="Auto-lock" />} />
           <Row icon={KeyRound} label="Recovery phrase" detail="View or back up" onClick={() => soon("Recovery phrase")} />
-          <Row icon={Shield} label="Passkeys" detail="Manage QDay passkeys" onClick={() => soon("Passkeys")} />
+          <Row icon={Shield} label="Manage Trellis passkeys" detail="App sign-in keys, separate from QDay" onClick={() => soon("Manage Trellis passkeys")} />
         </Section>
 
         <Section title="Appearance">
@@ -91,7 +91,7 @@ function Settings() {
         </Section>
 
         <Section title="Discover">
-          <Row icon={Droplets} label="Testnet faucet" detail="Get tUSD8 for testing" right={<Button size="sm" className="h-8 px-3 text-xs" disabled={dripping} onClick={faucet}>{dripping ? "Sending…" : "Claim"}</Button>} />
+          <Row icon={Droplets} label="Testnet faucet" detail="Aevum Testnet · Get tUSD8 for testing" right={<Button size="sm" className="h-8 px-3 text-xs" disabled={dripping} onClick={faucet}>{dripping ? "Sending…" : "Claim"}</Button>} />
           <Row icon={BookOpen} label="Wiki" href="https://example.com" />
           <Row icon={TrendingUp} label="Price Oracle" href="https://example.com" />
           <Row icon={Globe} label="Website" href="https://example.com" />

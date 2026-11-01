@@ -6,7 +6,7 @@ export const setupSteps = [
   { title: 'Unlock Main Wallet', detail: 'Prepare your existing Trellis wallet', manual: false },
   { title: 'Link wallet to email', detail: 'Connect your wallet and QDay account', manual: false },
   { title: 'Passkey setup', detail: 'Secure access with your device', manual: true },
-  { title: 'Main Wallet activation', detail: 'Prepare your account on Qday', manual: true },
+  { title: 'Main Wallet activation', detail: 'Prepare your account on QDay', manual: true },
 ] as const;
 export type QDayPreview = { walletReady: boolean; email: string | null; completed: number };
 export const emptyQDayPreview: QDayPreview = { walletReady: false, email: null, completed: 0 };

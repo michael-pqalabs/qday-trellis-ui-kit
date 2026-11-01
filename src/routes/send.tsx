@@ -1,21 +1,23 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { useWalletPreview } from "@/components/wallet-preview-provider";
 import { ArrowLeft, ClipboardPaste, ScanLine, BookUser, ArrowUpRight, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PREVIEW_NETWORK_FEE, getPreviewHolding, shortAddress, validateSend, walletTokens, type SendErrors } from "@/lib/wallet-preview";
 
-type Search = { wallet?: string | undefined; token?: string | undefined };
+type Search = { wallet?: string | undefined; token?: string | undefined; network?: string | undefined };
 
 export const Route = createFileRoute("/send")({
   validateSearch: (s: Record<string, unknown>): Search => ({
     wallet: typeof s["wallet"] === "string" ? s["wallet"] : undefined,
     token: typeof s["token"] === "string" ? s["token"] : undefined,
+    network: typeof s["network"] === "string" ? s["network"] : undefined,
   }),
   head: () => ({
     meta: [
       { title: "Send — Trellis Wallet" },
-      { name: "description", content: "Send QDAY, sQDAY or USD8 from your Trellis Wallet: recipient, amount, fee review and confirmation." },
+      { name: "description", content: "Send QDAY or USD8 from your Trellis Wallet: recipient, amount, fee review and confirmation." },
       { property: "og:title", content: "Send — Trellis Wallet" },
       { property: "og:description", content: "Enter a recipient and amount, then review fees before sending." },
       { property: "og:type", content: "website" },
@@ -27,8 +29,9 @@ export const Route = createFileRoute("/send")({
 
 function SendPage() {
   const search = Route.useSearch();
+  const { wallets } = useWalletPreview();
   const [tokenId, setTokenId] = useState(search.token ?? "qday");
-  const { wallet, network, token, balance } = getPreviewHolding(search.wallet ?? "main", "testnet", tokenId);
+  const { wallet, network, token, balance } = getPreviewHolding(search.wallet ?? "main", search.network ?? "mainnet", tokenId, wallets);
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
   const [errors, setErrors] = useState<SendErrors>({});
@@ -56,10 +59,10 @@ function SendPage() {
         </header>
 
         {step === "form" ? <>
-          <div className="mt-6 grid grid-cols-3 gap-1 rounded-full bg-secondary/70 p-[3px]" role="radiogroup" aria-label="Token">
+          <div className="mt-6 grid grid-cols-2 gap-1 rounded-full bg-secondary/70 p-[3px]" role="radiogroup" aria-label="Token">
             {walletTokens.map((t) => (
-              <button key={t.id} role="radio" aria-checked={t.id === tokenId} onClick={() => setTokenId(t.id)}
-                className={`h-9 rounded-full text-xs font-semibold transition ${t.id === tokenId ? "bg-primary text-primary-foreground shadow-md shadow-primary/25" : "text-muted-foreground hover:text-foreground"}`}>{t.symbol}</button>
+              <Button variant="ghost" key={t.id} role="radio" aria-checked={t.id === tokenId} onClick={() => setTokenId(t.id)}
+                className={`h-9 rounded-full text-xs font-semibold transition ${t.id === tokenId ? "bg-primary text-primary-foreground shadow-md shadow-primary/25" : "text-muted-foreground hover:text-foreground"}`}>{t.symbol}</Button>
             ))}
           </div>
 

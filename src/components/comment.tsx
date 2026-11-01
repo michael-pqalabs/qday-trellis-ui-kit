@@ -9,6 +9,7 @@ import {
   MessageSquarePlus,
   RotateCcw,
   Trash2,
+  TriangleAlert,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -67,19 +68,34 @@ function locate(selector: string, x: number, y: number) {
   return { el, left: rect.left + rect.width * x, top: rect.top + rect.height * y };
 }
 
-function Card({ left, top, children }: { left: number; top: number; children: ReactNode }) {
+function Card({
+  left = 0,
+  top = 0,
+  corner = false,
+  children,
+}: {
+  left?: number;
+  top?: number;
+  /** Pins the card above the toolbar, for comments whose element can no longer be found. */
+  corner?: boolean;
+  children: ReactNode;
+}) {
   const width = 288;
   const cardTop = clamp(top + 14, 8, Math.max(8, window.innerHeight - 220));
   return (
     <div
       role="dialog"
       aria-label="Comment"
-      style={{
-        left: clamp(left + 14, 8, Math.max(8, window.innerWidth - width - 8)),
-        top: cardTop,
-        width,
-        maxHeight: window.innerHeight - cardTop - 8,
-      }}
+      style={
+        corner
+          ? { right: 16, bottom: 72, width, maxHeight: window.innerHeight - 88 }
+          : {
+              left: clamp(left + 14, 8, Math.max(8, window.innerWidth - width - 8)),
+              top: cardTop,
+              width,
+              maxHeight: window.innerHeight - cardTop - 8,
+            }
+      }
       className="pointer-events-auto fixed z-[100] overflow-y-auto rounded-2xl border border-border bg-card p-3 text-card-foreground shadow-lg"
     >
       {children}
@@ -311,6 +327,9 @@ export function CommentLayer() {
   const openedAt = opened && locate(opened.selector, opened.x, opened.y);
   const draftAt = draft && locate(draft.selector, draft.x, draft.y);
   const hoverRect = hoverEl?.getBoundingClientRect();
+  // Open comments whose element was removed or changed; they stay reachable from the corner.
+  const unplaced = pageComments.filter((c) => !c.resolved && !locate(c.selector, c.x, c.y));
+  const placed = pageComments.filter((c) => !unplaced.includes(c));
 
   const save = async (text: string) => {
     if (!draft) return;
@@ -329,6 +348,43 @@ export function CommentLayer() {
     setListOpen(false);
     locate(c.selector, c.x, c.y)?.el.scrollIntoView({ block: "center", behavior: "smooth" });
   };
+
+  const renderRow = (c: PinComment) => (
+    <li key={c.id}>
+      <button
+        type="button"
+        className="flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left hover:bg-secondary"
+        onClick={() => focusComment(c)}
+      >
+        <span
+          className={cn(
+            "grid size-5 shrink-0 place-items-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground",
+            c.resolved && "bg-muted text-muted-foreground",
+          )}
+        >
+          {numberOf(c.id)}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span
+            className={cn(
+              "line-clamp-2 text-sm",
+              c.resolved && "text-muted-foreground line-through",
+            )}
+          >
+            {c.text}
+          </span>
+          {!!c.replies && (
+            <span className="block text-xs text-muted-foreground">
+              {c.replies} {c.replies === 1 ? "reply" : "replies"}
+            </span>
+          )}
+          {!locate(c.selector, c.x, c.y) && (
+            <span className="block text-xs text-destructive">Element not found on this page</span>
+          )}
+        </span>
+      </button>
+    </li>
+  );
 
   const copyOpen = async () => {
     const open = pageComments.filter((c) => !c.resolved);
@@ -412,9 +468,14 @@ export function CommentLayer() {
         </>
       )}
 
-      {opened && openedAt && (
-        <Card left={openedAt.left} top={openedAt.top}>
+      {opened && (
+        <Card corner={!openedAt} left={openedAt?.left ?? 0} top={openedAt?.top ?? 0}>
           <div className="space-y-2">
+            {!openedAt && (
+              <p className="rounded-lg bg-destructive/10 px-2 py-1 text-xs text-destructive">
+                Its element is no longer on this page.
+              </p>
+            )}
             <div className="flex items-start justify-between gap-2">
               <p className="whitespace-pre-wrap break-words text-sm">{opened.text}</p>
               <Button
@@ -505,47 +566,32 @@ export function CommentLayer() {
               </p>
             ) : (
               <ul className="max-h-64 overflow-y-auto">
-                {pageComments.map((c) => (
-                  <li key={c.id}>
-                    <button
-                      type="button"
-                      className="flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left hover:bg-secondary"
-                      onClick={() => focusComment(c)}
-                    >
-                      <span
-                        className={cn(
-                          "grid size-5 shrink-0 place-items-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground",
-                          c.resolved && "bg-muted text-muted-foreground",
-                        )}
-                      >
-                        {numberOf(c.id)}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span
-                          className={cn(
-                            "line-clamp-2 text-sm",
-                            c.resolved && "text-muted-foreground line-through",
-                          )}
-                        >
-                          {c.text}
-                        </span>
-                        {!!c.replies && (
-                          <span className="block text-xs text-muted-foreground">
-                            {c.replies} {c.replies === 1 ? "reply" : "replies"}
-                          </span>
-                        )}
-                        {!locate(c.selector, c.x, c.y) && (
-                          <span className="block text-xs text-destructive">
-                            Element not found on this page
-                          </span>
-                        )}
-                      </span>
-                    </button>
+                {unplaced.length > 0 && (
+                  <li className="px-2 pb-1 pt-2 text-xs font-medium text-destructive">
+                    Element no longer on this page
                   </li>
-                ))}
+                )}
+                {unplaced.map(renderRow)}
+                {unplaced.length > 0 && placed.length > 0 && (
+                  <li className="px-2 pb-1 pt-2 text-xs font-medium text-muted-foreground">
+                    On this page
+                  </li>
+                )}
+                {placed.map(renderRow)}
               </ul>
             )}
           </div>
+        )}
+        {!listOpen && unplaced.length > 0 && !(opened && !openedAt) && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="border-destructive/40 text-destructive hover:text-destructive"
+            onClick={() => setListOpen(true)}
+          >
+            <TriangleAlert />
+            {unplaced.length} without an element
+          </Button>
         )}
         <div className="flex gap-2">
           <Button

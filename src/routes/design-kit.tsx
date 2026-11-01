@@ -3,7 +3,7 @@ import { useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { ArrowLeft, ArrowUpRight, Check, Copy, ImageOff, LoaderCircle, Search, ShieldCheck, Wallet } from "lucide-react";
 import { toast } from "sonner";
-import logo from "@/assets/trellis-icon-blue.png";
+import logo from "@/assets/trellis-app-icon.svg";
 import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,8 +57,7 @@ function DesignKit() {
   const [query, setQuery] = useState("");
   const form = useForm<{ name: string; email: string }>({ defaultValues: { name: "", email: "" } });
   const assets = [
-    { name: "Qday", symbol: "QDAY", balance: "0.00", state: "Native" },
-    { name: "sQDAY", symbol: "sQDAY", balance: "0.00", state: "Staked" },
+    { name: "QDAY", symbol: "QDAY", balance: "0.00", state: "Native" },
     { name: "USD8", symbol: "USD8", balance: "0.00", state: "Stable" },
   ].filter(asset => asset.name.toLowerCase().includes(query.toLowerCase()));
 
@@ -76,7 +75,7 @@ function DesignKit() {
 
     <Section number="01" title="Colour & typography">
       <div className="grid grid-cols-3 gap-3">
-        {[{ label: "Brand", value: "#2852C5", className: "bg-brand" }, { label: "Primary", value: "#2852C5", className: "bg-primary" }, { label: "Accent", value: theme === "light" ? "Deep cyan" : "Ice cyan", className: "bg-accent" }].map(color => <div key={color.label}><div className={`mb-2 h-16 rounded-lg ${color.className}`} /><p className="text-xs font-semibold">{color.label}</p><p className="mt-1 font-mono text-[10px] text-muted-foreground">{color.value}</p></div>)}
+        {[{ label: "Brand", value: theme === "light" ? "#0257FF" : "#1F66FF", className: "bg-brand" }, { label: "Primary", value: theme === "light" ? "#0257FF" : "#1F66FF", className: "bg-primary" }, { label: "Accent", value: theme === "light" ? "Deep cyan" : "Ice cyan", className: "bg-accent" }].map(color => <div key={color.label}><div className={`mb-2 h-16 rounded-lg ${color.className}`} /><p className="text-xs font-semibold">{color.label}</p><p className="mt-1 font-mono text-[10px] text-muted-foreground">{color.value}</p></div>)}
       </div>
       <div className="mt-6 space-y-2"><p className="font-display text-3xl font-semibold">Your keys. Your crypto.</p><p className="text-sm text-muted-foreground">Manrope · Body / 14</p><p className="font-mono text-xs text-muted-foreground">0x28…C5 · Monospace / 12</p></div>
     </Section>
@@ -99,7 +98,7 @@ function DesignKit() {
       <div className="space-y-4">
         <div className="space-y-2"><Label htmlFor="kit-name">Wallet name</Label><Input id="kit-name" placeholder="Main wallet" /></div>
         <div className="space-y-2"><Label htmlFor="kit-disabled">Read-only address</Label><Input id="kit-disabled" value="Illustrative address" disabled /></div>
-        <div className="space-y-2"><Label htmlFor="kit-network">Network</Label><Select defaultValue="mainnet"><SelectTrigger id="kit-network"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="mainnet">Qday Mainnet</SelectItem><SelectItem value="testnet">Qday Testnet</SelectItem></SelectContent></Select></div>
+        <div className="space-y-2"><Label htmlFor="kit-network">Network</Label><Select defaultValue="mainnet"><SelectTrigger id="kit-network"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="mainnet">QDay Mainnet</SelectItem><SelectItem value="testnet">Aevum Testnet</SelectItem></SelectContent></Select></div>
         <div className="space-y-2"><Label htmlFor="kit-note">Note</Label><Textarea id="kit-note" placeholder="Add a note…" /></div>
       </div>
     </Section>
@@ -132,7 +131,7 @@ function DesignKit() {
       <div className="flex flex-wrap gap-2">
         <Dialog open={modalOpen} onOpenChange={setModalOpen}><DialogTrigger asChild><Button variant="outline">Open modal</Button></DialogTrigger><DialogContent><DialogHeader><DialogTitle>Wallet preview</DialogTitle><DialogDescription>A sample dialog from the Trellis design kit.</DialogDescription></DialogHeader><div className="flex items-center gap-3 py-3"><Wallet className="text-primary" /><div><p className="font-semibold">Main wallet</p><p className="text-sm text-muted-foreground">Illustrative account · 0.00 QDAY</p></div></div><Button onClick={() => setModalOpen(false)}>Done</Button></DialogContent></Dialog>
         <AlertDialog><AlertDialogTrigger asChild><Button variant="outline">Confirmation</Button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Reset this preview?</AlertDialogTitle><AlertDialogDescription>This example does not change your wallet or any real data.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => toast("Preview reset confirmed")}>Confirm</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
-        <Sheet><SheetTrigger asChild><Button variant="outline">Open sheet</Button></SheetTrigger><SheetContent className="w-[85%] max-w-sm"><SheetHeader><SheetTitle>Wallet details</SheetTitle><SheetDescription>Design-kit preview</SheetDescription></SheetHeader><p className="mt-6 text-sm">Main wallet · Qday Mainnet</p></SheetContent></Sheet>
+        <Sheet><SheetTrigger asChild><Button variant="outline">Open sheet</Button></SheetTrigger><SheetContent className="w-[85%] max-w-sm"><SheetHeader><SheetTitle>Wallet details</SheetTitle><SheetDescription>Design-kit preview</SheetDescription></SheetHeader><p className="mt-6 text-sm">Main wallet · QDay Mainnet</p></SheetContent></Sheet>
         <DropdownMenu><DropdownMenuTrigger asChild><Button variant="outline">Menu</Button></DropdownMenuTrigger><DropdownMenuContent><DropdownMenuItem onSelect={() => toast("Copy preview selected")}><Copy />Copy</DropdownMenuItem><DropdownMenuItem onSelect={() => toast("Settings preview selected")}>Settings</DropdownMenuItem></DropdownMenuContent></DropdownMenu>
       </div>
     </Section>
@@ -152,8 +151,8 @@ function DesignKit() {
       <div className="mb-4 flex flex-wrap gap-2"><Badge>Primary</Badge><Badge variant="secondary">Secondary</Badge><Badge variant="outline">Outline</Badge><Badge variant="destructive">Error</Badge></div>
       <Alert><ShieldCheck className="h-4 w-4" /><AlertTitle>Self-custody</AlertTitle><AlertDescription>Keep your recovery phrase offline and private.</AlertDescription></Alert>
       <Button variant="outline" className="my-4" onClick={() => toast.success("Example saved", { description: "This is a design-kit notification." })}>Show notification</Button>
-      <Tabs defaultValue="assets"><TabsList className="w-full"><TabsTrigger className="flex-1" value="assets">Assets</TabsTrigger><TabsTrigger className="flex-1" value="activity">Activity</TabsTrigger></TabsList><TabsContent value="assets" className="py-3 text-sm">Qday · sQDAY · USD8</TabsContent><TabsContent value="activity" className="py-3 text-sm text-muted-foreground">No transactions yet</TabsContent></Tabs>
-      <Accordion type="single" collapsible><AccordionItem value="security"><AccordionTrigger>Recovery phrase</AccordionTrigger><AccordionContent>A recovery phrase is private. Never share it with anyone.</AccordionContent></AccordionItem><AccordionItem value="network"><AccordionTrigger>Network</AccordionTrigger><AccordionContent>Qday Mainnet and Qday Testnet.</AccordionContent></AccordionItem></Accordion>
+      <Tabs defaultValue="assets"><TabsList className="w-full"><TabsTrigger className="flex-1" value="assets">Assets</TabsTrigger><TabsTrigger className="flex-1" value="activity">Activity</TabsTrigger></TabsList><TabsContent value="assets" className="py-3 text-sm">QDAY · USD8</TabsContent><TabsContent value="activity" className="py-3 text-sm text-muted-foreground">No transactions yet</TabsContent></Tabs>
+      <Accordion type="single" collapsible><AccordionItem value="security"><AccordionTrigger>Recovery phrase</AccordionTrigger><AccordionContent>A recovery phrase is private. Never share it with anyone.</AccordionContent></AccordionItem><AccordionItem value="network"><AccordionTrigger>Network</AccordionTrigger><AccordionContent>QDay Mainnet and Aevum Testnet.</AccordionContent></AccordionItem></Accordion>
     </Section>
     <footer className="border-t border-divider pt-5 text-xs text-muted-foreground">Trellis Wallet · Component library</footer>
   </main></div>;

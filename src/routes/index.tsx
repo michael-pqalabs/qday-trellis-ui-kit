@@ -1,7 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import logo from "@/assets/trellis-icon-blue.png";
+import { useEffect, useRef, useState } from "react";
+import logo from "@/assets/trellis-app-icon.svg";
 import { ShieldCheck, Plus, Download, ChevronRight, Fingerprint } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -21,15 +24,16 @@ function TrellisMark() {
   return <img src={logo} alt="Trellis logo" className="h-8 w-8 rounded-lg" />;
 }
 
-const options = [
-  { id: "new", icon: Plus, title: "Create a new wallet", desc: "Generate a fresh 12-word recovery phrase" },
-  { id: "import", icon: Download, title: "Import existing wallet", desc: "Use a recovery phrase or private key" },
-] as const;
-
 function CreateWallet() {
-  const [selected, setSelected] = useState<string>("new");
+  const [importOpen, setImportOpen] = useState(false);
   const navigate = useNavigate();
   const [agreed, setAgreed] = useState(false);
+  const [introFailed, setIntroFailed] = useState(false);
+  const introRef = useRef<HTMLVideoElement>(null);
+  // The video can fail before hydration, in which case onError never reaches React.
+  useEffect(() => {
+    if (introRef.current?.error) setIntroFailed(true);
+  }, []);
 
   return (
     <div className="flex min-h-screen justify-center bg-background">
@@ -55,7 +59,12 @@ function CreateWallet() {
           <div className="absolute inset-6 animate-spin-slow">
             <span className="absolute left-1/2 top-0 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent" />
           </div>
-          <img src={logo} alt="Trellis Wallet" className="animate-floaty h-28 w-28 rounded-[2rem] shadow-glow" />
+          {/* The intro video is sized for its own padding; without the file, show the plain icon instead. */}
+          {introFailed ? (
+            <img src={logo} alt="Trellis Wallet" className="animate-floaty h-28 w-28 object-contain" />
+          ) : (
+            <video ref={introRef} src="/trellis-intro.webm" poster={logo} autoPlay muted playsInline aria-label="Trellis Wallet" onError={() => setIntroFailed(true)} className="animate-floaty h-56 w-56 scale-150 object-contain" />
+          )}
         </div>
 
         <section className="mt-8 text-center">
@@ -67,30 +76,6 @@ function CreateWallet() {
           </p>
         </section>
 
-        <section className="mt-8 space-y-3">
-          {options.map(({ id, icon: Icon, title, desc }) => {
-            const active = selected === id;
-            return (
-              <button
-                key={id}
-                onClick={() => setSelected(id)}
-                className={`flex w-full items-center gap-4 rounded-2xl border p-4 text-left transition-all ${
-                  active ? "border-primary/60 bg-primary/10" : "glass hover:border-foreground/20"
-                }`}
-              >
-                <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${active ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}>
-                  <Icon className="h-5 w-5" />
-                </span>
-                <span className="flex-1">
-                  <span className="block font-semibold">{title}</span>
-                  <span className="block text-xs text-muted-foreground">{desc}</span>
-                </span>
-                <ChevronRight className={`h-4 w-4 ${active ? "text-primary" : "text-muted-foreground"}`} />
-              </button>
-            );
-          })}
-        </section>
-
         <div className="mt-6 flex items-start gap-3 rounded-2xl border border-accent/20 bg-accent/5 p-4">
           <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
           <p className="text-xs leading-relaxed text-muted-foreground">
@@ -100,27 +85,23 @@ function CreateWallet() {
 
         <div className="mt-auto pt-8">
           <label className="mb-4 flex cursor-pointer items-center gap-3 text-xs text-muted-foreground">
-            <input
-              type="checkbox"
-              checked={agreed}
-              onChange={(e) => setAgreed(e.target.checked)}
-              className="h-4 w-4 accent-[var(--primary)]"
-            />
-            I agree to the <span className="text-foreground underline underline-offset-2">Terms</span> and{" "}
-            <span className="text-foreground underline underline-offset-2">Privacy Policy</span>
+            <Checkbox checked={agreed} onCheckedChange={value => setAgreed(value === true)} aria-label="Agree to Terms and Privacy Policy" />
+            <span>I agree to the <span className="text-foreground underline underline-offset-2">Terms</span> and <span className="text-foreground underline underline-offset-2">Privacy Policy</span></span>
           </label>
-          <button
+          <Button
             disabled={!agreed}
-            onClick={() => selected === "new" && navigate({ to: "/recovery" })}
-            className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-primary font-display text-base font-semibold text-primary-foreground shadow-glow transition-all active:scale-[0.98] disabled:opacity-40 disabled:shadow-none"
+            onClick={() => navigate({ to: "/recovery" })}
+            className="h-14 w-full font-display text-base font-semibold"
           >
-            {selected === "new" ? "Create wallet" : selected === "import" ? "Import wallet" : "Connect device"}
+            <Plus />Create new wallet
             <ChevronRight className="h-5 w-5" />
-          </button>
-          <button className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm text-muted-foreground hover:text-foreground">
+          </Button>
+          <Button variant="outline" disabled={!agreed} onClick={() => setImportOpen(true)} className="mt-3 h-14 w-full font-display text-base"><Download />I already have a wallet</Button>
+          <p className="mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground">
             <Fingerprint className="h-4 w-4" /> Protect with Face ID after setup
-          </button>
+          </p>
         </div>
+        <Dialog open={importOpen} onOpenChange={setImportOpen}><DialogContent className="w-[calc(100%-2rem)] max-w-sm"><DialogHeader><DialogTitle>Import existing wallet</DialogTitle><DialogDescription>Wallet import isn't connected in this preview. Never enter a real recovery phrase here.</DialogDescription></DialogHeader><Button onClick={() => setImportOpen(false)}>Got it</Button></DialogContent></Dialog>
       </main>
     </div>
   );

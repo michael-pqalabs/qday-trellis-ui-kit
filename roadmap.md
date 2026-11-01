@@ -1,4 +1,6 @@
 # Wallet refinement
+- [x] Apply approved user review: naming, direct onboarding actions, compact network selector, add-wallet preview, two tokens, Quick Swap and Trellis passkey wording.
+- [x] Verify reviewed flows, light/dark layouts and tests.
 - [x] Compact the balance card and token rows.
 - [x] Add Send, Receive, and Buy/Swap options with demo-safe dialogs.
 - [x] Show transaction history for the selected wallet.

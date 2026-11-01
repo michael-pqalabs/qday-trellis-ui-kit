@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { ArrowRight, Check, Copy, Fingerprint, LoaderCircle, LockKeyhole, LogOut, Mail, ShieldCheck, Trash2, Wallet, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
-import logo from '@/assets/trellis-icon-blue.png';
+import logo from '@/assets/trellis-app-icon.svg';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';

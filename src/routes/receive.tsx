@@ -1,17 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { useWalletPreview } from "@/components/wallet-preview-provider";
 import { QRCodeSVG } from "qrcode.react";
 import { ArrowLeft, Check, Copy, Share2, Info } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { getPreviewHolding, walletTokens } from "@/lib/wallet-preview";
 
-type Search = { wallet?: string | undefined; token?: string | undefined };
+type Search = { wallet?: string | undefined; token?: string | undefined; network?: string | undefined };
 
 export const Route = createFileRoute("/receive")({
   validateSearch: (s: Record<string, unknown>): Search => ({
     wallet: typeof s["wallet"] === "string" ? s["wallet"] : undefined,
     token: typeof s["token"] === "string" ? s["token"] : undefined,
+    network: typeof s["network"] === "string" ? s["network"] : undefined,
   }),
   head: () => ({
     meta: [
@@ -28,9 +30,10 @@ export const Route = createFileRoute("/receive")({
 
 function ReceivePage() {
   const search = Route.useSearch();
+  const { wallets } = useWalletPreview();
   const [tokenId, setTokenId] = useState(search.token ?? "qday");
   const [copied, setCopied] = useState(false);
-  const { wallet, network, token } = getPreviewHolding(search.wallet ?? "main", "testnet", tokenId);
+  const { wallet, network, token } = getPreviewHolding(search.wallet ?? "main", search.network ?? "mainnet", tokenId, wallets);
 
   const copy = async () => {
     try { await navigator.clipboard.writeText(wallet.address); setCopied(true); toast.success("Address copied"); }
@@ -50,10 +53,10 @@ function ReceivePage() {
           <span className="ml-auto rounded-full bg-secondary/70 px-3 py-1 text-[11px] text-muted-foreground">{network.name}</span>
         </header>
 
-        <div className="mt-6 grid grid-cols-3 gap-1 rounded-full bg-secondary/70 p-[3px]" role="radiogroup" aria-label="Token">
+        <div className="mt-6 grid grid-cols-2 gap-1 rounded-full bg-secondary/70 p-[3px]" role="radiogroup" aria-label="Token">
           {walletTokens.map((t) => (
-            <button key={t.id} role="radio" aria-checked={t.id === tokenId} onClick={() => setTokenId(t.id)}
-              className={`h-9 rounded-full text-xs font-semibold transition ${t.id === tokenId ? "bg-primary text-primary-foreground shadow-md shadow-primary/25" : "text-muted-foreground hover:text-foreground"}`}>{t.symbol}</button>
+            <Button variant="ghost" key={t.id} role="radio" aria-checked={t.id === tokenId} onClick={() => setTokenId(t.id)}
+              className={`h-9 rounded-full text-xs font-semibold transition ${t.id === tokenId ? "bg-primary text-primary-foreground shadow-md shadow-primary/25" : "text-muted-foreground hover:text-foreground"}`}>{t.symbol}</Button>
           ))}
         </div>
 

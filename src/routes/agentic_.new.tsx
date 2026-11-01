@@ -23,6 +23,6 @@ function CreateQPass() {
       {error && <p id="name-error" role="alert" className="mt-2 text-xs text-destructive">{error}</p>}
       <div className="mt-6 flex items-center justify-between border-y py-4 text-sm"><span className="text-muted-foreground">Initial balance</span><span className="font-semibold">0.00 USD8</span></div>
       <Button type="submit" className="mt-6 h-12 w-full">Create QPass</Button>
-    </form><p className="mt-4 flex items-center justify-center gap-2 text-center text-[11px] text-muted-foreground"><ShieldCheck className="h-3.5 w-3.5" />Owned by your main wallet · USD8 on Qday</p>
+    </form><p className="mt-4 flex items-center justify-center gap-2 text-center text-[11px] text-muted-foreground"><ShieldCheck className="h-3.5 w-3.5" />Owned by your main wallet · USD8 on QDay</p>
   </main></div>;
 }

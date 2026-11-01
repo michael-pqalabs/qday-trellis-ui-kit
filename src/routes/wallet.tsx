@@ -1,18 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Check, Copy, Eye, EyeOff, Wallet, ChevronRight, ShieldCheck, History, Settings, ArrowUpRight, ArrowDownLeft } from "lucide-react";
-import logo from "@/assets/trellis-icon-blue.png";
+import { Check, Copy, Eye, EyeOff, Wallet, ChevronRight, Plus, History, Settings, ArrowUpRight, ArrowDownLeft } from "lucide-react";
+import logo from "@/assets/trellis-app-icon.svg";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { agoLabel, shortAddress, transactionsFor, getPreviewHolding, previewNetworks, previewWallets, walletTokens } from "@/lib/wallet-preview";
+import { agoLabel, shortAddress, transactionsFor, getPreviewHolding, previewNetworks, walletTokens } from "@/lib/wallet-preview";
 import { WalletActions } from "@/components/wallet-actions";
 import { BottomNav } from "@/components/bottom-nav";
+import { useWalletPreview } from "@/components/wallet-preview-provider";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/wallet")({
   head: () => ({
     meta: [
       { title: "My Wallet — Trellis Wallet" },
-      { name: "description", content: "Your Trellis Wallet overview: select a wallet, network, and Qday, sQDAY or USD8 balance." },
+      { name: "description", content: "Your Trellis Wallet overview: select a wallet, network, and QDAY or USD8 balance." },
       { property: "og:title", content: "My Wallet — Trellis Wallet" },
       { property: "og:description", content: "Explore your wallet and individual token balances in Trellis Wallet." },
       { property: "og:type", content: "website" },
@@ -23,12 +27,16 @@ export const Route = createFileRoute("/wallet")({
 });
 
 function WalletOverview() {
+  const { wallets, addWallet } = useWalletPreview();
+  const [addOpen, setAddOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newNetwork, setNewNetwork] = useState("mainnet");
   const [walletId, setWalletId] = useState("main");
   const [networkId, setNetworkId] = useState("mainnet");
   const [tokenId, setTokenId] = useState("qday");
   const [visible, setVisible] = useState(true);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
-  const holding = getPreviewHolding(walletId, networkId, tokenId);
+  const holding = getPreviewHolding(walletId, networkId, tokenId, wallets);
   const { wallet, network, token, balance } = holding;
 
   const copyAddress = async () => {
@@ -65,28 +73,16 @@ function WalletOverview() {
 
         <div className="mb-5 mt-6 flex items-center justify-between">
           <h1 className="font-display text-3xl font-semibold">My wallet</h1>
-          <ShieldCheck className="h-5 w-5 text-primary" aria-label="Self-custody" />
+          <Select value={networkId} onValueChange={setNetworkId}>
+            <SelectTrigger aria-label="Network" className="h-8 w-auto max-w-40 gap-1.5 rounded-full border-border/60 bg-card px-3 text-[11px] shadow-sm"><span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" /><SelectValue /></SelectTrigger>
+            <SelectContent>{previewNetworks.map(item => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent>
+          </Select>
         </div>
 
-        <div className="mb-4 grid grid-cols-2 gap-3">
-          <div className="min-w-0">
-            <label id="wallet-label" className="mb-2 block text-xs text-muted-foreground">Wallet</label>
-            <Select value={walletId} onValueChange={(value) => { setWalletId(value); setCopyState("idle"); }}>
-              <SelectTrigger aria-labelledby="wallet-label" className="h-12 gap-2 rounded-full border-border/60 bg-card px-4 shadow-sm">
-                <Wallet className="h-4 w-4 shrink-0 text-primary" /><SelectValue />
-              </SelectTrigger>
-              <SelectContent>{previewWallets.map((item) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-          <div className="min-w-0">
-            <label id="network-label" className="mb-2 block text-xs text-muted-foreground">Network</label>
-            <Select value={networkId} onValueChange={setNetworkId}>
-              <SelectTrigger aria-labelledby="network-label" className="h-12 gap-1.5 rounded-full border-border/60 bg-card px-4 text-xs shadow-sm">
-                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" /><SelectValue />
-              </SelectTrigger>
-              <SelectContent>{previewNetworks.map((item) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
+        <div className="mb-4 min-w-0">
+          <DropdownMenu><DropdownMenuTrigger asChild><Button variant="outline" aria-label="Select wallet" className="h-12 w-full justify-start gap-3 bg-card px-4 shadow-sm"><Wallet className="shrink-0 text-primary" /><span className="min-w-0 flex-1 truncate text-left">{wallet.name}</span><ChevronRight className="rotate-90 text-muted-foreground" /></Button></DropdownMenuTrigger>
+            <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)]">{wallets.map(item => <DropdownMenuItem key={item.id} onSelect={() => { setWalletId(item.id); if (item.networkId) setNetworkId(item.networkId); setCopyState("idle"); }}><Wallet /><span className="min-w-0 flex-1 truncate">{item.name}</span>{item.id === walletId && <Check className="text-primary" />}</DropdownMenuItem>)}<DropdownMenuSeparator /><DropdownMenuItem onSelect={() => { setNewName(`Wallet ${wallets.length + 1}`); setAddOpen(true); }}><Plus />Add / Create new wallet</DropdownMenuItem></DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <section aria-label="Selected token balance" className="overflow-hidden rounded-2xl border border-primary/15 bg-card bg-card-hero px-5 py-4 shadow-card">
@@ -111,17 +107,17 @@ function WalletOverview() {
           </div>
         </section>
         {copyState !== "idle" && <p role="status" className="mt-2 text-center text-xs text-muted-foreground">{copyState === "copied" ? "Address copied" : "Couldn't copy. Select the address to copy it manually."}</p>}
-        <WalletActions key={`${walletId}-${networkId}-${tokenId}`} walletName={wallet.name} address={wallet.address} networkName={network.name} tokenSymbol={token.symbol} walletId={walletId} tokenId={tokenId} />
+        <WalletActions key={`${walletId}-${networkId}-${tokenId}`} networkName={network.name} networkId={networkId} walletId={walletId} tokenId={tokenId} />
 
         <section aria-labelledby="tokens-title">
           <div className="mb-3 flex items-center justify-between">
             <h2 id="tokens-title" className="font-display text-lg font-semibold">Tokens</h2>
-            <span className="text-xs text-muted-foreground">3 assets</span>
+            <span className="text-xs text-muted-foreground">{walletTokens.length} assets</span>
           </div>
           <div className="space-y-1">
             {walletTokens.map((item) => {
               const selected = item.id === tokenId;
-              const tone = item.tone === "primary" ? "bg-primary/15 text-primary" : item.tone === "accent" ? "bg-accent/15 text-accent" : "bg-foreground/10 text-foreground";
+              const tone = item.tone === "primary" ? "bg-primary/15 text-primary" : "bg-foreground/10 text-foreground";
               return (
                 <Button key={item.id} variant="ghost" aria-pressed={selected} aria-label={`Select ${item.name}`} onClick={() => setTokenId(item.id)} className={`h-16 w-full justify-start gap-3 rounded-lg border px-3 text-left hover:bg-secondary hover:text-foreground ${selected ? "border-primary/30 bg-primary/5" : "border-transparent"}`}>
                   <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full font-display text-base font-semibold ${tone}`}>{item.mark}</span>
@@ -143,7 +139,8 @@ function WalletOverview() {
             <p className="text-sm font-medium">No transactions yet</p>
           </div> : <ul className="mt-2 divide-y divide-divider">
             {transactionsFor(walletId).map((tx) => {
-              const t = walletTokens.find((x) => x.id === tx.tokenId)!;
+              const t = walletTokens.find((x) => x.id === tx.tokenId);
+              if (!t) return null;
               const sent = tx.kind === "send";
               const status = tx.status === "pending" ? "text-amber-600 dark:text-amber-400" : tx.status === "failed" ? "text-destructive" : "text-muted-foreground";
               return <li key={tx.id} className="flex items-center gap-3 py-3">
@@ -157,6 +154,14 @@ function WalletOverview() {
         </section>
         <footer className="pt-8 text-center text-[10px] text-muted-foreground">Trellis Wallet · Your keys. Your crypto.</footer>
         <BottomNav />
+        <Dialog open={addOpen} onOpenChange={setAddOpen}><DialogContent className="w-[calc(100%-2rem)] max-w-sm"><DialogHeader><DialogTitle>Add wallet</DialogTitle><DialogDescription>Smart account preview · no on-chain account will be created.</DialogDescription></DialogHeader>
+          <form className="space-y-4" onSubmit={event => { event.preventDefault(); if (!newName.trim()) return; const added = addWallet(newName, newNetwork); setWalletId(added.id); setNetworkId(newNetwork); setAddOpen(false); }}>
+            <label className="block space-y-2 text-xs text-muted-foreground">Wallet name<Input aria-label="New wallet name" value={newName} onChange={event => setNewName(event.target.value)} required maxLength={40} /></label>
+            <div className="space-y-2"><label className="text-xs text-muted-foreground">Network</label><Select value={newNetwork} onValueChange={setNewNetwork}><SelectTrigger aria-label="New wallet network"><SelectValue /></SelectTrigger><SelectContent>{previewNetworks.map(item => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent></Select></div>
+            <p className="text-xs text-muted-foreground">Fee sponsorship: not verified · no network fee is charged in this preview.</p>
+            <Button type="submit" className="w-full" disabled={!newName.trim()}><Plus />Create preview wallet</Button>
+          </form>
+        </DialogContent></Dialog>
       </main>
     </div>
   );
