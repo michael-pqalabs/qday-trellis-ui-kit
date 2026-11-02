@@ -11,9 +11,9 @@ import { loadQPassState, revokeAgent, revokeSession, setSessionPaused, type QPas
 export const Route = createFileRoute('/agentic_/agent/$agentId')({
   head: () => ({ meta: [
     { title: 'Agent & Spending Session — Trellis Wallet' },
-    { name: 'description', content: 'Review an agent linked to your QPass: budget used, per-payment limit, session expiry, and pause or revoke controls.' },
+    { name: 'description', content: 'Review an agent linked to your TrellisPass: budget used, per-payment limit, session expiry, and pause or revoke controls.' },
     { property: 'og:title', content: 'Agent & Spending Session — Trellis Wallet' },
-    { property: 'og:description', content: 'Budget, limits and revoke controls for an agent on your QPass.' },
+    { property: 'og:description', content: 'Budget, limits and revoke controls for an agent on your TrellisPass.' },
     { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary_large_image' },
   ] }),
   component: () => <QDayEntry><AgentDetail /></QDayEntry>,
@@ -83,7 +83,7 @@ function AgentDetail() {
         <Row label="Started" value={new Date(s.startedAt).toLocaleDateString()} />
         <Row label="Session key" value={<CopyVal v={s.id} onCopy={copy} icon={<KeyRound className="h-3 w-3" />} />} />
         <Row label="Agent ID" value={<CopyVal v={agent.id} onCopy={copy} />} />
-        <Row label="Paid from" value={<span className="flex items-center gap-1"><Wallet className="h-3 w-3" />{pass?.name ?? 'QPass'}</span>} last />
+        <Row label="Paid from" value={<span className="flex items-center gap-1"><Wallet className="h-3 w-3" />{pass?.name ?? 'TrellisPass'}</span>} last />
       </section>}
 
       {canControl && <div className="mt-5 grid grid-cols-2 gap-3">
@@ -112,7 +112,7 @@ function AgentDetail() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{confirm === 'agent' ? 'Revoke agent access?' : 'End spending session?'}</AlertDialogTitle>
-            <AlertDialogDescription>{confirm === 'agent' ? `${agent.name} will be unlinked and can no longer spend from ${pass?.name ?? 'this QPass'}.` : `${agent.name} stays linked but can't pay until a new session is approved from the terminal.`}</AlertDialogDescription>
+            <AlertDialogDescription>{confirm === 'agent' ? `${agent.name} will be unlinked and can no longer spend from ${pass?.name ?? 'this TrellisPass'}.` : `${agent.name} stays linked but can't pay until a new session is approved from the terminal.`}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -123,7 +123,7 @@ function AgentDetail() {
     </main>
   );
 }
-function BackLink() { return <Link to="/agentic" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" />QPass</Link>; }
+function BackLink() { return <Link to="/agentic" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" />TrellisPass</Link>; }
 function Row({ label, value, last }: { label: string; value: React.ReactNode; last?: boolean }) {
   return <div className={`flex items-center justify-between gap-3 py-3 text-xs ${last ? '' : 'border-b border-divider'}`}><span className="text-muted-foreground">{label}</span><span className="min-w-0 truncate font-medium">{value}</span></div>;
 }

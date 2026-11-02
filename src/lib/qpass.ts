@@ -1,4 +1,4 @@
-// Client-only preview. QPass accounts, agents and terminal requests are distinct.
+// Client-only preview. TrellisPass accounts, agents and terminal requests are distinct.
 export interface QPass { id: string; name: string; address: string; balance: number; status: 'inactive' | 'active'; createdAt: number }
 export interface SpendingSession { id: string; perPaymentLimit: number; totalBudget: number; spent: number; startedAt: number; expiresAt: number; status: 'active' | 'paused' | 'revoked' }
 export interface RegisteredAgent { id: string; passId: string; name: string; client: string; status: 'linked' | 'revoked'; linkedAt?: number; session?: SpendingSession }
@@ -7,7 +7,7 @@ export interface CliSession { id: string; label: string; host: string; client: s
 export type ActivityKind = 'fund' | 'approve' | 'activate' | 'create' | 'rename' | 'revoke';
 export interface AgenticActivity { id: string; passId: string; label: string; kind: ActivityKind; at: number }
 export interface QPassState { passes: QPass[]; agents: RegisteredAgent[]; approvals: ApprovalRequest[]; cliSessions: CliSession[]; activity: AgenticActivity[] }
-const KEY = 'trellis-qpass-v6';
+const KEY = 'trellis-qpass-v7';
 const SAMPLE_AGENTS = ['Price watcher', 'Invoice payer', 'Subscription manager', 'NFT sniper', 'Ad budget bot', 'Cloud billing agent', 'Coffee runner', 'Ticket hunter', 'Portfolio rebalancer', 'API credits topper', 'Food delivery bot', 'Translation agent', 'Gift card buyer', 'Domain renewer', 'Expense tracker'];
 const SAMPLE_HOSTS = ['macbook-pro.local', 'ubuntu-dev', 'vps-sg-1', 'thinkpad-x1', 'raspberry-pi', 'aws-ec2-tokyo', 'imac-studio'];
 const SAMPLE_STATUSES: ApprovalRequest['status'][] = ['pending', 'pending', 'approved', 'rejected', 'pending', 'expired'];
@@ -26,8 +26,8 @@ export function randomAddress(): string {
 export function seedQPassState(now: number): QPassState {
   return {
     passes: [
-      { id: 'qp-shopping', name: 'Shopping QPass', address: '0x8f3a2c1d9b4e7a6c5f0b3d2e8a1c4b7d9e6f3a5b', balance: 50, status: 'active', createdAt: now - 86400000 },
-      { id: 'qp-research', name: 'Research QPass', address: '0x2b7d4e9f1a3c5b8d6f0a2c4e7b9d1f3a5c8e0b2d', balance: 0, status: 'inactive', createdAt: now },
+      { id: 'qp-shopping', name: 'Shopping TrellisPass', address: '0x8f3a2c1d9b4e7a6c5f0b3d2e8a1c4b7d9e6f3a5b', balance: 50, status: 'active', createdAt: now - 86400000 },
+      { id: 'qp-research', name: 'Research TrellisPass', address: '0x2b7d4e9f1a3c5b8d6f0a2c4e7b9d1f3a5c8e0b2d', balance: 0, status: 'inactive', createdAt: now },
     ],
     agents: [
       { id: 'agent-checkout-01', passId: 'qp-shopping', name: 'Checkout assistant', client: 'qday-cli', status: 'linked', linkedAt: now - 5 * 3600000, session: { id: 'sess-0x7a91c2', perPaymentLimit: 15, totalBudget: 150, spent: 45, startedAt: now - 5 * 3600000, expiresAt: now + 6 * 86400000 + 19 * 3600000, status: 'active' } },
@@ -47,8 +47,8 @@ export function seedQPassState(now: number): QPassState {
       { id: 'act-1', passId: 'qp-shopping', label: 'Received 50.00 USD8 from Main wallet', kind: 'fund', at: now - 10 * 60000 },
       { id: 'act-2', passId: 'qp-shopping', label: 'Granted 100 USD8 budget to Research assistant', kind: 'approve', at: now - 2 * 3600000 },
       { id: 'act-3', passId: 'qp-shopping', label: 'Checkout assistant linked', kind: 'approve', at: now - 5 * 3600000 },
-      { id: 'act-4', passId: 'qp-shopping', label: 'QPass activated', kind: 'activate', at: now - 20 * 3600000 },
-      { id: 'act-5', passId: 'qp-shopping', label: 'QPass created', kind: 'create', at: now - 86400000 },
+      { id: 'act-4', passId: 'qp-shopping', label: 'TrellisPass activated', kind: 'activate', at: now - 20 * 3600000 },
+      { id: 'act-5', passId: 'qp-shopping', label: 'TrellisPass created', kind: 'create', at: now - 86400000 },
     ],
   };
 }
@@ -58,19 +58,19 @@ export function loadQPassState(now = Date.now()): QPassState {
 }
 export function saveQPassState(state: QPassState) { try { window.sessionStorage.setItem(KEY, JSON.stringify(state)); } catch { /* Preview storage unavailable */ } }
 export interface CreateQPassInput { name: string }
-export function validateQPassInput(input: CreateQPassInput): string | null { return input.name.trim() ? null : 'QPass name is required.'; }
+export function validateQPassInput(input: CreateQPassInput): string | null { return input.name.trim() ? null : 'TrellisPass name is required.'; }
 function update(change: (state: QPassState) => void, now = Date.now()): QPassState { const state = loadQPassState(now); change(state); saveQPassState(state); return state; }
 function log(state: QPassState, passId: string, label: string, kind: ActivityKind, now: number) { state.activity.unshift({ id: crypto.randomUUID(), passId, label, kind, at: now }); }
 export function createQPass(input: CreateQPassInput, now = Date.now()): QPass {
   const error = validateQPassInput(input); if (error) throw new Error(error);
   const id = crypto.randomUUID(); const pass: QPass = { id, name: input.name.trim(), address: randomAddress(), balance: 0, status: 'inactive', createdAt: now };
-  update(state => { state.passes.unshift(pass); log(state, id, 'QPass created', 'create', now); }, now); return pass;
+  update(state => { state.passes.unshift(pass); log(state, id, 'TrellisPass created', 'create', now); }, now); return pass;
 }
 export function renameQPass(id: string, name: string, now = Date.now()): QPassState {
   const error = validateQPassInput({ name }); if (error) throw new Error(error);
-  return update(state => { const pass = state.passes.find(p => p.id === id); if (pass) { pass.name = name.trim(); log(state, id, 'QPass renamed', 'rename', now); } }, now);
+  return update(state => { const pass = state.passes.find(p => p.id === id); if (pass) { pass.name = name.trim(); log(state, id, 'TrellisPass renamed', 'rename', now); } }, now);
 }
-export function activateQPass(id: string, now = Date.now()): QPassState { return update(state => { const pass = state.passes.find(p => p.id === id); if (pass?.status === 'inactive') { pass.status = 'active'; log(state, id, 'QPass activated', 'activate', now); } }, now); }
+export function activateQPass(id: string, now = Date.now()): QPassState { return update(state => { const pass = state.passes.find(p => p.id === id); if (pass?.status === 'inactive') { pass.status = 'active'; log(state, id, 'TrellisPass activated', 'activate', now); } }, now); }
 export function resolveApproval(id: string, decision: 'approved' | 'rejected', now = Date.now()): QPassState {
   return update(state => {
     const request = state.approvals.find(r => r.id === id); if (!request || request.status !== 'pending') return;

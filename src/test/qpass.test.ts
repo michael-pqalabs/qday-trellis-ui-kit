@@ -2,14 +2,14 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { activateQPass, createQPass, endCliSession, loadQPassState, renameQPass, resolveApproval, revokeAgent, validateQPassInput } from '@/lib/qpass';
 const NOW = 1800000000000;
 beforeEach(() => window.sessionStorage.clear());
-describe('QPass accounts demo', () => {
-  it('requires only a QPass name, without terminal limits', () => {
-    expect(validateQPassInput({ name: ' ' })).toBe('QPass name is required.');
+describe('TrellisPass accounts demo', () => {
+  it('requires only a TrellisPass name, without terminal limits', () => {
+    expect(validateQPassInput({ name: ' ' })).toBe('TrellisPass name is required.');
     const pass = createQPass({ name: '  Travel  ' }, NOW);
     expect(pass.name).toBe('Travel'); expect(pass.balance).toBe(0); expect(pass.status).toBe('inactive');
     expect(pass).not.toHaveProperty('perPaymentLimit'); expect(pass).not.toHaveProperty('totalBudget');
   });
-  it('gives each QPass its own hex address and zero initial balance', () => {
+  it('gives each TrellisPass its own hex address and zero initial balance', () => {
     const a = createQPass({ name: 'A' }, NOW); const b = createQPass({ name: 'B' }, NOW);
     expect(a.address).not.toBe(b.address); expect(a.address).toMatch(/^0x[0-9a-f]{40}$/);
     expect(a.balance).toBe(0); expect(b.balance).toBe(0);
@@ -20,7 +20,7 @@ describe('QPass accounts demo', () => {
   it('rejects without linking an agent', () => { loadQPassState(NOW); const next = resolveApproval('req-01', 'rejected', NOW); expect(next.approvals[0]?.status).toBe('rejected'); expect(next.agents).toHaveLength(4); });
   it('cannot approve an expired request', () => { loadQPassState(NOW); const next = resolveApproval('req-01', 'approved', NOW + 15 * 60000); expect(next.approvals[0]?.status).toBe('expired'); expect(next.agents).toHaveLength(4); });
   it('cannot approve twice', () => { loadQPassState(NOW); resolveApproval('req-01', 'approved', NOW); expect(resolveApproval('req-01', 'approved', NOW).agents).toHaveLength(5); });
-  it('revokes an agent without revoking its QPass', () => { loadQPassState(NOW); const next = revokeAgent('agent-checkout-01', NOW); expect(next.agents[0]?.status).toBe('revoked'); expect(next.passes[0]?.status).toBe('active'); });
+  it('revokes an agent without revoking its TrellisPass', () => { loadQPassState(NOW); const next = revokeAgent('agent-checkout-01', NOW); expect(next.agents[0]?.status).toBe('revoked'); expect(next.passes[0]?.status).toBe('active'); });
   it('logs out CLI independently from agents', () => { loadQPassState(NOW); const next = endCliSession('cli-1', NOW); expect(next.cliSessions[0]?.status).toBe('ended'); expect(next.agents[0]?.status).toBe('linked'); });
 });
 

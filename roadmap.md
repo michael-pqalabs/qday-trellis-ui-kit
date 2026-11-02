@@ -20,19 +20,19 @@
 - [x] Add an interactive design-kit screen for base components.
 - [x] Verify theme switching and design-kit interactions.
 
-# Agentic Payments / QPass
-- [x] QPass overview: pass cards with limits, budget progress, status and revoke.
-- [x] Create QPass screen with validation and summary.
+# Agentic Payments / TrellisPass
+- [x] TrellisPass overview: pass cards with limits, budget progress, status and revoke.
+- [x] Create TrellisPass screen with validation and summary.
 - [x] QDay CLI login sessions with end-session action.
 - [x] Agentic activity list (demo data).
 
-# QPass account model
-- [x] Replace agent-budget creation with name-only QPass creation.
-- [x] Add separate QPass accounts, activation, rename and demo-safe funding/receiving.
+# TrellisPass account model
+- [x] Replace agent-budget creation with name-only TrellisPass creation.
+- [x] Add separate TrellisPass accounts, activation, rename and demo-safe funding/receiving.
 - [x] Add terminal-request approvals, linked agents and CLI logout.
-- [x] Verify QPass interactions, tests and light/dark layouts.
+- [x] Verify TrellisPass interactions, tests and light/dark layouts.
 
 # QDay sign-in and setup preview
 - [x] Add wallet prerequisite and eight-digit OTP preview through Agentic Payment.
 - [x] Add five sequential setup steps, with manual Passkey and activation previews.
-- [x] Gate QPass creation and bottom navigation; verify restart, logout and layouts.
+- [x] Gate TrellisPass creation and bottom navigation; verify restart, logout and layouts.

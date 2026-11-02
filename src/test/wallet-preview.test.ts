@@ -11,7 +11,7 @@ describe("Wallet token selection", () => {
   it("uses the approved network names", () => {
     expect(previewNetworks.slice(0, 2).map(network => network.name)).toEqual(["QDay Mainnet", "Aevum Testnet"]);
   });
-  it("names the initial wallets without suggesting a QPass savings account", () => {
+  it("names the initial wallets without suggesting a TrellisPass savings account", () => {
     expect(previewWallets.map(wallet => wallet.name)).toEqual(["Wallet 1 (Main)", "Wallet 2"]);
   });
   it("sample history only references supported assets", () => {
