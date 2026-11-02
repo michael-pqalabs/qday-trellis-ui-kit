@@ -7,7 +7,7 @@
 - ThemeProvider owns the app-wide theme preference, and global semantic tokens define both palettes; keep theme switching out of individual routes so dialogs and menus inherit it too.
 - Keep the interactive component catalogue at `/design-kit`, using the same UI primitives as wallet screens so examples remain representative.
 - Model TrellisPass accounts separately from terminal approval requests, linked agents and CLI logins; logout must not silently revoke spending permissions.
-- TrellisPass is a client-only session-scoped preview initialized after hydration; use a versioned store (currently `trellis-qpass-v7`).
+- TrellisPass is a client-only session-scoped preview initialized after hydration; use a versioned store (currently `trellis-qpass-v10`).
 - QDayPreviewProvider owns session-scoped presentation-only sign-in and setup progress; QDayEntry wraps every TrellisPass route (agentic, create and agent detail) so direct navigation cannot skip setup. It is not an authentication or wallet-security boundary.
 - Only successful recovery confirmation marks the wallet prerequisite for QDay UI previews; this marker never establishes a real wallet connection. QDay setup simulations do not invoke email, WebAuthn or chain services.
 - CommentLayer (mounted in the root) owns pick-to-comment review pins: comments anchor to an element by CSS selector plus click offset and are review notes only, never app data. They are stored as GitHub Issues (label `ui-comment`) through the server functions in `src/lib/comments-api.ts`, which keep `GITHUB_TOKEN` server-side (replies are plain comments on the same issue); without a token they fall back to this browser's localStorage.

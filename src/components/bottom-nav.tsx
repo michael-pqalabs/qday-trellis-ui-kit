@@ -6,7 +6,7 @@ import { isWalletTabBlocked } from '@/lib/qday-preview';
 
 const items = [
   { to: "/wallet", label: "QDay Wallet", icon: Wallet },
-  { to: "/agentic", label: "Agentic Payment", icon: Bot },
+  { to: "/agentic", label: "Agentic Payments", icon: Bot },
 ] as const;
 
 export function BottomNav() {

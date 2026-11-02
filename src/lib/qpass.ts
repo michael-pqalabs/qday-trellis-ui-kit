@@ -7,7 +7,7 @@ export interface CliSession { id: string; label: string; host: string; client: s
 export type ActivityKind = 'fund' | 'approve' | 'activate' | 'create' | 'rename' | 'revoke';
 export interface AgenticActivity { id: string; passId: string; label: string; kind: ActivityKind; at: number }
 export interface QPassState { passes: QPass[]; agents: RegisteredAgent[]; approvals: ApprovalRequest[]; cliSessions: CliSession[]; activity: AgenticActivity[] }
-const KEY = 'trellis-qpass-v7';
+const KEY = 'trellis-qpass-v10';
 const SAMPLE_AGENTS = ['Price watcher', 'Invoice payer', 'Subscription manager', 'NFT sniper', 'Ad budget bot', 'Cloud billing agent', 'Coffee runner', 'Ticket hunter', 'Portfolio rebalancer', 'API credits topper', 'Food delivery bot', 'Translation agent', 'Gift card buyer', 'Domain renewer', 'Expense tracker'];
 const SAMPLE_HOSTS = ['macbook-pro.local', 'ubuntu-dev', 'vps-sg-1', 'thinkpad-x1', 'raspberry-pi', 'aws-ec2-tokyo', 'imac-studio'];
 const SAMPLE_STATUSES: ApprovalRequest['status'][] = ['pending', 'pending', 'approved', 'rejected', 'pending', 'expired'];
@@ -16,7 +16,7 @@ function extraSampleRequests(now: number): ApprovalRequest[] {
   return SAMPLE_AGENTS.map((agentName, i) => {
     const status = SAMPLE_STATUSES[i % SAMPLE_STATUSES.length]!;
     const expiresAt = status === 'pending' ? now + (3 + i * 7) * 60000 : now - (i + 1) * 3600000;
-    return { id: `req-s${i + 1}`, passId: i % 4 === 3 ? 'qp-research' : 'qp-shopping', agentName, client: `qday-cli · ${SAMPLE_HOSTS[i % SAMPLE_HOSTS.length]!}`, perPaymentLimit: [1, 3, 5, 8, 12, 20, 25, 50][i % 8]!, totalBudget: [10, 25, 40, 75, 120, 200, 300, 500][i % 8]!, durationDays: [1, 3, 7, 14, 30][i % 5]!, expiresAt, status };
+    return { id: `req-s${i + 1}`, passId: i % 4 === 3 ? 'qp-research' : 'qp-shopping', agentName, client: `signet-cli · ${SAMPLE_HOSTS[i % SAMPLE_HOSTS.length]!}`, perPaymentLimit: [1, 3, 5, 8, 12, 20, 25, 50][i % 8]!, totalBudget: [10, 25, 40, 75, 120, 200, 300, 500][i % 8]!, durationDays: [1, 3, 7, 14, 30][i % 5]!, expiresAt, status };
   });
 }
 export function randomAddress(): string {
@@ -30,19 +30,19 @@ export function seedQPassState(now: number): QPassState {
       { id: 'qp-research', name: 'Research TrellisPass', address: '0x2b7d4e9f1a3c5b8d6f0a2c4e7b9d1f3a5c8e0b2d', balance: 0, status: 'inactive', createdAt: now },
     ],
     agents: [
-      { id: 'agent-checkout-01', passId: 'qp-shopping', name: 'Checkout assistant', client: 'qday-cli', status: 'linked', linkedAt: now - 5 * 3600000, session: { id: 'sess-0x7a91c2', perPaymentLimit: 15, totalBudget: 150, spent: 45, startedAt: now - 5 * 3600000, expiresAt: now + 6 * 86400000 + 19 * 3600000, status: 'active' } },
-      { id: 'agent-travel-02', passId: 'qp-shopping', name: 'Travel booker', client: 'qday-cli · ubuntu-dev', status: 'linked', linkedAt: now - 3 * 86400000, session: { id: 'sess-0x3fd04b', perPaymentLimit: 40, totalBudget: 250, spent: 212, startedAt: now - 3 * 86400000, expiresAt: now + 11 * 86400000, status: 'paused' } },
-      { id: 'agent-grocery-03', passId: 'qp-shopping', name: 'Grocery bot', client: 'qday-cli · macbook-pro.local', status: 'linked', linkedAt: now - 6 * 86400000, session: { id: 'sess-0x91be7e', perPaymentLimit: 5, totalBudget: 60, spent: 60, startedAt: now - 6 * 86400000, expiresAt: now + 5 * 3600000, status: 'active' } },
-      { id: 'agent-scraper-04', passId: 'qp-shopping', name: 'Data scraper', client: 'qday-cli · vps-sg-1', status: 'revoked', linkedAt: now - 9 * 86400000, session: { id: 'sess-0x0c55a8', perPaymentLimit: 2, totalBudget: 20, spent: 6, startedAt: now - 9 * 86400000, expiresAt: now - 2 * 86400000, status: 'revoked' } },
+      { id: 'agent-checkout-01', passId: 'qp-shopping', name: 'Checkout assistant', client: 'signet-cli', status: 'linked', linkedAt: now - 5 * 3600000, session: { id: 'sess-0x7a91c2', perPaymentLimit: 15, totalBudget: 150, spent: 45, startedAt: now - 5 * 3600000, expiresAt: now + 6 * 86400000 + 19 * 3600000, status: 'active' } },
+      { id: 'agent-travel-02', passId: 'qp-shopping', name: 'Travel booker', client: 'signet-cli · ubuntu-dev', status: 'linked', linkedAt: now - 3 * 86400000, session: { id: 'sess-0x3fd04b', perPaymentLimit: 40, totalBudget: 250, spent: 212, startedAt: now - 3 * 86400000, expiresAt: now + 11 * 86400000, status: 'paused' } },
+      { id: 'agent-grocery-03', passId: 'qp-shopping', name: 'Grocery bot', client: 'signet-cli · macbook-pro.local', status: 'linked', linkedAt: now - 6 * 86400000, session: { id: 'sess-0x91be7e', perPaymentLimit: 5, totalBudget: 60, spent: 60, startedAt: now - 6 * 86400000, expiresAt: now + 5 * 3600000, status: 'active' } },
+      { id: 'agent-scraper-04', passId: 'qp-shopping', name: 'Data scraper', client: 'signet-cli · vps-sg-1', status: 'revoked', linkedAt: now - 9 * 86400000, session: { id: 'sess-0x0c55a8', perPaymentLimit: 2, totalBudget: 20, spent: 6, startedAt: now - 9 * 86400000, expiresAt: now - 2 * 86400000, status: 'revoked' } },
     ],
-    approvals: [{ id: 'req-01', passId: 'qp-shopping', agentName: 'Research assistant', client: 'qday-cli · macbook-pro.local', perPaymentLimit: 10, totalBudget: 100, durationDays: 7, expiresAt: now + 15 * 60000, status: 'pending' },
-      { id: 'req-02', passId: 'qp-shopping', agentName: 'Travel booker', client: 'qday-cli · ubuntu-dev', perPaymentLimit: 40, totalBudget: 250, durationDays: 14, expiresAt: now + 42 * 60000, status: 'pending' },
-      { id: 'req-03', passId: 'qp-shopping', agentName: 'Grocery bot', client: 'qday-cli · macbook-pro.local', perPaymentLimit: 5, totalBudget: 60, durationDays: 30, expiresAt: now + 8 * 60000, status: 'pending' },
-      { id: 'req-04', passId: 'qp-shopping', agentName: 'Data scraper', client: 'qday-cli · vps-sg-1', perPaymentLimit: 2, totalBudget: 20, durationDays: 3, expiresAt: now - 3600000, status: 'rejected' },
-      { id: 'req-05', passId: 'qp-shopping', agentName: 'Checkout assistant', client: 'qday-cli', perPaymentLimit: 15, totalBudget: 150, durationDays: 7, expiresAt: now - 5 * 3600000, status: 'approved' },
+    approvals: [{ id: 'req-01', passId: 'qp-shopping', agentName: 'Research assistant', client: 'signet-cli · macbook-pro.local', perPaymentLimit: 10, totalBudget: 100, durationDays: 7, expiresAt: now + 15 * 60000, status: 'pending' },
+      { id: 'req-02', passId: 'qp-shopping', agentName: 'Travel booker', client: 'signet-cli · ubuntu-dev', perPaymentLimit: 40, totalBudget: 250, durationDays: 14, expiresAt: now + 42 * 60000, status: 'pending' },
+      { id: 'req-03', passId: 'qp-shopping', agentName: 'Grocery bot', client: 'signet-cli · macbook-pro.local', perPaymentLimit: 5, totalBudget: 60, durationDays: 30, expiresAt: now + 8 * 60000, status: 'pending' },
+      { id: 'req-04', passId: 'qp-shopping', agentName: 'Data scraper', client: 'signet-cli · vps-sg-1', perPaymentLimit: 2, totalBudget: 20, durationDays: 3, expiresAt: now - 3600000, status: 'rejected' },
+      { id: 'req-05', passId: 'qp-shopping', agentName: 'Checkout assistant', client: 'signet-cli', perPaymentLimit: 15, totalBudget: 150, durationDays: 7, expiresAt: now - 5 * 3600000, status: 'approved' },
       ...extraSampleRequests(now),
     ],
-    cliSessions: [{ id: 'cli-1', label: 'MacBook Pro', host: 'macbook-pro.local', client: 'qday-cli', startedAt: now - 10800000, status: 'active' }],
+    cliSessions: [{ id: 'cli-1', label: 'MacBook Pro', host: 'macbook-pro.local', client: 'signet-cli', startedAt: now - 10800000, status: 'active' }],
     activity: [
       { id: 'act-1', passId: 'qp-shopping', label: 'Received 50.00 USD8 from Main wallet', kind: 'fund', at: now - 10 * 60000 },
       { id: 'act-2', passId: 'qp-shopping', label: 'Granted 100 USD8 budget to Research assistant', kind: 'approve', at: now - 2 * 3600000 },

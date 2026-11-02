@@ -75,7 +75,7 @@ function Settings() {
           <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground font-display font-semibold">{(state.email ?? "T").charAt(0).toUpperCase()}</span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">{state.email ?? "Not signed in to QDay"}</p>
-            <p className="text-xs text-muted-foreground">{state.email ? "QDay platform account" : "Sign in from Agentic Payment"}</p>
+            <p className="text-xs text-muted-foreground">{state.email ? "QDay platform account" : "Sign in from Agentic Payments"}</p>
           </div>
         </div>
 

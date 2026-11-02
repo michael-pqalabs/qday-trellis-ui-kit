@@ -12,7 +12,7 @@
 - [x] Remove the wallet name from the copy-address row so it stays a single line.
 
 # Bottom navigation
-- [x] Add a bottom bar with Qday Wallet and Agentic Payment destinations.
+- [x] Add a bottom bar with QDay Wallet and Agentic Payments destinations.
 
 # Blue design kit
 - [x] Replace green with the blue brand palette and logo.
@@ -23,7 +23,7 @@
 # Agentic Payments / TrellisPass
 - [x] TrellisPass overview: pass cards with limits, budget progress, status and revoke.
 - [x] Create TrellisPass screen with validation and summary.
-- [x] QDay CLI login sessions with end-session action.
+- [x] Signet CLI login sessions with end-session action.
 - [x] Agentic activity list (demo data).
 
 # TrellisPass account model
@@ -33,6 +33,6 @@
 - [x] Verify TrellisPass interactions, tests and light/dark layouts.
 
 # QDay sign-in and setup preview
-- [x] Add wallet prerequisite and eight-digit OTP preview through Agentic Payment.
+- [x] Add wallet prerequisite and eight-digit OTP preview through Agentic Payments.
 - [x] Add five sequential setup steps, with manual Passkey and activation previews.
 - [x] Gate TrellisPass creation and bottom navigation; verify restart, logout and layouts.

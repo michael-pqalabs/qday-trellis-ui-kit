@@ -101,7 +101,7 @@ function Recovery() {
           {[
             { icon: PenLine, t: "Write it on paper and store it somewhere safe" },
             { icon: WifiOff, t: "Never save it in screenshots, email or the cloud" },
-            { icon: UserX, t: "Trellis support will never ask for your phrase" },
+            { icon: UserX, t: "Trellis support team will never ask for your phrase" },
           ].map(({ icon: I, t }) => (
             <li key={t} className="flex items-center gap-3 text-sm text-muted-foreground">
               <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-secondary text-accent"><I className="h-4 w-4" /></span>

@@ -72,7 +72,7 @@ function WalletOverview() {
         </header>
 
         <div className="mb-5 mt-6 flex items-center justify-between">
-          <h1 className="font-display text-3xl font-semibold">My wallet</h1>
+          <h1 className="font-display text-3xl font-semibold">My Wallets</h1>
           <Select value={networkId} onValueChange={setNetworkId}>
             <SelectTrigger aria-label="Network" className="h-8 w-auto max-w-40 gap-1.5 rounded-full border-border/60 bg-card px-3 text-[11px] shadow-sm"><span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" /><SelectValue /></SelectTrigger>
             <SelectContent>{previewNetworks.map(item => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent>

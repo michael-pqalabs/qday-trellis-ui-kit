@@ -59,8 +59,8 @@ function AgentDetail() {
       <section className="mt-5 flex items-center gap-3">
         <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary"><Bot className="h-6 w-6" /></span>
         <div className="min-w-0 flex-1">
-          <h1 className="truncate font-display text-xl font-semibold">{agent.name}</h1>
-          <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-muted-foreground"><Terminal className="h-3 w-3" />{agent.client}</p>
+          <h1 className="truncate font-display text-xl font-semibold">View Spending Session</h1>
+          <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-muted-foreground"><Terminal className="h-3 w-3" />{agent.name} · {agent.client}</p>
         </div>
         <Badge variant="outline" className={`rounded-full ${agent.status === 'linked' ? 'text-primary' : 'text-muted-foreground'}`}>{agent.status === 'linked' ? 'Linked' : 'Revoked'}</Badge>
       </section>

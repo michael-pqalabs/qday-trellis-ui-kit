@@ -98,7 +98,7 @@ function CreateWallet() {
           </Button>
           <Button variant="outline" disabled={!agreed} onClick={() => setImportOpen(true)} className="mt-3 h-14 w-full font-display text-base"><Download />I already have a wallet</Button>
           <p className="mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground">
-            <Fingerprint className="h-4 w-4" /> Protect with Face ID after setup
+            <Fingerprint className="h-4 w-4" /> Protect with PassKey after setup
           </p>
         </div>
         <Dialog open={importOpen} onOpenChange={setImportOpen}><DialogContent className="w-[calc(100%-2rem)] max-w-sm"><DialogHeader><DialogTitle>Import existing wallet</DialogTitle><DialogDescription>Wallet import isn't connected in this preview. Never enter a real recovery phrase here.</DialogDescription></DialogHeader><Button onClick={() => setImportOpen(false)}>Got it</Button></DialogContent></Dialog>
