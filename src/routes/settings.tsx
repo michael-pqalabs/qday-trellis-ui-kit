@@ -162,7 +162,7 @@ function Settings() {
           <Row
             icon={Fingerprint}
             label="Biometric unlock"
-            detail="Face ID or fingerprint"
+            detail="Passkey · Touch ID or Face ID"
             right={
               <Switch
                 checked={biometric}
