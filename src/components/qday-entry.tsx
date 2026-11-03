@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
-import logo from "@/assets/trellis-app-icon.svg";
+import { TrellisLockup } from "@/components/trellis-lockup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
@@ -95,10 +95,7 @@ function QDayOnboarding() {
     <div className="flex min-h-screen justify-center bg-background">
       <main className="flex min-h-screen w-full max-w-md flex-col px-6 pt-6">
         <header className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <img src={logo} alt="Trellis Wallet" className="h-8 w-8" />
-            <span className="font-display text-lg font-semibold">Trellis</span>
-          </div>
+          <TrellisLockup />
           {state.email && (
             <Button
               variant="ghost"

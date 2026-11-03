@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { TrellisLockup } from "@/components/trellis-lockup";
 import logo from "@/assets/trellis-app-icon.svg";
 import { ShieldCheck, Plus, Download, ChevronRight, Fingerprint } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,10 +33,6 @@ export const Route = createFileRoute("/")({
   component: CreateWallet,
 });
 
-function TrellisMark() {
-  return <img src={logo} alt="Trellis Wallet" className="h-8 w-8" />;
-}
-
 function CreateWallet() {
   const [importOpen, setImportOpen] = useState(false);
   const navigate = useNavigate();
@@ -53,12 +50,7 @@ function CreateWallet() {
     <div className="flex min-h-screen justify-center bg-background">
       <main className="relative flex min-h-screen w-full max-w-md flex-col overflow-hidden bg-hero px-6 pb-8 pt-6">
         <header className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-primary">
-            <TrellisMark />
-            <span className="font-display text-lg font-semibold tracking-tight text-foreground">
-              Trellis
-            </span>
-          </div>
+          <TrellisLockup />
           <span className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs text-muted-foreground">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Self-custody
           </span>

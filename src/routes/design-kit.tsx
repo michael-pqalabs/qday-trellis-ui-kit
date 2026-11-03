@@ -13,6 +13,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
+import { TrellisLockup } from "@/components/trellis-lockup";
 import logo from "@/assets/trellis-app-icon.svg";
 import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
@@ -153,10 +154,7 @@ function DesignKit() {
     <div className="flex min-h-screen justify-center bg-background">
       <main className="w-full max-w-md px-6 pb-10 pt-6">
         <header className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <img src={logo} className="h-9 w-9" alt="Trellis Wallet" />
-            <span className="font-display text-lg font-semibold">Trellis</span>
-          </div>
+          <TrellisLockup />
           <Button asChild variant="ghost" size="sm">
             <Link to="/wallet">
               <ArrowLeft />
