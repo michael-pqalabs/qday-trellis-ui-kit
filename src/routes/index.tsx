@@ -33,7 +33,7 @@ export const Route = createFileRoute("/")({
 });
 
 function TrellisMark() {
-  return <img src={logo} alt="Trellis logo" className="h-8 w-8 rounded-lg" />;
+  return <img src={logo} alt="Trellis Wallet" className="h-8 w-8" />;
 }
 
 function CreateWallet() {
@@ -45,6 +45,8 @@ function CreateWallet() {
   // The video can fail before hydration, in which case onError never reaches React.
   useEffect(() => {
     if (introRef.current?.error) setIntroFailed(true);
+    // Brand kit: logo animations respect reduced motion and show the final frame (the static icon).
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) setIntroFailed(true);
   }, []);
 
   return (

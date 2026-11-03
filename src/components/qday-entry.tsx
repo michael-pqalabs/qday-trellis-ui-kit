@@ -96,7 +96,7 @@ function QDayOnboarding() {
       <main className="flex min-h-screen w-full max-w-md flex-col px-6 pt-6">
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <img src={logo} alt="Trellis" className="h-8 w-8 rounded-lg" />
+            <img src={logo} alt="Trellis Wallet" className="h-8 w-8" />
             <span className="font-display text-lg font-semibold">Trellis</span>
           </div>
           {state.email && (

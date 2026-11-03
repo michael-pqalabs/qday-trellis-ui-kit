@@ -89,7 +89,7 @@
   --foreground: #f5f7f9;
   --card: #1b1e24;
   --popover: #2e3239;
-  --dialog: #0f141a;
+  --dialog: #1b1e24;
   --shadow-dialog: 0 30px 80px -16px #00000099;
   --primary: var(--brand);
   --primary-foreground: #ffffff;
@@ -103,7 +103,7 @@
   --destructive-foreground: #351110;
   --success: #9dd0a6;
   --border: #42474f;
-  --divider: #1e252f;
+  --divider: #2e3239;
   --input: #828893;
   --glow: #1f66ff50;
   --gradient-hero:

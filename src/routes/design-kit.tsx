@@ -154,7 +154,7 @@ function DesignKit() {
       <main className="w-full max-w-md px-6 pb-10 pt-6">
         <header className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <img src={logo} className="h-9 w-9 rounded-lg" alt="Trellis" />
+            <img src={logo} className="h-9 w-9" alt="Trellis Wallet" />
             <span className="font-display text-lg font-semibold">Trellis</span>
           </div>
           <Button asChild variant="ghost" size="sm">
@@ -543,7 +543,7 @@ function DesignKit() {
           <div className="grid grid-cols-2 gap-4">
             <div className="grid aspect-square place-items-center rounded-lg border bg-card">
               {imageVisible ? (
-                <img src={logo} alt="Trellis app icon" className="h-24 w-24 rounded-lg" />
+                <img src={logo} alt="Trellis Wallet app icon" className="h-24 w-24" />
               ) : (
                 <div className="flex flex-col items-center gap-2 text-muted-foreground">
                   <ImageOff className="h-8 w-8" />
