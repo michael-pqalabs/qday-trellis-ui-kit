@@ -51,7 +51,7 @@ function SendPage() {
   const [tokenId, setTokenId] = useState(search.token ?? "qday");
   const { wallet, network, token, balance } = getPreviewHolding(
     search.wallet ?? "main",
-    search.network ?? "mainnet",
+    search.network ?? "testnet",
     tokenId,
     wallets,
   );

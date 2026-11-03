@@ -45,7 +45,7 @@ function ReceivePage() {
   const [copied, setCopied] = useState(false);
   const { wallet, network, token } = getPreviewHolding(
     search.wallet ?? "main",
-    search.network ?? "mainnet",
+    search.network ?? "testnet",
     tokenId,
     wallets,
   );

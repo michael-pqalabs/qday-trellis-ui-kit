@@ -15,13 +15,17 @@ describe("Wallet token selection", () => {
     ["qday", "QDAY"],
     ["usd8", "USD8"],
   ])("returns only the selected %s holding", (id, name) => {
-    expect(getPreviewHolding("main", "mainnet", id).token.name).toBe(name);
+    expect(getPreviewHolding("main", "testnet", id).token.name).toBe(name);
   });
   it("uses the approved network names", () => {
     expect(previewNetworks.slice(0, 2).map((network) => network.name)).toEqual([
-      "QDay Mainnet",
       "Aevum Testnet",
+      "Base Testnet",
     ]);
+  });
+  it("defaults to Aevum Testnet, including for an unknown network id", () => {
+    expect(previewNetworks[0].id).toBe("testnet");
+    expect(getPreviewHolding("main", "unknown", "qday").network.name).toBe("Aevum Testnet");
   });
   it("names the initial wallets without suggesting a TrellisPass savings account", () => {
     expect(previewWallets.map((wallet) => wallet.name)).toEqual(["Wallet 1 (Main)", "Wallet 2"]);
@@ -32,8 +36,8 @@ describe("Wallet token selection", () => {
     ).toBe(true);
   });
   it("changes the address when selecting a different wallet", () => {
-    expect(getPreviewHolding("savings", "mainnet", "qday").wallet.address).not.toBe(
-      getPreviewHolding("main", "mainnet", "qday").wallet.address,
+    expect(getPreviewHolding("savings", "testnet", "qday").wallet.address).not.toBe(
+      getPreviewHolding("main", "testnet", "qday").wallet.address,
     );
   });
   it("changes the network while preserving the selected token", () => {

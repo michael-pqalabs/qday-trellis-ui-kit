@@ -283,13 +283,13 @@ function DesignKit() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="kit-network">Network</Label>
-              <Select defaultValue="mainnet">
+              <Select defaultValue="testnet">
                 <SelectTrigger id="kit-network">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="mainnet">QDay Mainnet</SelectItem>
                   <SelectItem value="testnet">Aevum Testnet</SelectItem>
+                  <SelectItem value="base-testnet">Base Testnet</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -501,7 +501,7 @@ function DesignKit() {
                   <SheetTitle>Wallet details</SheetTitle>
                   <SheetDescription>Design-kit preview</SheetDescription>
                 </SheetHeader>
-                <p className="mt-6 text-sm">Main wallet · QDay Mainnet</p>
+                <p className="mt-6 text-sm">Main wallet · Aevum Testnet</p>
               </SheetContent>
             </Sheet>
             <DropdownMenu>
@@ -615,7 +615,7 @@ function DesignKit() {
             </AccordionItem>
             <AccordionItem value="network">
               <AccordionTrigger>Network</AccordionTrigger>
-              <AccordionContent>QDay Mainnet and Aevum Testnet.</AccordionContent>
+              <AccordionContent>Aevum Testnet and Base Testnet.</AccordionContent>
             </AccordionItem>
           </Accordion>
         </Section>

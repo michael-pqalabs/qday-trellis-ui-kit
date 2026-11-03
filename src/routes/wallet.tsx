@@ -74,9 +74,9 @@ function WalletOverview() {
   const { wallets, addWallet } = useWalletPreview();
   const [addOpen, setAddOpen] = useState(false);
   const [newName, setNewName] = useState("");
-  const [newNetwork, setNewNetwork] = useState("mainnet");
+  const [newNetwork, setNewNetwork] = useState("testnet");
   const [walletId, setWalletId] = useState("main");
-  const [networkId, setNetworkId] = useState("mainnet");
+  const [networkId, setNetworkId] = useState("testnet");
   const [tokenId, setTokenId] = useState("qday");
   const [visible, setVisible] = useState(true);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");

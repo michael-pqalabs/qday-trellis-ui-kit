@@ -5,9 +5,8 @@ export const previewWallets = [
 ] as const;
 
 export const previewNetworks = [
-  { id: "mainnet", name: "QDay Mainnet" },
   { id: "testnet", name: "Aevum Testnet" },
-  { id: "base", name: "Base" },
+  { id: "base-testnet", name: "Base Testnet" },
 ] as const;
 
 export const walletTokens = [
