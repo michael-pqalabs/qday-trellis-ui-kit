@@ -16,8 +16,8 @@ import { ThemeProvider, ThemeToggle } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 import { Grid2X2 } from "lucide-react";
-import { QDayPreviewProvider } from '@/components/qday-preview-provider';
-import { WalletPreviewProvider } from '@/components/wallet-preview-provider';
+import { QDayPreviewProvider } from "@/components/qday-preview-provider";
+import { WalletPreviewProvider } from "@/components/wallet-preview-provider";
 
 function NotFoundComponent() {
   return (
@@ -132,11 +132,22 @@ function RootComponent() {
       <ThemeProvider>
         <div className="border-b border-divider bg-background">
           <div className="mx-auto flex w-full max-w-md items-center justify-between px-6 py-1">
-            <Button asChild variant="ghost" size="sm"><Link to="/design-kit"><Grid2X2 />Design kit</Link></Button>
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/design-kit">
+                <Grid2X2 />
+                Design kit
+              </Link>
+            </Button>
             <ThemeToggle />
           </div>
         </div>
-        <QDayPreviewProvider><WalletPreviewProvider><div className="trellis-screen"><Outlet /></div></WalletPreviewProvider></QDayPreviewProvider>
+        <QDayPreviewProvider>
+          <WalletPreviewProvider>
+            <div className="trellis-screen">
+              <Outlet />
+            </div>
+          </WalletPreviewProvider>
+        </QDayPreviewProvider>
         <CommentLayer />
         <Toaster />
       </ThemeProvider>

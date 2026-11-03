@@ -4,15 +4,27 @@ import logo from "@/assets/trellis-app-icon.svg";
 import { ShieldCheck, Plus, Download, ChevronRight, Fingerprint } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Create Wallet — Trellis Wallet" },
-      { name: "description", content: "Create or import your self-custody Trellis Wallet in seconds." },
+      {
+        name: "description",
+        content: "Create or import your self-custody Trellis Wallet in seconds.",
+      },
       { property: "og:title", content: "Create Wallet — Trellis Wallet" },
-      { property: "og:description", content: "Create or import your self-custody Trellis Wallet in seconds." },
+      {
+        property: "og:description",
+        content: "Create or import your self-custody Trellis Wallet in seconds.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -41,7 +53,9 @@ function CreateWallet() {
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-primary">
             <TrellisMark />
-            <span className="font-display text-lg font-semibold tracking-tight text-foreground">Trellis</span>
+            <span className="font-display text-lg font-semibold tracking-tight text-foreground">
+              Trellis
+            </span>
           </div>
           <span className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs text-muted-foreground">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Self-custody
@@ -61,9 +75,23 @@ function CreateWallet() {
           </div>
           {/* The intro video is sized for its own padding; without the file, show the plain icon instead. */}
           {introFailed ? (
-            <img src={logo} alt="Trellis Wallet" className="animate-floaty h-28 w-28 object-contain" />
+            <img
+              src={logo}
+              alt="Trellis Wallet"
+              className="animate-floaty h-28 w-28 object-contain"
+            />
           ) : (
-            <video ref={introRef} src="/trellis-intro.webm" poster={logo} autoPlay muted playsInline aria-label="Trellis Wallet" onError={() => setIntroFailed(true)} className="animate-floaty h-56 w-56 scale-150 object-contain" />
+            <video
+              ref={introRef}
+              src="/trellis-intro.webm"
+              poster={logo}
+              autoPlay
+              muted
+              playsInline
+              aria-label="Trellis Wallet"
+              onError={() => setIntroFailed(true)}
+              className="animate-floaty h-56 w-56 scale-150 object-contain"
+            />
           )}
         </div>
 
@@ -79,29 +107,57 @@ function CreateWallet() {
         <div className="mt-6 flex items-start gap-3 rounded-2xl border border-accent/20 bg-accent/5 p-4">
           <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
           <p className="text-xs leading-relaxed text-muted-foreground">
-            Trellis never stores your recovery phrase. Write it down and keep it offline — it's the only way to restore your wallet.
+            Trellis never stores your recovery phrase. Write it down and keep it offline — it's the
+            only way to restore your wallet.
           </p>
         </div>
 
         <div className="mt-auto pt-8">
           <label className="mb-4 flex cursor-pointer items-center gap-3 text-xs text-muted-foreground">
-            <Checkbox checked={agreed} onCheckedChange={value => setAgreed(value === true)} aria-label="Agree to Terms and Privacy Policy" />
-            <span>I agree to the <span className="text-foreground underline underline-offset-2">Terms</span> and <span className="text-foreground underline underline-offset-2">Privacy Policy</span></span>
+            <Checkbox
+              checked={agreed}
+              onCheckedChange={(value) => setAgreed(value === true)}
+              aria-label="Agree to Terms and Privacy Policy"
+            />
+            <span>
+              I agree to the{" "}
+              <span className="text-foreground underline underline-offset-2">Terms</span> and{" "}
+              <span className="text-foreground underline underline-offset-2">Privacy Policy</span>
+            </span>
           </label>
           <Button
             disabled={!agreed}
             onClick={() => navigate({ to: "/recovery" })}
             className="h-14 w-full font-display text-base font-semibold"
           >
-            <Plus />Create new wallet
+            <Plus />
+            Create new wallet
             <ChevronRight className="h-5 w-5" />
           </Button>
-          <Button variant="outline" disabled={!agreed} onClick={() => setImportOpen(true)} className="mt-3 h-14 w-full font-display text-base"><Download />I already have a wallet</Button>
+          <Button
+            variant="outline"
+            disabled={!agreed}
+            onClick={() => setImportOpen(true)}
+            className="mt-3 h-14 w-full font-display text-base"
+          >
+            <Download />I already have a wallet
+          </Button>
           <p className="mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground">
             <Fingerprint className="h-4 w-4" /> Protect with PassKey after setup
           </p>
         </div>
-        <Dialog open={importOpen} onOpenChange={setImportOpen}><DialogContent className="w-[calc(100%-2rem)] max-w-sm"><DialogHeader><DialogTitle>Import existing wallet</DialogTitle><DialogDescription>Wallet import isn't connected in this preview. Never enter a real recovery phrase here.</DialogDescription></DialogHeader><Button onClick={() => setImportOpen(false)}>Got it</Button></DialogContent></Dialog>
+        <Dialog open={importOpen} onOpenChange={setImportOpen}>
+          <DialogContent className="w-[calc(100%-2rem)] max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Import existing wallet</DialogTitle>
+              <DialogDescription>
+                Wallet import isn't connected in this preview. Never enter a real recovery phrase
+                here.
+              </DialogDescription>
+            </DialogHeader>
+            <Button onClick={() => setImportOpen(false)}>Got it</Button>
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );

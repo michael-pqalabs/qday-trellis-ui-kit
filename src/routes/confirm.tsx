@@ -1,17 +1,33 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Check, ShieldCheck, Sparkles, RotateCcw, ChevronRight, PartyPopper } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  ShieldCheck,
+  Sparkles,
+  RotateCcw,
+  ChevronRight,
+  PartyPopper,
+} from "lucide-react";
 import { loadPhrase, shuffle, distractors, pickSpots, clearPhrase } from "@/lib/phrase";
 import { Button } from "@/components/ui/button";
-import { useQDayPreview } from '@/components/qday-preview-provider';
+import { useQDayPreview } from "@/components/qday-preview-provider";
 
 export const Route = createFileRoute("/confirm")({
   head: () => ({
     meta: [
       { title: "Confirm Phrase — Trellis Wallet" },
-      { name: "description", content: "Confirm three words from your recovery phrase to finish setting up Trellis Wallet." },
+      {
+        name: "description",
+        content:
+          "Confirm three words from your recovery phrase to finish setting up Trellis Wallet.",
+      },
       { property: "og:title", content: "Confirm Phrase — Trellis Wallet" },
-      { property: "og:description", content: "Confirm three words from your recovery phrase to finish setting up Trellis Wallet." },
+      {
+        property: "og:description",
+        content:
+          "Confirm three words from your recovery phrase to finish setting up Trellis Wallet.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -62,7 +78,7 @@ function ConfirmPhrase() {
     const bad = answers.map((w, i) => (w === checks[i] ? -1 : i)).filter((i) => i >= 0);
     if (!bad.length) {
       clearPhrase();
-      update(state => ({ ...state, walletReady: true }));
+      update((state) => ({ ...state, walletReady: true }));
       setDone(true);
       return;
     }
@@ -120,7 +136,9 @@ function ConfirmPhrase() {
 
             <div className="mt-7 flex items-center justify-center gap-2 text-xs text-muted-foreground">
               <Sparkles className="h-4 w-4 text-accent" />
-              {misses === 0 ? "First try — no mistakes" : `${misses} wrong tap${misses > 1 ? "s" : ""} along the way`}
+              {misses === 0
+                ? "First try — no mistakes"
+                : `${misses} wrong tap${misses > 1 ? "s" : ""} along the way`}
             </div>
           </section>
 
@@ -147,7 +165,11 @@ function ConfirmPhrase() {
     <div className="flex min-h-screen justify-center bg-background">
       <main className="relative flex min-h-screen w-full max-w-md flex-col bg-hero px-6 pb-8 pt-6">
         <header className="flex items-center justify-between">
-          <Link to="/recovery" aria-label="Back" className="glass grid h-10 w-10 place-items-center rounded-xl border">
+          <Link
+            to="/recovery"
+            aria-label="Back"
+            className="glass grid h-10 w-10 place-items-center rounded-xl border"
+          >
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div className="flex items-center gap-1.5">
@@ -163,7 +185,8 @@ function ConfirmPhrase() {
             Confirm your <span className="text-accent">phrase</span>
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Tap the words that sit in positions {spots.map((s) => s + 1).join(", ") || "…"} of your phrase.
+            Tap the words that sit in positions {spots.map((s) => s + 1).join(", ") || "…"} of your
+            phrase.
           </p>
         </section>
 
@@ -186,8 +209,12 @@ function ConfirmPhrase() {
                         : "glass border-dashed"
                 }`}
               >
-                <span className="w-14 shrink-0 text-xs text-muted-foreground">{ORDINAL(spot + 1)} word</span>
-                <span className={`flex-1 font-display text-lg font-medium ${filled ? "" : "text-muted-foreground/50"}`}>
+                <span className="w-14 shrink-0 text-xs text-muted-foreground">
+                  {ORDINAL(spot + 1)} word
+                </span>
+                <span
+                  className={`flex-1 font-display text-lg font-medium ${filled ? "" : "text-muted-foreground/50"}`}
+                >
                   {filled ?? "tap a word below"}
                 </span>
                 {correct ? (
@@ -237,10 +264,16 @@ function ConfirmPhrase() {
 
         <div className="mt-auto pt-8">
           <div className="mb-4 flex items-center justify-between text-xs">
-            <Link to="/recovery" className="text-muted-foreground underline underline-offset-2 hover:text-foreground">
+            <Link
+              to="/recovery"
+              className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
+            >
               Not sure? See the phrase again
             </Link>
-            <button onClick={reset} className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
+            <button
+              onClick={reset}
+              className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
+            >
               <RotateCcw className="h-3.5 w-3.5" /> Start over
             </button>
           </div>

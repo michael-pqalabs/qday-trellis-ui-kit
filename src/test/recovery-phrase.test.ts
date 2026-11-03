@@ -31,7 +31,20 @@ describe("Recovery phrase helpers", () => {
   });
 
   it("reads back the phrase that was saved", () => {
-    const phrase = ["orbit", "maple", "velvet", "harbor", "canyon", "silent", "ember", "quartz", "lunar", "meadow", "falcon", "prism"];
+    const phrase = [
+      "orbit",
+      "maple",
+      "velvet",
+      "harbor",
+      "canyon",
+      "silent",
+      "ember",
+      "quartz",
+      "lunar",
+      "meadow",
+      "falcon",
+      "prism",
+    ];
     savePhrase(phrase);
 
     expect(loadPhrase()).toEqual(phrase);

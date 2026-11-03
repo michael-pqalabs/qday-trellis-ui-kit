@@ -64,16 +64,21 @@
   --destructive-foreground: #ffffff;
   --success: #35824b;
   --border: #d6d9de;
-  --divider: #E9EBEF;
+  --divider: #e9ebef;
   --input: #828893;
   --ring: var(--primary);
   --overlay: #111318;
   --glow: #0257ff30;
-  --gradient-hero: radial-gradient(130% 85% at 30% 0%, #0257ff2b, transparent 80%), linear-gradient(160deg, #f2f5fa, #f5f7f9);
+  --gradient-hero:
+    radial-gradient(130% 85% at 30% 0%, #0257ff2b, transparent 80%),
+    linear-gradient(160deg, #f2f5fa, #f5f7f9);
   --shadow-glow: 0 18px 50px -12px var(--glow);
-  --gradient-card: radial-gradient(130% 150% at 88% -25%, #0257ff17, transparent 62%), linear-gradient(180deg, #ffffff, #fafbfc);
+  --gradient-card:
+    radial-gradient(130% 150% at 88% -25%, #0257ff17, transparent 62%),
+    linear-gradient(180deg, #ffffff, #fafbfc);
   --shadow-card: 0 14px 34px -16px #0257ff40, 0 2px 8px -3px #1b1e2412;
-  --gradient-mesh: radial-gradient(90% 55% at 20% -5%, #0257ff33, transparent 70%),
+  --gradient-mesh:
+    radial-gradient(90% 55% at 20% -5%, #0257ff33, transparent 70%),
     radial-gradient(80% 45% at 0% 105%, #0257ff1f, transparent 70%),
     linear-gradient(180deg, #eef1f6, #f5f7f9 60%, #eff2f6);
 }
@@ -84,7 +89,7 @@
   --foreground: #f5f7f9;
   --card: #1b1e24;
   --popover: #2e3239;
-  --dialog: #0F141A;
+  --dialog: #0f141a;
   --shadow-dialog: 0 30px 80px -16px #00000099;
   --primary: var(--brand);
   --primary-foreground: #ffffff;
@@ -98,31 +103,44 @@
   --destructive-foreground: #351110;
   --success: #9dd0a6;
   --border: #42474f;
-  --divider: #1E252F;
+  --divider: #1e252f;
   --input: #828893;
   --glow: #1f66ff50;
-  --gradient-hero: radial-gradient(130% 85% at 30% 0%, #1f66ff4d, transparent 80%), linear-gradient(180deg, #111318, #111318);
-  --gradient-card: radial-gradient(130% 150% at 88% -25%, #1f66ff2e, transparent 62%), linear-gradient(180deg, #20242b, #1b1e24);
-  --shadow-card: 0 18px 44px -18px #00000090, inset 0 1px 0 #FFFFFF0A;
-  --gradient-mesh: radial-gradient(95% 55% at 20% -5%, #1f66ff8c, transparent 70%),
+  --gradient-hero:
+    radial-gradient(130% 85% at 30% 0%, #1f66ff4d, transparent 80%),
+    linear-gradient(180deg, #111318, #111318);
+  --gradient-card:
+    radial-gradient(130% 150% at 88% -25%, #1f66ff2e, transparent 62%),
+    linear-gradient(180deg, #20242b, #1b1e24);
+  --shadow-card: 0 18px 44px -18px #00000090, inset 0 1px 0 #ffffff0a;
+  --gradient-mesh:
+    radial-gradient(95% 55% at 20% -5%, #1f66ff8c, transparent 70%),
     radial-gradient(85% 50% at 0% 105%, #1f66ff40, transparent 70%),
     linear-gradient(180deg, #141a2a, #111318 55%, #121624);
 }
 
 /* Bright foreground roles on dark surfaces; filled controls retain brand blue. */
-.dark .text-primary { color: #6ea1ff; }
+.dark .text-primary {
+  color: #6ea1ff;
+}
 
 @layer base {
-  * { border-color: var(--color-border); }
+  * {
+    border-color: var(--color-border);
+  }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
   }
-  * { letter-spacing: 0; }
+  * {
+    letter-spacing: 0;
+  }
 }
 
-@utility bg-hero { background-image: var(--gradient-hero); }
+@utility bg-hero {
+  background-image: var(--gradient-hero);
+}
 
 /* Keep the background visible independently of each screen's content height. */
 .trellis-screen {
@@ -135,63 +153,197 @@
   background-size: 100% 100%;
   background-repeat: no-repeat;
 }
-@utility shadow-glow { box-shadow: var(--shadow-glow); }
-@utility bg-card-hero { background-image: var(--gradient-card); }
-@utility shadow-card { box-shadow: var(--shadow-card); }
+@utility shadow-glow {
+  box-shadow: var(--shadow-glow);
+}
+@utility bg-card-hero {
+  background-image: var(--gradient-card);
+}
+@utility shadow-card {
+  box-shadow: var(--shadow-card);
+}
 @utility glass {
   background: color-mix(in oklab, var(--card) 70%, transparent);
   backdrop-filter: blur(16px);
 }
 
-@keyframes floaty { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-8px) } }
-@keyframes spin-slow { to { transform: rotate(360deg) } }
-@utility animate-floaty { animation: floaty 5s ease-in-out infinite; }
-@utility animate-spin-slow { animation: spin-slow 24s linear infinite; }
-@keyframes shake { 0%,100% { transform: translateX(0) } 20% { transform: translateX(-6px) } 40% { transform: translateX(6px) } 60% { transform: translateX(-4px) } 80% { transform: translateX(4px) } }
-@keyframes pop { 0% { transform: scale(.88); opacity: .3 } 60% { transform: scale(1.05) } 100% { transform: scale(1); opacity: 1 } }
-@keyframes bloom { 0% { transform: scale(.6); opacity: 0 } 70% { transform: scale(1.12); opacity: 1 } 100% { transform: scale(1); opacity: 1 } }
-@utility animate-shake { animation: shake .45s ease-in-out; }
-@utility animate-pop { animation: pop .28s ease-out; }
-@utility animate-bloom { animation: bloom .55s cubic-bezier(.2,.9,.3,1.2) both; }
+@keyframes floaty {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@utility animate-floaty {
+  animation: floaty 5s ease-in-out infinite;
+}
+@utility animate-spin-slow {
+  animation: spin-slow 24s linear infinite;
+}
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(6px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(4px);
+  }
+}
+@keyframes pop {
+  0% {
+    transform: scale(0.88);
+    opacity: 0.3;
+  }
+  60% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes bloom {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@utility animate-shake {
+  animation: shake 0.45s ease-in-out;
+}
+@utility animate-pop {
+  animation: pop 0.28s ease-out;
+}
+@utility animate-bloom {
+  animation: bloom 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
 
 /* UI kit accents: sheen, elevation, shimmer and spring motion. */
 :root {
-  --sheen: linear-gradient(180deg, #FFFFFF26, transparent 55%);
+  --sheen: linear-gradient(180deg, #ffffff26, transparent 55%);
   --surface: radial-gradient(120% 60% at 50% -10%, #0257ff12, transparent 60%);
-  --shadow-primary: 0 8px 20px -8px #0257ff99, inset 0 1px 0 #FFFFFF33;
+  --shadow-primary: 0 8px 20px -8px #0257ff99, inset 0 1px 0 #ffffff33;
   --shadow-elevated: 0 24px 60px -20px #19203340, 0 4px 14px -6px #0257ff30;
   --shimmer-base: #e9ebef;
   --shimmer-hi: #f5f7f9;
 }
 .dark {
-  --surface: radial-gradient(120% 60% at 50% -10%, #1f66ff26, transparent 60%), linear-gradient(180deg, #20242b, #1b1e24);
-  --shadow-primary: 0 8px 22px -8px #1f66ffCC, inset 0 1px 0 #FFFFFF2E;
-  --shadow-elevated: 0 30px 70px -20px #000000B0, inset 0 1px 0 #FFFFFF12;
+  --surface:
+    radial-gradient(120% 60% at 50% -10%, #1f66ff26, transparent 60%),
+    linear-gradient(180deg, #20242b, #1b1e24);
+  --shadow-primary: 0 8px 22px -8px #1f66ffcc, inset 0 1px 0 #ffffff2e;
+  --shadow-elevated: 0 30px 70px -20px #000000b0, inset 0 1px 0 #ffffff12;
   --shimmer-base: #2e3239;
   --shimmer-hi: #42474f;
 }
-@utility sheen { background-image: var(--sheen); }
-@utility surface-glow { background-image: var(--surface); }
-@utility shadow-primary { box-shadow: var(--shadow-primary); }
-@utility shadow-elevated { box-shadow: var(--shadow-elevated); }
-@utility shadow-dialog { box-shadow: var(--shadow-dialog); }
-@keyframes shimmer { from { background-position: 150% 0 } to { background-position: -50% 0 } }
+@utility sheen {
+  background-image: var(--sheen);
+}
+@utility surface-glow {
+  background-image: var(--surface);
+}
+@utility shadow-primary {
+  box-shadow: var(--shadow-primary);
+}
+@utility shadow-elevated {
+  box-shadow: var(--shadow-elevated);
+}
+@utility shadow-dialog {
+  box-shadow: var(--shadow-dialog);
+}
+@keyframes shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
 @utility skeleton-shimmer {
-  background: linear-gradient(100deg, var(--shimmer-base) 30%, var(--shimmer-hi) 50%, var(--shimmer-base) 70%);
+  background: linear-gradient(
+    100deg,
+    var(--shimmer-base) 30%,
+    var(--shimmer-hi) 50%,
+    var(--shimmer-base) 70%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.4s ease-in-out infinite;
 }
-@keyframes modal-in { from { opacity: 0; transform: translateY(6%) scale(.96) } to { opacity: 1; transform: none } }
-@keyframes modal-out { from { opacity: 1; transform: none } to { opacity: 0; transform: translateY(4%) scale(.97) } }
-@keyframes fade-up { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
-@utility animate-modal-in { animation: modal-in .38s cubic-bezier(.16,1,.3,1) both; }
-@utility animate-modal-out { animation: modal-out .18s ease-in both; }
-@utility animate-fade-up { animation: fade-up .3s cubic-bezier(.16,1,.3,1) both; }
-
-/* Comment pick mode: crosshair everywhere except the comment UI itself. */
-html.comment-picking *:not([data-comment-ui], [data-comment-ui] *) { cursor: crosshair !important; }
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(6%) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes modal-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(4%) scale(0.97);
+  }
+}
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@utility animate-modal-in {
+  animation: modal-in 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@utility animate-modal-out {
+  animation: modal-out 0.18s ease-in both;
+}
+@utility animate-fade-up {
+  animation: fade-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* Comment pick mode: crosshair everywhere except the comment UI itself. */
+html.comment-picking *:not([data-comment-ui], [data-comment-ui] *) {
+  cursor: crosshair !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
