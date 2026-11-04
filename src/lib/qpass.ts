@@ -14,15 +14,24 @@ export interface SpendingSession {
   spent: number;
   startedAt: number;
   expiresAt: number;
-  status: "active" | "paused" | "revoked";
+  status: "active" | "revoked";
 }
+/** How a previewed revocation ends: confirmed on-chain, or not confirmed. */
+export type RevokeOutcome = "confirmed" | "failed";
+/** How long the illustrative on-chain confirmation takes. */
+export const REVOKE_CONFIRM_MS = 4000;
 export interface RegisteredAgent {
   id: string;
   passId: string;
   name: string;
   client: string;
-  status: "linked" | "revoked";
+  /** `revoking` = revocation submitted, awaiting on-chain confirmation; access is still live. */
+  status: "linked" | "revoking" | "revoked";
   linkedAt?: number;
+  /** Set while `revoking`: when it settles and how (illustrative, nothing is sent). */
+  revocation?: { submittedAt: number; settleAt: number; outcome: RevokeOutcome };
+  /** Set when the last revocation was not confirmed; the agent stays linked and can still spend. */
+  revokeFailedAt?: number;
   /** When the agent was unregistered. Revoked agents are listed under History. */
   revokedAt?: number;
   /** An agent has at most one spending session. It can be registered before it has one. */
@@ -62,7 +71,7 @@ export interface QPassState {
   cliSessions: CliSession[];
   activity: AgenticActivity[];
 }
-const KEY = "trellis-qpass-v12";
+const KEY = "trellis-qpass-v14";
 const SAMPLE_AGENTS = [
   "Price watcher",
   "Invoice payer",
@@ -172,7 +181,7 @@ export function seedQPassState(now: number): QPassState {
           spent: 212,
           startedAt: now - 3 * 86400000,
           expiresAt: now + 11 * 86400000,
-          status: "paused",
+          status: "active",
         },
       },
       {
@@ -327,6 +336,33 @@ export function seedQPassState(now: number): QPassState {
     ],
   };
 }
+/** Settles revocations whose confirmation time has passed. Returns whether anything changed. */
+function settleRevocations(state: QPassState, now: number): boolean {
+  let changed = false;
+  for (const agent of state.agents) {
+    const pending = agent.revocation;
+    if (agent.status !== "revoking" || !pending || pending.settleAt > now) continue;
+    delete agent.revocation;
+    changed = true;
+    if (pending.outcome === "confirmed") {
+      agent.status = "revoked";
+      agent.revokedAt = pending.settleAt;
+      if (agent.session) agent.session.status = "revoked";
+      log(state, agent.passId, `${agent.name} · access revoked`, "revoke", pending.settleAt);
+    } else {
+      agent.status = "linked";
+      agent.revokeFailedAt = pending.settleAt;
+      log(
+        state,
+        agent.passId,
+        `${agent.name} · revocation not confirmed`,
+        "revoke",
+        pending.settleAt,
+      );
+    }
+  }
+  return changed;
+}
 export function loadQPassState(now = Date.now()): QPassState {
   try {
     const raw = window.sessionStorage.getItem(KEY);
@@ -336,8 +372,10 @@ export function loadQPassState(now = Date.now()): QPassState {
         [state.passes, state.agents, state.approvals, state.cliSessions, state.activity].every(
           Array.isArray,
         )
-      )
+      ) {
+        if (settleRevocations(state, now)) saveQPassState(state);
         return state;
+      }
     }
   } catch {
     /* SSR or blocked storage */
@@ -426,7 +464,7 @@ export function resolveApproval(
       decision === "approved"
         ? state.agents.find(
             (a) =>
-              a.status === "linked" &&
+              a.status !== "revoked" &&
               a.passId === request.passId &&
               a.name === request.agentName &&
               a.client === request.client,
@@ -471,15 +509,23 @@ export function resolveApproval(
     );
   }, now);
 }
-export function revokeAgent(id: string, now = Date.now()): QPassState {
+/**
+ * Submits an agent revocation. Revoking is an on-chain transaction, so the agent only becomes
+ * `revoked` once it is confirmed (see `settleRevocations`); until then its access stays live. The
+ * outcome is illustrative: nothing is sent.
+ */
+export function startRevokeAgent(
+  id: string,
+  outcome: RevokeOutcome = "confirmed",
+  now = Date.now(),
+): QPassState {
   return update((state) => {
     const agent = state.agents.find((a) => a.id === id);
-    if (agent?.status === "linked") {
-      agent.status = "revoked";
-      agent.revokedAt = now;
-      if (agent.session) agent.session.status = "revoked";
-      log(state, agent.passId, `${agent.name} · access revoked`, "revoke", now);
-    }
+    if (agent?.status !== "linked") return;
+    agent.status = "revoking";
+    agent.revocation = { submittedAt: now, settleAt: now + REVOKE_CONFIRM_MS, outcome };
+    delete agent.revokeFailedAt;
+    log(state, agent.passId, `${agent.name} · revocation submitted`, "revoke", now);
   }, now);
 }
 export function endCliSession(id: string, now = Date.now()): QPassState {
@@ -489,22 +535,6 @@ export function endCliSession(id: string, now = Date.now()): QPassState {
   }, now);
 }
 
-/** Pause or resume an agent's spending session without unlinking the agent. */
-export function setSessionPaused(agentId: string, paused: boolean, now = Date.now()): QPassState {
-  return update((state) => {
-    const agent = state.agents.find((a) => a.id === agentId);
-    const session = agent?.session;
-    if (!agent || !session || session.status === "revoked" || agent.status !== "linked") return;
-    session.status = paused ? "paused" : "active";
-    log(
-      state,
-      agent.passId,
-      `${agent.name} · session ${paused ? "paused" : "resumed"}`,
-      "revoke",
-      now,
-    );
-  }, now);
-}
 /** Revoke only the spending session; the agent link stays. */
 export function revokeSession(agentId: string, now = Date.now()): QPassState {
   return update((state) => {

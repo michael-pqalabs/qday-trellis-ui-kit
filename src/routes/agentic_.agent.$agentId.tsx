@@ -1,17 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import {
-  ArrowLeft,
-  Ban,
-  Bot,
-  Clock,
-  Copy,
-  KeyRound,
-  Pause,
-  Play,
-  Terminal,
-  Wallet,
-} from "lucide-react";
+import { ArrowLeft, Ban, Bot, Clock, Copy, KeyRound, Terminal, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,13 +15,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { QDayEntry } from "@/components/qday-entry";
-import {
-  loadQPassState,
-  revokeAgent,
-  revokeSession,
-  setSessionPaused,
-  type QPassState,
-} from "@/lib/qpass";
+import { RevocationNotice, RevokeAgentDialog } from "@/components/revoke-agent-dialog";
+import { useRevocationWatcher } from "@/hooks/use-revocation-watcher";
+import { loadQPassState, revokeSession, type QPassState } from "@/lib/qpass";
 
 export const Route = createFileRoute("/agentic_/agent/$agentId")({
   head: () => ({
@@ -41,7 +26,7 @@ export const Route = createFileRoute("/agentic_/agent/$agentId")({
       {
         name: "description",
         content:
-          "Review an agent linked to your SignetPass: budget used, per-payment limit, session expiry, and pause or revoke controls.",
+          "Review an agent linked to your SignetPass: budget used, per-payment limit, session expiry, and end-session or revoke controls.",
       },
       { property: "og:title", content: "Agent & Spending Session — Trellis Wallet" },
       {
@@ -67,13 +52,14 @@ function remaining(ms: number) {
     m = Math.floor((ms % 3600000) / 60000);
   return d > 0 ? `${d}d ${h}h left` : h > 0 ? `${h}h ${m}m left` : `${m}m left`;
 }
-type Confirm = "session" | "agent" | null;
+type Confirm = "session" | null;
 
 function AgentDetail() {
   const { agentId } = Route.useParams();
   const [state, setState] = useState<QPassState | null>(null);
   const [now, setNow] = useState(0);
   const [confirm, setConfirm] = useState<Confirm>(null);
+  const [revokeOpen, setRevokeOpen] = useState(false);
   useEffect(() => {
     setState(loadQPassState());
     setNow(Date.now());
@@ -81,6 +67,7 @@ function AgentDetail() {
     return () => clearInterval(t);
   }, []);
 
+  useRevocationWatcher(state, setState);
   if (!state) return <main className="mx-auto min-h-screen max-w-md px-5 pt-6" />;
   const agent = state.agents.find((a) => a.id === agentId);
   const pass = state.passes.find((p) => p.id === agent?.passId);
@@ -102,9 +89,7 @@ function AgentDetail() {
       ? "Revoked"
       : expired
         ? "Expired"
-        : s.status === "paused"
-          ? "Paused"
-          : "Active";
+        : "Active";
   const pct = s ? Math.min(100, (s.spent / s.totalBudget) * 100) : 0;
   const canControl = agent.status === "linked" && !!s && s.status !== "revoked" && !expired;
   const copy = (v: string) => {
@@ -116,18 +101,12 @@ function AgentDetail() {
       setState(revokeSession(agent.id));
       toast.success("Spending session revoked");
     }
-    if (confirm === "agent") {
-      setState(revokeAgent(agent.id));
-      toast.success("Agent access revoked");
-    }
     setConfirm(null);
   };
   const tone =
     sessionLabel === "Active"
       ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-      : sessionLabel === "Paused"
-        ? "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-400"
-        : "text-muted-foreground";
+      : "text-muted-foreground";
   const sample = s
     ? [0.62, 0.23, 0.15]
         .map((f, i) => ({
@@ -154,9 +133,13 @@ function AgentDetail() {
         </div>
         <Badge
           variant="outline"
-          className={`rounded-full ${agent.status === "linked" ? "text-primary" : "text-muted-foreground"}`}
+          className={`rounded-full ${agent.status === "linked" ? "text-primary" : agent.status === "revoking" ? "border-amber-500/30 text-amber-600 dark:text-amber-400" : "text-muted-foreground"}`}
         >
-          {agent.status === "linked" ? "Linked" : "Revoked"}
+          {agent.status === "linked"
+            ? "Linked"
+            : agent.status === "revoking"
+              ? "Revoking"
+              : "Revoked"}
         </Badge>
       </section>
 
@@ -229,31 +212,10 @@ function AgentDetail() {
       )}
 
       {canControl && (
-        <div className="mt-5 grid grid-cols-2 gap-3">
+        <div className="mt-5">
           <Button
             variant="secondary"
-            className="h-11"
-            onClick={() => {
-              const paused = s!.status !== "paused";
-              setState(setSessionPaused(agent.id, paused));
-              toast.success(paused ? "Session paused" : "Session resumed");
-            }}
-          >
-            {s!.status === "paused" ? (
-              <>
-                <Play />
-                Resume
-              </>
-            ) : (
-              <>
-                <Pause />
-                Pause
-              </>
-            )}
-          </Button>
-          <Button
-            variant="secondary"
-            className="h-11 text-destructive hover:text-destructive"
+            className="h-11 w-full text-destructive hover:text-destructive"
             onClick={() => setConfirm("session")}
           >
             <Ban />
@@ -291,11 +253,21 @@ function AgentDetail() {
         </section>
       )}
 
-      {agent.status === "linked" && (
+      {agent.status !== "revoked" && (
         <section className="mt-8 border-t border-divider pt-5">
-          <Button variant="destructive" className="h-11 w-full" onClick={() => setConfirm("agent")}>
+          <RevocationNotice agent={agent} />
+          <Button
+            variant="destructive"
+            className="mt-3 h-11 w-full"
+            disabled={agent.status === "revoking"}
+            onClick={() => setRevokeOpen(true)}
+          >
             <Ban />
-            Revoke agent access
+            {agent.status === "revoking"
+              ? "Revoking…"
+              : agent.revokeFailedAt
+                ? "Try revoking again"
+                : "Revoke agent access"}
           </Button>
           <p className="mt-2 text-center text-[11px] text-muted-foreground">
             Unlinks the agent and stops its session. CLI logins are not affected.
@@ -306,13 +278,9 @@ function AgentDetail() {
       <AlertDialog open={confirm !== null} onOpenChange={(o) => !o && setConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              {confirm === "agent" ? "Revoke agent access?" : "End spending session?"}
-            </AlertDialogTitle>
+            <AlertDialogTitle>End spending session?</AlertDialogTitle>
             <AlertDialogDescription>
-              {confirm === "agent"
-                ? `${agent.name} will be unlinked and can no longer spend from ${pass?.name ?? "this SignetPass"}.`
-                : `${agent.name} stays linked but can't pay until a new session is approved from the terminal.`}
+              {`${agent.name} stays linked but can't pay until a new session is approved from the terminal.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -321,11 +289,18 @@ function AgentDetail() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={doConfirm}
             >
-              {confirm === "agent" ? "Revoke" : "End session"}
+              End session
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <RevokeAgentDialog
+        agent={agent}
+        passName={pass?.name ?? "this SignetPass"}
+        open={revokeOpen}
+        onOpenChange={setRevokeOpen}
+        onSubmitted={setState}
+      />
     </main>
   );
 }

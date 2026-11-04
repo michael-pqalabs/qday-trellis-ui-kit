@@ -6,7 +6,8 @@ import {
   loadQPassState,
   renameQPass,
   resolveApproval,
-  revokeAgent,
+  REVOKE_CONFIRM_MS,
+  startRevokeAgent,
   validateQPassInput,
 } from "@/lib/qpass";
 const NOW = 1800000000000;
@@ -68,7 +69,8 @@ describe("SignetPass accounts demo", () => {
   });
   it("revokes an agent without revoking its SignetPass", () => {
     loadQPassState(NOW);
-    const next = revokeAgent("agent-checkout-01", NOW);
+    startRevokeAgent("agent-checkout-01", "confirmed", NOW);
+    const next = loadQPassState(NOW + REVOKE_CONFIRM_MS);
     expect(next.agents[0]?.status).toBe("revoked");
     expect(next.passes[0]?.status).toBe("active");
   });
@@ -80,34 +82,30 @@ describe("SignetPass accounts demo", () => {
   });
 });
 
-import { setSessionPaused, revokeSession } from "@/lib/qpass";
+import { revokeSession } from "@/lib/qpass";
 describe("agent spending sessions", () => {
   beforeEach(() => sessionStorage.clear());
-  it("pauses and resumes without unlinking", () => {
-    loadQPassState(NOW);
-    let s = setSessionPaused("agent-checkout-01", true, NOW);
-    expect(s.agents[0]?.session?.status).toBe("paused");
-    expect(s.agents[0]?.status).toBe("linked");
-    s = setSessionPaused("agent-checkout-01", false, NOW);
-    expect(s.agents[0]?.session?.status).toBe("active");
-  });
   it("revoking session keeps agent linked", () => {
     loadQPassState(NOW);
     const s = revokeSession("agent-checkout-01", NOW);
     expect(s.agents[0]?.session?.status).toBe("revoked");
     expect(s.agents[0]?.status).toBe("linked");
   });
-  it("revoking agent also revokes session", () => {
+  it("revoking agent also revokes session, once confirmed", () => {
     loadQPassState(NOW);
-    const s = revokeAgent("agent-checkout-01", NOW);
+    startRevokeAgent("agent-checkout-01", "confirmed", NOW);
+    const s = loadQPassState(NOW + REVOKE_CONFIRM_MS);
     expect(s.agents[0]?.session?.status).toBe("revoked");
   });
 });
 
 describe("Registered agents", () => {
-  it("records when an agent is revoked", () => {
-    const next = revokeAgent("agent-checkout-01", NOW);
-    expect(next.agents.find((a) => a.id === "agent-checkout-01")?.revokedAt).toBe(NOW);
+  it("records when an agent is revoked, at confirmation time", () => {
+    startRevokeAgent("agent-checkout-01", "confirmed", NOW);
+    const next = loadQPassState(NOW + REVOKE_CONFIRM_MS + 500);
+    expect(next.agents.find((a) => a.id === "agent-checkout-01")?.revokedAt).toBe(
+      NOW + REVOKE_CONFIRM_MS,
+    );
   });
   it("keeps the seeded revoked agent with its revocation date", () => {
     const state = loadQPassState(NOW);
@@ -130,11 +128,63 @@ describe("Registered agents", () => {
       status: "pending",
       expiresAt: NOW + 3600000,
     });
-    window.sessionStorage.setItem("trellis-qpass-v12", JSON.stringify(state));
+    window.sessionStorage.setItem("trellis-qpass-v14", JSON.stringify(state));
     resolveApproval("req-01", "approved", NOW);
     const next = resolveApproval("req-extra", "approved", NOW);
     const matches = next.agents.filter((a) => a.name === "Research assistant");
     expect(matches).toHaveLength(1);
     expect(matches[0]?.session?.totalBudget).toBe(500);
+  });
+});
+
+describe("Agent revocation awaits on-chain confirmation", () => {
+  const find = (s: ReturnType<typeof loadQPassState>) =>
+    s.agents.find((a) => a.id === "agent-checkout-01");
+  it("shows revoking, not revoked, until confirmed, and access stays live", () => {
+    loadQPassState(NOW);
+    const submitted = startRevokeAgent("agent-checkout-01", "confirmed", NOW);
+    expect(find(submitted)?.status).toBe("revoking");
+    expect(find(submitted)?.revokedAt).toBeUndefined();
+    expect(find(submitted)?.session?.status).toBe("active");
+    const waiting = loadQPassState(NOW + REVOKE_CONFIRM_MS - 1);
+    expect(find(waiting)?.status).toBe("revoking");
+    expect(find(waiting)?.revokedAt).toBeUndefined();
+    const done = loadQPassState(NOW + REVOKE_CONFIRM_MS);
+    expect(find(done)?.status).toBe("revoked");
+    expect(find(done)?.session?.status).toBe("revoked");
+  });
+  it("returns to linked and flags the failure when confirmation fails", () => {
+    loadQPassState(NOW);
+    startRevokeAgent("agent-checkout-01", "failed", NOW);
+    const failed = loadQPassState(NOW + REVOKE_CONFIRM_MS);
+    expect(find(failed)?.status).toBe("linked");
+    expect(find(failed)?.revokedAt).toBeUndefined();
+    expect(find(failed)?.revokeFailedAt).toBe(NOW + REVOKE_CONFIRM_MS);
+    expect(find(failed)?.session?.status).toBe("active");
+    expect(failed.activity[0]?.label).toContain("revocation not confirmed");
+  });
+  it("lets a failed revocation be retried and clears the failure", () => {
+    loadQPassState(NOW);
+    startRevokeAgent("agent-checkout-01", "failed", NOW);
+    loadQPassState(NOW + REVOKE_CONFIRM_MS);
+    const retry = startRevokeAgent("agent-checkout-01", "confirmed", NOW + 10000);
+    expect(find(retry)?.status).toBe("revoking");
+    expect(find(retry)?.revokeFailedAt).toBeUndefined();
+  });
+  it("ignores a second submission while revoking", () => {
+    loadQPassState(NOW);
+    startRevokeAgent("agent-checkout-01", "confirmed", NOW);
+    const again = startRevokeAgent("agent-checkout-01", "failed", NOW + 1000);
+    expect(find(again)?.revocation?.outcome).toBe("confirmed");
+  });
+});
+
+describe("Spending sessions have no pause or resume", () => {
+  it("seeds only active sessions for linked agents", () => {
+    const sessions = loadQPassState(NOW)
+      .agents.filter((a) => a.session && a.status === "linked")
+      .map((a) => a.session?.status);
+    expect(sessions.length).toBeGreaterThan(0);
+    expect(new Set(sessions)).toEqual(new Set(["active"]));
   });
 });

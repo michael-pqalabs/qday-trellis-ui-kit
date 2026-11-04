@@ -37,6 +37,8 @@ import { QDayEntry } from "@/components/qday-entry";
 import { useQDayPreview } from "@/components/qday-preview-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { AgentCard, RevokedAgentCard } from "@/components/agent-list";
+import { RevokeAgentDialog } from "@/components/revoke-agent-dialog";
+import { useRevocationWatcher } from "@/hooks/use-revocation-watcher";
 import { NetworkSummary } from "@/components/network-picker";
 import { useWalletPreview } from "@/components/wallet-preview-provider";
 import {
@@ -52,7 +54,6 @@ import {
   loadQPassState,
   renameQPass,
   resolveApproval,
-  revokeAgent,
   type QPassState,
   type ApprovalRequest,
   type ActivityKind,
@@ -88,7 +89,7 @@ function AgenticPage() {
 }
 const formatDate = (at: number) =>
   new Date(at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
-type Action = "rename" | "activate" | "fund" | "receive" | "revoke" | "logout";
+type Action = "rename" | "activate" | "fund" | "receive" | "logout";
 function AgenticPayment() {
   const { update } = useQDayPreview();
   const [state, setState] = useState<QPassState | null>(null);
@@ -101,6 +102,7 @@ function AgenticPayment() {
   const [visible, setVisible] = useState(true);
   const [action, setAction] = useState<Action | null>(null);
   const [targetId, setTargetId] = useState("");
+  const [revokeId, setRevokeId] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [request, setRequest] = useState<ApprovalRequest | null>(null);
@@ -116,10 +118,11 @@ function AgenticPayment() {
   const approvals = state?.approvals.filter((r) => r.passId === pass?.id) ?? [];
   const pending = approvals.filter((r) => r.status === "pending" && r.expiresAt > now);
   const passAgents = state?.agents.filter((a) => a.passId === pass?.id) ?? [];
-  const agents = passAgents.filter((a) => a.status === "linked");
+  const agents = passAgents.filter((a) => a.status !== "revoked");
   const revokedAgents = passAgents
     .filter((a) => a.status === "revoked")
     .sort((a, b) => (b.revokedAt ?? 0) - (a.revokedAt ?? 0));
+  useRevocationWatcher(state, setState);
   const activity = state?.activity.filter((a) => a.passId === pass?.id) ?? [];
   const currentRequest = state?.approvals.find((r) => r.id === request?.id);
   const openAction = (value: Action, id = "") => {
@@ -452,7 +455,7 @@ function AgenticPayment() {
                           key={a.id}
                           agent={a}
                           now={now}
-                          onRevoke={(id) => openAction("revoke", id)}
+                          onRevoke={(id) => setRevokeId(id)}
                         />
                       ))
                     )}
@@ -531,16 +534,12 @@ function AgenticPayment() {
                       ? "Add funds to SignetPass"
                       : action === "receive"
                         ? "Receive to SignetPass"
-                        : action === "revoke"
-                          ? "Revoke agent?"
-                          : "Logout of Signet CLI?"}
+                        : "Logout of Signet CLI?"}
               </DialogTitle>
               <DialogDescription>
                 {action === "logout"
                   ? "CLI logout does not revoke agent spending permissions."
-                  : action === "revoke"
-                    ? "Remove this agent’s link to the selected SignetPass in this preview."
-                    : `${pass?.name ?? "SignetPass"} · ${pass?.address.slice(0, 10)}…${pass?.address.slice(-6)}`}
+                  : `${pass?.name ?? "SignetPass"} · ${pass?.address.slice(0, 10)}…${pass?.address.slice(-6)}`}
               </DialogDescription>
             </DialogHeader>
             {action === "rename" && (
@@ -650,7 +649,7 @@ function AgenticPayment() {
                 </Button>
               </>
             )}
-            {(action === "revoke" || action === "logout") && (
+            {action === "logout" && (
               <div className="mt-2 flex gap-3">
                 <Button variant="outline" className="flex-1" onClick={() => setAction(null)}>
                   Cancel
@@ -659,16 +658,25 @@ function AgenticPayment() {
                   variant="destructive"
                   className="flex-1"
                   onClick={() => {
-                    setState(action === "revoke" ? revokeAgent(targetId) : endCliSession(targetId));
+                    setState(endCliSession(targetId));
                     setAction(null);
                   }}
                 >
-                  {action === "revoke" ? "Revoke agent" : "Logout"}
+                  Logout
                 </Button>
               </div>
             )}
           </DialogContent>
         </Dialog>
+        <RevokeAgentDialog
+          agent={state?.agents.find((a) => a.id === revokeId)}
+          passName={pass?.name ?? "this SignetPass"}
+          open={revokeId !== ""}
+          onOpenChange={(open) => {
+            if (!open) setRevokeId("");
+          }}
+          onSubmitted={setState}
+        />
         <ReviewRequestDialog
           request={currentRequest ?? null}
           open={request !== null}

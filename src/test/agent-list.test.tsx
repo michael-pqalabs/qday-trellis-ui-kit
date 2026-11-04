@@ -79,3 +79,37 @@ describe("Agents tab cards", () => {
     expect(screen.queryByRole("button", { name: /Revoke/ })).toBeNull();
   });
 });
+
+describe("Agent revoking state", () => {
+  it("shows Revoking with the on-chain notice and disables Revoke", async () => {
+    await show(() => (
+      <AgentCard
+        agent={{
+          ...base,
+          status: "revoking",
+          session,
+          revocation: { submittedAt: NOW, settleAt: NOW + 4000, outcome: "confirmed" },
+        }}
+        now={NOW}
+        onRevoke={() => {}}
+      />
+    ));
+    expect(await screen.findByText("Revoking — awaiting on-chain confirmation")).toBeTruthy();
+    expect(screen.getByText("Revoking")).toBeTruthy();
+    expect((screen.getByRole("button", { name: /^Revoke/ }) as HTMLButtonElement).disabled).toBe(
+      true,
+    );
+    expect(screen.queryByText("Revoked")).toBeNull();
+  });
+
+  it("explains that access is still live when confirmation failed, and offers a retry", async () => {
+    await show(() => (
+      <AgentCard agent={{ ...base, session, revokeFailedAt: NOW }} now={NOW} onRevoke={() => {}} />
+    ));
+    expect(await screen.findByText("Revocation was not confirmed")).toBeTruthy();
+    expect(screen.getByText(/can still spend/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Revoke Checkout assistant" }).textContent).toBe(
+      "Try again",
+    );
+  });
+});

@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { RevocationNotice } from "@/components/revoke-agent-dialog";
 import type { RegisteredAgent } from "@/lib/qpass";
 
 const formatDate = (at: number) =>
@@ -21,13 +22,23 @@ export function AgentCard({
   onRevoke: (id: string) => void;
 }) {
   const { session } = agent;
+  const revoking = agent.status === "revoking";
   return (
     <div className="mb-3 rounded-2xl border bg-card p-4">
       <div className="flex items-center justify-between gap-2">
         <p className="min-w-0 truncate text-sm font-semibold">{agent.name}</p>
-        <Badge variant="outline" className="capitalize text-primary">
-          {agent.status}
-        </Badge>
+        {revoking ? (
+          <Badge
+            variant="outline"
+            className="shrink-0 border-amber-500/30 text-amber-600 dark:text-amber-400"
+          >
+            Revoking
+          </Badge>
+        ) : (
+          <Badge variant="outline" className="text-primary">
+            Linked
+          </Badge>
+        )}
       </div>
       <p className="mt-2 break-all font-mono text-[10px] text-muted-foreground">
         Agent ID · {agent.id}
@@ -51,6 +62,7 @@ export function AgentCard({
           </div>
         </div>
       )}
+      <RevocationNotice agent={agent} />
       <div className="mt-3 flex items-center gap-2 rounded-full bg-secondary/70 p-1">
         {session && (
           <Button
@@ -68,9 +80,10 @@ export function AgentCard({
           variant="outline"
           className={`h-9 shrink-0 rounded-full border-destructive/40 bg-card px-4 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive ${session ? "" : "w-full"}`}
           aria-label={`Revoke ${agent.name}`}
+          disabled={revoking}
           onClick={() => onRevoke(agent.id)}
         >
-          Revoke
+          {revoking ? "Revoking…" : agent.revokeFailedAt ? "Try again" : "Revoke"}
         </Button>
       </div>
     </div>
