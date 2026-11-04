@@ -131,7 +131,7 @@ function ConfirmPhrase() {
               Your wallet is <span className="text-accent">ready</span>
             </h1>
             <p className="mx-auto mt-3 max-w-xs text-sm text-muted-foreground">
-              Phrase confirmed and backed up. Trellis never stored a copy of it.
+              Phrase confirmed and backed up. Trellis never store a copy of it.
             </p>
 
             <div className="mt-7 flex items-center justify-center gap-2 text-xs text-muted-foreground">

@@ -36,6 +36,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { QDayEntry } from "@/components/qday-entry";
 import { useQDayPreview } from "@/components/qday-preview-provider";
 import { BottomNav } from "@/components/bottom-nav";
+import { AgentCard, RevokedAgentCard } from "@/components/agent-list";
 import { NetworkSummary } from "@/components/network-picker";
 import { useWalletPreview } from "@/components/wallet-preview-provider";
 import {
@@ -447,87 +448,19 @@ function AgenticPayment() {
                       <Empty label="No registered agents" />
                     ) : (
                       agents.map((a) => (
-                        <div key={a.id} className="mb-3 rounded-2xl border bg-card p-4">
-                          <div className="flex items-center justify-between gap-2">
-                            <p className="min-w-0 truncate text-sm font-semibold">{a.name}</p>
-                            <Badge variant="outline" className="capitalize text-primary">
-                              {a.status}
-                            </Badge>
-                          </div>
-                          <p className="mt-2 break-all font-mono text-[10px] text-muted-foreground">
-                            Agent ID · {a.id}
-                          </p>
-                          <p className="mt-1 truncate text-xs text-muted-foreground">{a.client}</p>
-                          {a.session && (
-                            <div className="mt-3">
-                              <div className="flex justify-between text-[11px] text-muted-foreground">
-                                <span>
-                                  Spent {a.session.spent} / {a.session.totalBudget} USD8
-                                </span>
-                                <span className="capitalize">
-                                  {a.session.status === "active" && a.session.expiresAt <= now
-                                    ? "Expired"
-                                    : a.session.status}
-                                </span>
-                              </div>
-                              <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-secondary">
-                                <div
-                                  className="h-full rounded-full bg-primary"
-                                  style={{
-                                    width: `${Math.min(100, (a.session.spent / a.session.totalBudget) * 100)}%`,
-                                  }}
-                                />
-                              </div>
-                            </div>
-                          )}
-                          <div className="mt-3 flex gap-2">
-                            {a.session && (
-                              <Button
-                                asChild
-                                variant="secondary"
-                                className="h-9 min-w-0 flex-1 text-xs"
-                              >
-                                <Link to="/agentic/agent/$agentId" params={{ agentId: a.id }}>
-                                  View Spending Session
-                                  <ArrowRight />
-                                </Link>
-                              </Button>
-                            )}
-                            <Button
-                              variant="outline"
-                              className={`h-9 shrink-0 border-destructive/40 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive ${a.session ? "" : "w-full"}`}
-                              aria-label={`Revoke ${a.name}`}
-                              onClick={() => openAction("revoke", a.id)}
-                            >
-                              Revoke
-                            </Button>
-                          </div>
-                        </div>
+                        <AgentCard
+                          key={a.id}
+                          agent={a}
+                          now={now}
+                          onRevoke={(id) => openAction("revoke", id)}
+                        />
                       ))
                     )}
                     {revokedAgents.length > 0 && (
                       <div className="mt-5 border-t border-divider pt-4">
-                        <h3 className="mb-2 text-xs font-medium text-muted-foreground">History</h3>
+                        <h3 className="mb-2 text-sm font-semibold">History</h3>
                         {revokedAgents.map((a) => (
-                          <div
-                            key={a.id}
-                            className="flex items-center justify-between gap-3 border-b border-divider py-3 last:border-0"
-                          >
-                            <div className="min-w-0">
-                              <p className="truncate text-sm font-medium text-muted-foreground">
-                                {a.name}
-                              </p>
-                              <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
-                                {a.client}
-                              </p>
-                              <p className="mt-0.5 text-[11px] text-muted-foreground">
-                                Revoked{a.revokedAt ? ` on ${formatDate(a.revokedAt)}` : ""}
-                              </p>
-                            </div>
-                            <Badge variant="outline" className="shrink-0 text-muted-foreground">
-                              Revoked
-                            </Badge>
-                          </div>
+                          <RevokedAgentCard key={a.id} agent={a} />
                         ))}
                       </div>
                     )}
