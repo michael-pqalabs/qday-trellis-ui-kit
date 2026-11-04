@@ -173,6 +173,16 @@ export const sampleTransactions: PreviewTx[] = [
     status: "failed",
     minutesAgo: 2900,
   },
+  {
+    id: "tx-6",
+    walletId: "main",
+    kind: "receive",
+    tokenId: "usd8",
+    amount: "300.00",
+    counterparty: "0xD3a1F7c92B5e4086aC1d9E3b7F2a5C8e0B4d6A91",
+    status: "confirmed",
+    minutesAgo: 10080,
+  },
 ];
 
 export function transactionsFor(walletId: string) {
@@ -333,3 +343,43 @@ export function signetPassFee(chainId: string) {
   const token = getChain(chainId).defaultTokens[1] ?? "USD8";
   return { amount: SIGNET_PASS_FEE, token };
 }
+
+export type TxStatus = PreviewTx["status"];
+/** Plain-language status used on activity rows and details, matching the wallet app. */
+export function txStatusLabel(status: TxStatus) {
+  return status === "confirmed"
+    ? "Completed"
+    : status === "failed"
+      ? "Failed · not transferred"
+      : "Checking status";
+}
+/** Day bucket for grouping activity: Today, Yesterday or Earlier. */
+export function txGroupLabel(minutesAgo: number) {
+  return minutesAgo < 1440 ? "Today" : minutesAgo < 2880 ? "Yesterday" : "Earlier";
+}
+function pseudoHex(seed: string, length: number) {
+  let h = 2166136261;
+  let out = "";
+  while (out.length < length) {
+    for (const ch of seed + out.length) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0;
+    out += h.toString(16).padStart(8, "0");
+  }
+  return out.slice(0, length);
+}
+/** Illustrative detail fields for a sample row. Not real hashes or blocks. */
+export function txDetail(tx: PreviewTx, now = Date.now()) {
+  return {
+    hash: `0x${pseudoHex(tx.id, 64)}`,
+    block: 1_204_000 - Math.floor(tx.minutesAgo / 2),
+    at: now - tx.minutesAgo * 60000,
+    explorerNote: "Sample hash. Not an on-chain record.",
+  };
+}
+
+/** Text colour class for a transaction status. */
+export const txStatusTone = (status: TxStatus) =>
+  status === "pending"
+    ? "text-amber-600 dark:text-amber-400"
+    : status === "failed"
+      ? "text-destructive"
+      : "text-muted-foreground";

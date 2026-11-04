@@ -31,6 +31,7 @@ import { NetworkPicker } from "@/components/network-picker";
 import { WalletActions } from "@/components/wallet-actions";
 import { BottomNav } from "@/components/bottom-nav";
 import { AddTokenButton } from "@/components/add-token";
+import { TransactionRow } from "@/components/transaction-row";
 import { useWalletPreview } from "@/components/wallet-preview-provider";
 import {
   DropdownMenu,
@@ -290,6 +291,13 @@ function WalletOverview() {
               <span className="text-xs text-muted-foreground">
                 {walletTokens.length + importedTokens.length} assets
               </span>
+              <Link
+                to="/asset/$tokenId"
+                params={{ tokenId }}
+                className="text-xs font-medium text-primary hover:underline"
+              >
+                {walletTokens.find((x) => x.id === tokenId)?.symbol ?? "Token"} details
+              </Link>
               <AddTokenButton networkId={networkId} where={where} />
             </div>
           </div>
@@ -370,7 +378,13 @@ function WalletOverview() {
             <h2 id="history-title" className="font-display text-lg font-semibold">
               Transactions
             </h2>
-            <span className="text-[10px] text-muted-foreground">{wallet.name}</span>
+            <Link
+              to="/activity"
+              search={{ wallet: walletId }}
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              See all
+            </Link>
           </div>
           {transactionsFor(walletId).length === 0 ? (
             <div className="flex flex-col items-center py-7 text-center" role="status">
@@ -379,49 +393,9 @@ function WalletOverview() {
             </div>
           ) : (
             <ul className="mt-2 divide-y divide-divider">
-              {transactionsFor(walletId).map((tx) => {
-                const t = walletTokens.find((x) => x.id === tx.tokenId);
-                if (!t) return null;
-                const sent = tx.kind === "send";
-                const status =
-                  tx.status === "pending"
-                    ? "text-amber-600 dark:text-amber-400"
-                    : tx.status === "failed"
-                      ? "text-destructive"
-                      : "text-muted-foreground";
-                return (
-                  <li key={tx.id} className="flex items-center gap-3 py-3">
-                    <span
-                      className={`grid h-9 w-9 shrink-0 place-items-center rounded-full ${sent ? "bg-primary/10 text-primary" : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"}`}
-                    >
-                      {sent ? (
-                        <ArrowUpRight className="h-4 w-4" />
-                      ) : (
-                        <ArrowDownLeft className="h-4 w-4" />
-                      )}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-medium">
-                        {sent ? "Sent" : "Received"} {t.symbol}
-                      </span>
-                      <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
-                        {sent ? "To" : "From"} {shortAddress(tx.counterparty)} ·{" "}
-                        {agoLabel(tx.minutesAgo)}
-                      </span>
-                    </span>
-                    <span className="text-right">
-                      <span
-                        className={`block font-display text-sm tabular-nums ${sent ? "" : "text-emerald-600 dark:text-emerald-400"}`}
-                      >
-                        {visible ? `${sent ? "−" : "+"}${tx.amount}` : "••••"}
-                      </span>
-                      <span className={`mt-0.5 block text-[10px] capitalize ${status}`}>
-                        {tx.status}
-                      </span>
-                    </span>
-                  </li>
-                );
-              })}
+              {transactionsFor(walletId).map((tx) => (
+                <TransactionRow key={tx.id} tx={tx} visible={visible} />
+              ))}
             </ul>
           )}
           <p className="mt-2 text-center text-[10px] text-muted-foreground">

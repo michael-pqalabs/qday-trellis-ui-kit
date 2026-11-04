@@ -10,15 +10,28 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AccountActivationRouteImport } from './routes/account-activation'
+import { Route as AccountsRouteImport } from './routes/accounts'
+import { Route as ActivityRouteImport } from './routes/activity'
 import { Route as AgenticRouteImport } from './routes/agentic'
+import { Route as BackupRouteImport } from './routes/backup'
 import { Route as ConfirmRouteImport } from './routes/confirm'
+import { Route as ConnectionsRouteImport } from './routes/connections'
+import { Route as ContactsRouteImport } from './routes/contacts'
 import { Route as DesignKitRouteImport } from './routes/design-kit'
+import { Route as FaucetRouteImport } from './routes/faucet'
+import { Route as PqRouteImport } from './routes/pq'
 import { Route as ReceiveRouteImport } from './routes/receive'
 import { Route as RecoveryRouteImport } from './routes/recovery'
+import { Route as ResetDataRouteImport } from './routes/reset-data'
 import { Route as SendRouteImport } from './routes/send'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as TokenApprovalsRouteImport } from './routes/token-approvals'
 import { Route as WalletRouteImport } from './routes/wallet'
+import { Route as WatchAddressRouteImport } from './routes/watch-address'
+import { Route as ActivityTxIdRouteImport } from './routes/activity_.$txId'
 import { Route as AgenticNewRouteImport } from './routes/agentic_.new'
+import { Route as AssetTokenIdRouteImport } from './routes/asset.$tokenId'
 import { Route as WalletImportRouteImport } from './routes/wallet_.import'
 import { Route as AgenticAgentAgentIdRouteImport } from './routes/agentic_.agent.$agentId'
 
@@ -27,9 +40,29 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountActivationRoute = AccountActivationRouteImport.update({
+  id: '/account-activation',
+  path: '/account-activation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountsRoute = AccountsRouteImport.update({
+  id: '/accounts',
+  path: '/accounts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActivityRoute = ActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AgenticRoute = AgenticRouteImport.update({
   id: '/agentic',
   path: '/agentic',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BackupRoute = BackupRouteImport.update({
+  id: '/backup',
+  path: '/backup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConfirmRoute = ConfirmRouteImport.update({
@@ -37,9 +70,29 @@ const ConfirmRoute = ConfirmRouteImport.update({
   path: '/confirm',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConnectionsRoute = ConnectionsRouteImport.update({
+  id: '/connections',
+  path: '/connections',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactsRoute = ContactsRouteImport.update({
+  id: '/contacts',
+  path: '/contacts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DesignKitRoute = DesignKitRouteImport.update({
   id: '/design-kit',
   path: '/design-kit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaucetRoute = FaucetRouteImport.update({
+  id: '/faucet',
+  path: '/faucet',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PqRoute = PqRouteImport.update({
+  id: '/pq',
+  path: '/pq',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReceiveRoute = ReceiveRouteImport.update({
@@ -52,6 +105,11 @@ const RecoveryRoute = RecoveryRouteImport.update({
   path: '/recovery',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetDataRoute = ResetDataRouteImport.update({
+  id: '/reset-data',
+  path: '/reset-data',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SendRoute = SendRouteImport.update({
   id: '/send',
   path: '/send',
@@ -62,14 +120,34 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TokenApprovalsRoute = TokenApprovalsRouteImport.update({
+  id: '/token-approvals',
+  path: '/token-approvals',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WalletRoute = WalletRouteImport.update({
   id: '/wallet',
   path: '/wallet',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WatchAddressRoute = WatchAddressRouteImport.update({
+  id: '/watch-address',
+  path: '/watch-address',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActivityTxIdRoute = ActivityTxIdRouteImport.update({
+  id: '/activity_/$txId',
+  path: '/activity/$txId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AgenticNewRoute = AgenticNewRouteImport.update({
   id: '/agentic_/new',
   path: '/agentic/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AssetTokenIdRoute = AssetTokenIdRouteImport.update({
+  id: '/asset/$tokenId',
+  path: '/asset/$tokenId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WalletImportRoute = WalletImportRouteImport.update({
@@ -85,44 +163,83 @@ const AgenticAgentAgentIdRoute = AgenticAgentAgentIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/account-activation': typeof AccountActivationRoute
+  '/accounts': typeof AccountsRoute
+  '/activity': typeof ActivityRoute
   '/agentic': typeof AgenticRoute
+  '/backup': typeof BackupRoute
   '/confirm': typeof ConfirmRoute
+  '/connections': typeof ConnectionsRoute
+  '/contacts': typeof ContactsRoute
   '/design-kit': typeof DesignKitRoute
+  '/faucet': typeof FaucetRoute
+  '/pq': typeof PqRoute
   '/receive': typeof ReceiveRoute
   '/recovery': typeof RecoveryRoute
+  '/reset-data': typeof ResetDataRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
+  '/token-approvals': typeof TokenApprovalsRoute
   '/wallet': typeof WalletRoute
+  '/watch-address': typeof WatchAddressRoute
+  '/activity/$txId': typeof ActivityTxIdRoute
   '/agentic/new': typeof AgenticNewRoute
+  '/asset/$tokenId': typeof AssetTokenIdRoute
   '/wallet/import': typeof WalletImportRoute
   '/agentic/agent/$agentId': typeof AgenticAgentAgentIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/account-activation': typeof AccountActivationRoute
+  '/accounts': typeof AccountsRoute
+  '/activity': typeof ActivityRoute
   '/agentic': typeof AgenticRoute
+  '/backup': typeof BackupRoute
   '/confirm': typeof ConfirmRoute
+  '/connections': typeof ConnectionsRoute
+  '/contacts': typeof ContactsRoute
   '/design-kit': typeof DesignKitRoute
+  '/faucet': typeof FaucetRoute
+  '/pq': typeof PqRoute
   '/receive': typeof ReceiveRoute
   '/recovery': typeof RecoveryRoute
+  '/reset-data': typeof ResetDataRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
+  '/token-approvals': typeof TokenApprovalsRoute
   '/wallet': typeof WalletRoute
+  '/watch-address': typeof WatchAddressRoute
+  '/activity/$txId': typeof ActivityTxIdRoute
   '/agentic/new': typeof AgenticNewRoute
+  '/asset/$tokenId': typeof AssetTokenIdRoute
   '/wallet/import': typeof WalletImportRoute
   '/agentic/agent/$agentId': typeof AgenticAgentAgentIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/account-activation': typeof AccountActivationRoute
+  '/accounts': typeof AccountsRoute
+  '/activity': typeof ActivityRoute
   '/agentic': typeof AgenticRoute
+  '/backup': typeof BackupRoute
   '/confirm': typeof ConfirmRoute
+  '/connections': typeof ConnectionsRoute
+  '/contacts': typeof ContactsRoute
   '/design-kit': typeof DesignKitRoute
+  '/faucet': typeof FaucetRoute
+  '/pq': typeof PqRoute
   '/receive': typeof ReceiveRoute
   '/recovery': typeof RecoveryRoute
+  '/reset-data': typeof ResetDataRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
+  '/token-approvals': typeof TokenApprovalsRoute
   '/wallet': typeof WalletRoute
+  '/watch-address': typeof WatchAddressRoute
+  '/activity_/$txId': typeof ActivityTxIdRoute
   '/agentic_/new': typeof AgenticNewRoute
+  '/asset/$tokenId': typeof AssetTokenIdRoute
   '/wallet_/import': typeof WalletImportRoute
   '/agentic_/agent/$agentId': typeof AgenticAgentAgentIdRoute
 }
@@ -130,58 +247,110 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/account-activation'
+    | '/accounts'
+    | '/activity'
     | '/agentic'
+    | '/backup'
     | '/confirm'
+    | '/connections'
+    | '/contacts'
     | '/design-kit'
+    | '/faucet'
+    | '/pq'
     | '/receive'
     | '/recovery'
+    | '/reset-data'
     | '/send'
     | '/settings'
+    | '/token-approvals'
     | '/wallet'
+    | '/watch-address'
+    | '/activity/$txId'
     | '/agentic/new'
+    | '/asset/$tokenId'
     | '/wallet/import'
     | '/agentic/agent/$agentId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/account-activation'
+    | '/accounts'
+    | '/activity'
     | '/agentic'
+    | '/backup'
     | '/confirm'
+    | '/connections'
+    | '/contacts'
     | '/design-kit'
+    | '/faucet'
+    | '/pq'
     | '/receive'
     | '/recovery'
+    | '/reset-data'
     | '/send'
     | '/settings'
+    | '/token-approvals'
     | '/wallet'
+    | '/watch-address'
+    | '/activity/$txId'
     | '/agentic/new'
+    | '/asset/$tokenId'
     | '/wallet/import'
     | '/agentic/agent/$agentId'
   id:
     | '__root__'
     | '/'
+    | '/account-activation'
+    | '/accounts'
+    | '/activity'
     | '/agentic'
+    | '/backup'
     | '/confirm'
+    | '/connections'
+    | '/contacts'
     | '/design-kit'
+    | '/faucet'
+    | '/pq'
     | '/receive'
     | '/recovery'
+    | '/reset-data'
     | '/send'
     | '/settings'
+    | '/token-approvals'
     | '/wallet'
+    | '/watch-address'
+    | '/activity_/$txId'
     | '/agentic_/new'
+    | '/asset/$tokenId'
     | '/wallet_/import'
     | '/agentic_/agent/$agentId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccountActivationRoute: typeof AccountActivationRoute
+  AccountsRoute: typeof AccountsRoute
+  ActivityRoute: typeof ActivityRoute
   AgenticRoute: typeof AgenticRoute
+  BackupRoute: typeof BackupRoute
   ConfirmRoute: typeof ConfirmRoute
+  ConnectionsRoute: typeof ConnectionsRoute
+  ContactsRoute: typeof ContactsRoute
   DesignKitRoute: typeof DesignKitRoute
+  FaucetRoute: typeof FaucetRoute
+  PqRoute: typeof PqRoute
   ReceiveRoute: typeof ReceiveRoute
   RecoveryRoute: typeof RecoveryRoute
+  ResetDataRoute: typeof ResetDataRoute
   SendRoute: typeof SendRoute
   SettingsRoute: typeof SettingsRoute
+  TokenApprovalsRoute: typeof TokenApprovalsRoute
   WalletRoute: typeof WalletRoute
+  WatchAddressRoute: typeof WatchAddressRoute
+  ActivityTxIdRoute: typeof ActivityTxIdRoute
   AgenticNewRoute: typeof AgenticNewRoute
+  AssetTokenIdRoute: typeof AssetTokenIdRoute
   WalletImportRoute: typeof WalletImportRoute
   AgenticAgentAgentIdRoute: typeof AgenticAgentAgentIdRoute
 }
@@ -195,11 +364,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/account-activation': {
+      id: '/account-activation'
+      path: '/account-activation'
+      fullPath: '/account-activation'
+      preLoaderRoute: typeof AccountActivationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/accounts': {
+      id: '/accounts'
+      path: '/accounts'
+      fullPath: '/accounts'
+      preLoaderRoute: typeof AccountsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/activity': {
+      id: '/activity'
+      path: '/activity'
+      fullPath: '/activity'
+      preLoaderRoute: typeof ActivityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/agentic': {
       id: '/agentic'
       path: '/agentic'
       fullPath: '/agentic'
       preLoaderRoute: typeof AgenticRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/backup': {
+      id: '/backup'
+      path: '/backup'
+      fullPath: '/backup'
+      preLoaderRoute: typeof BackupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/confirm': {
@@ -209,11 +406,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConfirmRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/connections': {
+      id: '/connections'
+      path: '/connections'
+      fullPath: '/connections'
+      preLoaderRoute: typeof ConnectionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contacts': {
+      id: '/contacts'
+      path: '/contacts'
+      fullPath: '/contacts'
+      preLoaderRoute: typeof ContactsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/design-kit': {
       id: '/design-kit'
       path: '/design-kit'
       fullPath: '/design-kit'
       preLoaderRoute: typeof DesignKitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faucet': {
+      id: '/faucet'
+      path: '/faucet'
+      fullPath: '/faucet'
+      preLoaderRoute: typeof FaucetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pq': {
+      id: '/pq'
+      path: '/pq'
+      fullPath: '/pq'
+      preLoaderRoute: typeof PqRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/receive': {
@@ -230,6 +455,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecoveryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-data': {
+      id: '/reset-data'
+      path: '/reset-data'
+      fullPath: '/reset-data'
+      preLoaderRoute: typeof ResetDataRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/send': {
       id: '/send'
       path: '/send'
@@ -244,6 +476,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/token-approvals': {
+      id: '/token-approvals'
+      path: '/token-approvals'
+      fullPath: '/token-approvals'
+      preLoaderRoute: typeof TokenApprovalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/wallet': {
       id: '/wallet'
       path: '/wallet'
@@ -251,11 +490,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WalletRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/watch-address': {
+      id: '/watch-address'
+      path: '/watch-address'
+      fullPath: '/watch-address'
+      preLoaderRoute: typeof WatchAddressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/activity_/$txId': {
+      id: '/activity_/$txId'
+      path: '/activity/$txId'
+      fullPath: '/activity/$txId'
+      preLoaderRoute: typeof ActivityTxIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/agentic_/new': {
       id: '/agentic_/new'
       path: '/agentic/new'
       fullPath: '/agentic/new'
       preLoaderRoute: typeof AgenticNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/asset/$tokenId': {
+      id: '/asset/$tokenId'
+      path: '/asset/$tokenId'
+      fullPath: '/asset/$tokenId'
+      preLoaderRoute: typeof AssetTokenIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/wallet_/import': {
@@ -277,15 +537,28 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccountActivationRoute: AccountActivationRoute,
+  AccountsRoute: AccountsRoute,
+  ActivityRoute: ActivityRoute,
   AgenticRoute: AgenticRoute,
+  BackupRoute: BackupRoute,
   ConfirmRoute: ConfirmRoute,
+  ConnectionsRoute: ConnectionsRoute,
+  ContactsRoute: ContactsRoute,
   DesignKitRoute: DesignKitRoute,
+  FaucetRoute: FaucetRoute,
+  PqRoute: PqRoute,
   ReceiveRoute: ReceiveRoute,
   RecoveryRoute: RecoveryRoute,
+  ResetDataRoute: ResetDataRoute,
   SendRoute: SendRoute,
   SettingsRoute: SettingsRoute,
+  TokenApprovalsRoute: TokenApprovalsRoute,
   WalletRoute: WalletRoute,
+  WatchAddressRoute: WatchAddressRoute,
+  ActivityTxIdRoute: ActivityTxIdRoute,
   AgenticNewRoute: AgenticNewRoute,
+  AssetTokenIdRoute: AssetTokenIdRoute,
   WalletImportRoute: WalletImportRoute,
   AgenticAgentAgentIdRoute: AgenticAgentAgentIdRoute,
 }

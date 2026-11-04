@@ -1,21 +1,30 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, type LinkProps } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import {
   ArrowLeft,
   BookOpen,
+  BookUser,
   ChevronRight,
   Droplets,
   ExternalLink,
+  Eye,
+  FileCheck,
   Fingerprint,
   Globe,
+  History,
   Info,
   KeyRound,
   Lock,
   LogOut,
   Moon,
+  Plug,
+  Rocket,
   Search,
   Shield,
+  ShieldCheck,
   TrendingUp,
+  Trash2,
+  WalletCards,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -71,6 +80,7 @@ function Row({
   right,
   onClick,
   href,
+  to,
 }: {
   icon: typeof Shield;
   label: string;
@@ -78,6 +88,8 @@ function Row({
   right?: ReactNode;
   onClick?: () => void;
   href?: string;
+  /** Opens another screen of this app. */
+  to?: LinkProps["to"];
 }) {
   const body = (
     <>
@@ -91,12 +103,18 @@ function Row({
       {right ??
         (href ? (
           <ExternalLink className="h-4 w-4 text-muted-foreground" />
-        ) : onClick ? (
+        ) : onClick || to ? (
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
         ) : null)}
     </>
   );
   const cls = "flex w-full items-center gap-3 px-4 py-3 transition-colors hover:bg-primary/5";
+  if (to)
+    return (
+      <Link to={to} className={cls}>
+        {body}
+      </Link>
+    );
   if (href)
     return (
       <a href={href} target="_blank" rel="noreferrer" className={cls}>
@@ -117,18 +135,8 @@ function Settings() {
   const { state, update } = useQDayPreview();
   const [biometric, setBiometric] = useState(true);
   const [autoLock, setAutoLock] = useState(true);
-  const [dripping, setDripping] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
 
-  const faucet = () => {
-    setDripping(true);
-    setTimeout(() => {
-      setDripping(false);
-      toast.success("Faucet preview", {
-        description: "No testnet tokens are sent in this preview.",
-      });
-    }, 1200);
-  };
   const soon = (name: string) =>
     toast(name, { description: "This option is a preview and isn't available yet." });
 
@@ -158,6 +166,55 @@ function Settings() {
           </div>
         </div>
 
+        <Section title="Account">
+          <Row
+            icon={WalletCards}
+            label="Accounts"
+            detail="Details, nickname and add account"
+            to="/accounts"
+          />
+          <Row
+            icon={Rocket}
+            label="Account activation"
+            detail="Smart account deployment status"
+            to="/account-activation"
+          />
+        </Section>
+
+        <Section title="Wallet">
+          <Row
+            icon={History}
+            label="Activity"
+            detail="Sent and received transfers"
+            to="/activity"
+          />
+          <Row icon={BookUser} label="Address book" detail="Saved recipients" to="/contacts" />
+          <Row
+            icon={Eye}
+            label="Watch address"
+            detail="Read-only balances of a public address"
+            to="/watch-address"
+          />
+          <Row
+            icon={Plug}
+            label="Connections"
+            detail="dApps and session permissions"
+            to="/connections"
+          />
+          <Row
+            icon={ShieldCheck}
+            label="Quantum protection"
+            detail="Classic or Hybrid signatures"
+            to="/pq"
+          />
+          <Row
+            icon={FileCheck}
+            label="Token approvals"
+            detail="Check or revoke an allowance"
+            to="/token-approvals"
+          />
+        </Section>
+
         <Section title="Security">
           <Row
             icon={Fingerprint}
@@ -179,12 +236,7 @@ function Settings() {
               <Switch checked={autoLock} onCheckedChange={setAutoLock} aria-label="Auto-lock" />
             }
           />
-          <Row
-            icon={KeyRound}
-            label="Recovery phrase"
-            detail="View or back up"
-            onClick={() => soon("Recovery phrase")}
-          />
+          <Row icon={KeyRound} label="Recovery phrase" detail="View or back up" to="/backup" />
           <Row
             icon={Shield}
             label="Manage Trellis passkeys"
@@ -212,16 +264,21 @@ function Settings() {
             icon={Droplets}
             label="Testnet faucet"
             detail="Aevum Testnet · Get tUSD8 for testing"
-            right={
-              <Button size="sm" className="h-8 px-3 text-xs" disabled={dripping} onClick={faucet}>
-                {dripping ? "Sending…" : "Claim"}
-              </Button>
-            }
+            to="/faucet"
           />
           <Row icon={BookOpen} label="Wiki" href="https://example.com" />
           <Row icon={TrendingUp} label="Price Oracle" href="https://example.com" />
           <Row icon={Globe} label="Website" href="https://example.com" />
           <Row icon={Search} label="Explorer" href="https://example.com" />
+        </Section>
+
+        <Section title="Data">
+          <Row
+            icon={Trash2}
+            label="Reset app data"
+            detail="Sign-in, cache and local data"
+            to="/reset-data"
+          />
         </Section>
 
         <Section title="About">
