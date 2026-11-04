@@ -128,8 +128,8 @@ function AgenticPayment() {
           <Button
             variant="ghost"
             size="icon"
-            aria-label="Sign out of QDay preview"
-            title="Sign out of QDay"
+            aria-label="Sign out of Signet preview"
+            title="Sign out of Signet"
             onClick={() => update((s) => ({ ...s, email: null, completed: 0 }))}
           >
             <LogOut />

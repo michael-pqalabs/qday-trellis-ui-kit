@@ -33,7 +33,7 @@ export function BottomNav() {
               key={item.to}
               disabled
               variant="ghost"
-              title="Sign in to QDay first"
+              title="Sign in to Signet first"
               className="h-auto flex-1 flex-col gap-1 py-2 text-[11px]"
             >
               <item.icon className="h-5 w-5" />

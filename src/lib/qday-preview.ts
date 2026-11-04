@@ -2,13 +2,17 @@
 export const QDAY_PREVIEW_KEY = "trellis-qday-preview-v1";
 export const PREVIEW_OTP = "12345678";
 export const setupSteps = [
-  { title: "Email sign-in", detail: "Confirm your QDay account", manual: false },
+  { title: "Email sign-in", detail: "Confirm your Signet account", manual: false },
   {
     title: "Prepare Spending Wallet activation",
     detail: "Prepare your existing Trellis wallet",
     manual: false,
   },
-  { title: "Link wallet to email", detail: "Connect your wallet and QDay account", manual: false },
+  {
+    title: "Link wallet to email",
+    detail: "Connect your wallet and Signet account",
+    manual: false,
+  },
   { title: "Passkey setup", detail: "Secure access with your device", manual: true },
   { title: "Main Wallet activation", detail: "Prepare your account on QDay", manual: true },
 ] as const;

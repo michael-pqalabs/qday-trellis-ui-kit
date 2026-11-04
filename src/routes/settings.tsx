@@ -150,10 +150,10 @@ function Settings() {
           </span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">
-              {state.email ?? "Not signed in to QDay"}
+              {state.email ?? "Not signed in to Signet"}
             </p>
             <p className="text-xs text-muted-foreground">
-              {state.email ? "QDay platform account" : "Sign in from Agentic Payments"}
+              {state.email ? "Signet account" : "Sign in from Agentic Payments"}
             </p>
           </div>
         </div>
@@ -188,7 +188,7 @@ function Settings() {
           <Row
             icon={Shield}
             label="Manage Trellis passkeys"
-            detail="App sign-in keys, separate from QDay"
+            detail="App sign-in keys, separate from Signet"
             onClick={() => soon("Manage Trellis passkeys")}
           />
         </Section>
@@ -244,11 +244,11 @@ function Settings() {
             className="mt-6 text-destructive"
             onClick={() => {
               update((s) => ({ ...emptyQDayPreview, walletReady: s.walletReady }));
-              toast("Signed out of QDay");
+              toast("Signed out of Signet");
             }}
           >
             <LogOut />
-            Sign out of QDay
+            Sign out of Signet
           </Button>
         )}
 

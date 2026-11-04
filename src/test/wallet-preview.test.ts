@@ -16,6 +16,7 @@ import {
   validateTokenImport,
   searchTokens,
   zeroBalance,
+  signetPassFee,
 } from "@/lib/wallet-preview";
 
 describe("Wallet token selection", () => {
@@ -140,5 +141,12 @@ describe("Token import", () => {
   it("lists the default tokens per blockchain", () => {
     expect(getChain("qday").defaultTokens).toEqual(["QDAY", "USD8"]);
     expect(getChain("base").defaultTokens).toEqual(["ETH", "USDC"]);
+  });
+});
+
+describe("SignetPass deployment fee", () => {
+  it("is 3 USD8 on QDay and 3 USDC on Base", () => {
+    expect(signetPassFee("qday")).toEqual({ amount: 3, token: "USD8" });
+    expect(signetPassFee("base")).toEqual({ amount: 3, token: "USDC" });
   });
 });

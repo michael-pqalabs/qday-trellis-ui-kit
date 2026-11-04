@@ -325,3 +325,11 @@ export function validateTokenImport(
     errors.decimals = `Use a whole number from 0 to ${TOKEN_DECIMALS_MAX}.`;
   return errors;
 }
+
+/** Smart contract deployment fee charged on the Main Wallet when a SignetPass is created. */
+export const SIGNET_PASS_FEE = 3;
+/** The fee is paid in the blockchain's stablecoin: USD8 on QDay, USDC on Base. */
+export function signetPassFee(chainId: string) {
+  const token = getChain(chainId).defaultTokens[1] ?? "USD8";
+  return { amount: SIGNET_PASS_FEE, token };
+}
