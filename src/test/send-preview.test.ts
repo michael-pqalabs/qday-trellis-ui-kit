@@ -12,6 +12,7 @@ describe("Send validation", () => {
     expect(validateSend("0x" + "a".repeat(40), "1.5")).toEqual({});
   });
   it("scopes sample history to the selected wallet", () => {
-    expect(transactionsFor("savings").every((tx) => tx.walletId === "savings")).toBe(true);
+    expect(transactionsFor("main").every((tx) => tx.walletId === "main")).toBe(true);
+    expect(transactionsFor("another-wallet")).toEqual([]);
   });
 });

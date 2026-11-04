@@ -4,10 +4,11 @@ import {
   Check,
   Copy,
   Eye,
+  Info,
+  Pencil,
   EyeOff,
   Wallet,
   ChevronRight,
-  Plus,
   History,
   Settings,
   ArrowUpRight,
@@ -16,20 +17,17 @@ import {
 import { TrellisLockup } from "@/components/trellis-lockup";
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   agoLabel,
   shortAddress,
   transactionsFor,
   getPreviewHolding,
-  previewNetworks,
+  chainForNetwork,
+  defaultNetworkId,
+  describeNetwork,
   walletTokens,
 } from "@/lib/wallet-preview";
+import { AddWalletMenu, RenameWalletDialog } from "@/components/add-wallet";
+import { NetworkPicker } from "@/components/network-picker";
 import { WalletActions } from "@/components/wallet-actions";
 import { BottomNav } from "@/components/bottom-nav";
 import { useWalletPreview } from "@/components/wallet-preview-provider";
@@ -37,28 +35,26 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+
+type Search = { wallet?: string | undefined; network?: string | undefined };
 
 export const Route = createFileRoute("/wallet")({
+  // Lets the import page return to a specific wallet and network.
+  validateSearch: (s: Record<string, unknown>): Search => ({
+    wallet: typeof s["wallet"] === "string" ? s["wallet"] : undefined,
+    network: typeof s["network"] === "string" ? s["network"] : undefined,
+  }),
   head: () => ({
     meta: [
-      { title: "My Wallet — Trellis Wallet" },
+      { title: "My Wallets — Trellis Wallet" },
       {
         name: "description",
         content:
           "Your Trellis Wallet overview: select a wallet, network, and QDAY or USD8 balance.",
       },
-      { property: "og:title", content: "My Wallet — Trellis Wallet" },
+      { property: "og:title", content: "My Wallets — Trellis Wallet" },
       {
         property: "og:description",
         content: "Explore your wallet and individual token balances in Trellis Wallet.",
@@ -71,17 +67,23 @@ export const Route = createFileRoute("/wallet")({
 });
 
 function WalletOverview() {
-  const { wallets, addWallet } = useWalletPreview();
-  const [addOpen, setAddOpen] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [newNetwork, setNewNetwork] = useState("testnet");
-  const [walletId, setWalletId] = useState("main");
-  const [networkId, setNetworkId] = useState("testnet");
+  const search = Route.useSearch();
+  const { wallets } = useWalletPreview();
+  const [walletId, setWalletId] = useState(search.wallet ?? "main");
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [chainId, setChainId] = useState(() => chainForNetwork(search.network).id);
+  const [networkId, setNetworkId] = useState(() => search.network ?? defaultNetworkId("qday"));
   const [tokenId, setTokenId] = useState("qday");
   const [visible, setVisible] = useState(true);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
   const holding = getPreviewHolding(walletId, networkId, tokenId, wallets);
   const { wallet, network, token, balance } = holding;
+  const { network: chainNetwork, label: where } = describeNetwork(networkId);
+  const changeNetwork = (nextChainId: string, nextNetworkId: string) => {
+    setChainId(nextChainId);
+    setNetworkId(nextNetworkId);
+    setCopyState("idle");
+  };
 
   const copyAddress = async () => {
     try {
@@ -94,8 +96,9 @@ function WalletOverview() {
 
   return (
     <div className="flex min-h-screen justify-center bg-background">
-      <main className="flex min-h-screen w-full max-w-md flex-col px-4 pb-0 pt-6">
-        <header className="flex items-center justify-between">
+      <main className="flex min-h-screen w-full max-w-md flex-col px-4 pb-0 pt-3">
+        <NetworkPicker chainId={chainId} networkId={networkId} onChange={changeNetwork} />
+        <header className="mt-1 flex items-center justify-between">
           <TrellisLockup />
           <Button
             asChild
@@ -115,67 +118,89 @@ function WalletOverview() {
           </Button>
         </header>
 
-        <div className="mb-5 mt-6 flex items-center justify-between">
+        <div className="mb-4 mt-6 flex items-center justify-between gap-3">
           <h1 className="font-display text-3xl font-semibold">My Wallets</h1>
-          <Select value={networkId} onValueChange={setNetworkId}>
-            <SelectTrigger
-              aria-label="Network"
-              className="h-8 w-auto max-w-40 gap-1.5 rounded-full border-border/60 bg-card px-3 text-[11px] shadow-sm"
-            >
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {previewNetworks.map((item) => (
-                <SelectItem key={item.id} value={item.id}>
-                  {item.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <AddWalletMenu
+            networkId={networkId}
+            where={where}
+            onAdded={(added) => {
+              setWalletId(added.id);
+              setCopyState("idle");
+            }}
+          />
         </div>
 
-        <div className="mb-4 min-w-0">
+        <div className="mb-4 flex min-w-0 items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
                 aria-label="Select wallet"
-                className="h-12 w-full justify-start gap-3 bg-card px-4 shadow-sm"
+                className="h-11 min-w-0 flex-1 justify-start gap-2.5 bg-card px-3.5 text-[13px] shadow-sm"
               >
-                <Wallet className="shrink-0 text-primary" />
+                <Wallet className="!h-4 !w-4 shrink-0 text-primary" />
                 <span className="min-w-0 flex-1 truncate text-left">{wallet.name}</span>
                 <ChevronRight className="rotate-90 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)]">
-              {wallets.map((item) => (
-                <DropdownMenuItem
-                  key={item.id}
-                  onSelect={() => {
-                    setWalletId(item.id);
-                    if (item.networkId) setNetworkId(item.networkId);
-                    setCopyState("idle");
-                  }}
-                >
-                  <Wallet />
-                  <span className="min-w-0 flex-1 truncate">{item.name}</span>
-                  {item.id === walletId && <Check className="text-primary" />}
-                </DropdownMenuItem>
-              ))}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onSelect={() => {
-                  setNewName(`Wallet ${wallets.length + 1}`);
-                  setAddOpen(true);
-                }}
-              >
-                <Plus />
-                Add / Create new wallet
-              </DropdownMenuItem>
+            <DropdownMenuContent
+              className="w-[var(--radix-dropdown-menu-trigger-width)] p-1.5"
+              aria-label="Wallets"
+            >
+              {wallets.map((item) => {
+                const selected = item.id === walletId;
+                return (
+                  <DropdownMenuItem
+                    key={item.id}
+                    aria-current={selected ? "true" : undefined}
+                    onSelect={() => {
+                      setWalletId(item.id);
+                      if (item.networkId) {
+                        setChainId(chainForNetwork(item.networkId).id);
+                        setNetworkId(item.networkId);
+                      }
+                      setCopyState("idle");
+                    }}
+                    className={`gap-2.5 rounded-lg px-2.5 py-2 ${selected ? "bg-primary/10" : ""}`}
+                  >
+                    <Wallet className="!h-4 !w-4 shrink-0" />
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-center gap-2">
+                        <span className="truncate text-[13px] font-medium">{item.name}</span>
+                        {item.source === "imported" && (
+                          <span className="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground">
+                            Imported
+                          </span>
+                        )}
+                      </span>
+                      <span className="mt-px block truncate font-mono text-[11px] text-muted-foreground">
+                        {shortAddress(item.address)}
+                      </span>
+                    </span>
+                    {selected && <Check className="!h-4 !w-4 shrink-0 text-primary" />}
+                  </DropdownMenuItem>
+                );
+              })}
             </DropdownMenuContent>
           </DropdownMenu>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            aria-label={`Rename ${wallet.name}`}
+            title="Rename wallet"
+            onClick={() => setRenameOpen(true)}
+            className="h-11 w-11 shrink-0 bg-card text-muted-foreground shadow-sm hover:text-primary"
+          >
+            <Pencil className="!h-4 !w-4" />
+          </Button>
         </div>
+        <RenameWalletDialog
+          key={wallet.id}
+          wallet={wallet}
+          open={renameOpen}
+          onOpenChange={setRenameOpen}
+        />
 
         <section
           aria-label="Selected token balance"
@@ -201,7 +226,16 @@ function WalletOverview() {
             </span>
             <span className="font-display text-sm font-medium text-primary">{token.symbol}</span>
           </div>
-          <p className="mt-1 text-[10px] text-muted-foreground">{network.name}</p>
+          <p className="mt-1 text-[10px] text-muted-foreground">{where}</p>
+          {chainNetwork?.previewNote && (
+            <p
+              role="note"
+              className="mt-2 flex items-start gap-1.5 rounded-md bg-secondary/70 px-2.5 py-1.5 text-[11px] leading-relaxed text-muted-foreground"
+            >
+              <Info className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />
+              {chainNetwork.previewNote}
+            </p>
+          )}
           <div className="mt-3 flex items-center gap-2 border-t border-divider pt-3">
             <div className="flex min-w-0 flex-1 items-center gap-2 rounded-full bg-secondary/70 px-3 py-2">
               <span
@@ -360,60 +394,6 @@ function WalletOverview() {
           Trellis Wallet · Your keys. Your crypto.
         </footer>
         <BottomNav />
-        <Dialog open={addOpen} onOpenChange={setAddOpen}>
-          <DialogContent className="w-[calc(100%-2rem)] max-w-sm">
-            <DialogHeader>
-              <DialogTitle>Add wallet</DialogTitle>
-              <DialogDescription>
-                Smart account preview · no on-chain account will be created.
-              </DialogDescription>
-            </DialogHeader>
-            <form
-              className="space-y-4"
-              onSubmit={(event) => {
-                event.preventDefault();
-                if (!newName.trim()) return;
-                const added = addWallet(newName, newNetwork);
-                setWalletId(added.id);
-                setNetworkId(newNetwork);
-                setAddOpen(false);
-              }}
-            >
-              <label className="block space-y-2 text-xs text-muted-foreground">
-                Wallet name
-                <Input
-                  aria-label="New wallet name"
-                  value={newName}
-                  onChange={(event) => setNewName(event.target.value)}
-                  required
-                  maxLength={40}
-                />
-              </label>
-              <div className="space-y-2">
-                <label className="text-xs text-muted-foreground">Network</label>
-                <Select value={newNetwork} onValueChange={setNewNetwork}>
-                  <SelectTrigger aria-label="New wallet network">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {previewNetworks.map((item) => (
-                      <SelectItem key={item.id} value={item.id}>
-                        {item.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Fee sponsorship: not verified · no network fee is charged in this preview.
-              </p>
-              <Button type="submit" className="w-full" disabled={!newName.trim()}>
-                <Plus />
-                Create preview wallet
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
       </main>
     </div>
   );

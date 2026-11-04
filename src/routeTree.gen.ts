@@ -19,6 +19,7 @@ import { Route as SendRouteImport } from './routes/send'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as AgenticNewRouteImport } from './routes/agentic_.new'
+import { Route as WalletImportRouteImport } from './routes/wallet_.import'
 import { Route as AgenticAgentAgentIdRouteImport } from './routes/agentic_.agent.$agentId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -71,6 +72,11 @@ const AgenticNewRoute = AgenticNewRouteImport.update({
   path: '/agentic/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WalletImportRoute = WalletImportRouteImport.update({
+  id: '/wallet_/import',
+  path: '/wallet/import',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AgenticAgentAgentIdRoute = AgenticAgentAgentIdRouteImport.update({
   id: '/agentic_/agent/$agentId',
   path: '/agentic/agent/$agentId',
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/wallet': typeof WalletRoute
   '/agentic/new': typeof AgenticNewRoute
+  '/wallet/import': typeof WalletImportRoute
   '/agentic/agent/$agentId': typeof AgenticAgentAgentIdRoute
 }
 export interface FileRoutesByTo {
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/wallet': typeof WalletRoute
   '/agentic/new': typeof AgenticNewRoute
+  '/wallet/import': typeof WalletImportRoute
   '/agentic/agent/$agentId': typeof AgenticAgentAgentIdRoute
 }
 export interface FileRoutesById {
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/wallet': typeof WalletRoute
   '/agentic_/new': typeof AgenticNewRoute
+  '/wallet_/import': typeof WalletImportRoute
   '/agentic_/agent/$agentId': typeof AgenticAgentAgentIdRoute
 }
 export interface FileRouteTypes {
@@ -130,6 +139,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/wallet'
     | '/agentic/new'
+    | '/wallet/import'
     | '/agentic/agent/$agentId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -143,6 +153,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/wallet'
     | '/agentic/new'
+    | '/wallet/import'
     | '/agentic/agent/$agentId'
   id:
     | '__root__'
@@ -156,6 +167,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/wallet'
     | '/agentic_/new'
+    | '/wallet_/import'
     | '/agentic_/agent/$agentId'
   fileRoutesById: FileRoutesById
 }
@@ -170,6 +182,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   WalletRoute: typeof WalletRoute
   AgenticNewRoute: typeof AgenticNewRoute
+  WalletImportRoute: typeof WalletImportRoute
   AgenticAgentAgentIdRoute: typeof AgenticAgentAgentIdRoute
 }
 
@@ -245,6 +258,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgenticNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/wallet_/import': {
+      id: '/wallet_/import'
+      path: '/wallet/import'
+      fullPath: '/wallet/import'
+      preLoaderRoute: typeof WalletImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/agentic_/agent/$agentId': {
       id: '/agentic_/agent/$agentId'
       path: '/agentic/agent/$agentId'
@@ -266,6 +286,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   WalletRoute: WalletRoute,
   AgenticNewRoute: AgenticNewRoute,
+  WalletImportRoute: WalletImportRoute,
   AgenticAgentAgentIdRoute: AgenticAgentAgentIdRoute,
 }
 export const routeTree = rootRouteImport

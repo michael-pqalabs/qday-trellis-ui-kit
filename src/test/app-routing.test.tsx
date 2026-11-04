@@ -18,7 +18,7 @@ describe("App routing", () => {
   it("matches a page for each bottom-nav destination", () => {
     const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
 
-    for (const path of ["/wallet", "/agentic"]) {
+    for (const path of ["/wallet", "/wallet/import", "/agentic"]) {
       expect(router.matchRoutes(path).at(-1)?.routeId).not.toBe(rootRouteId);
     }
   });

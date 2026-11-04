@@ -1,20 +1,100 @@
 // UI preview only: no addresses or balances are derived from the demo phrase.
 export const previewWallets = [
   { id: "main", name: "Wallet 1 (Main)", address: "0x7A39fC621B84D09a36e570F8cE214D6b95aC8021" },
-  { id: "savings", name: "Wallet 2", address: "0x2C86aB913D57E04f68b120A9dF435E7c01B69832" },
 ] as const;
 
 export const previewNetworks = [
   { id: "testnet", name: "Aevum Testnet" },
   { id: "base-testnet", name: "Base Testnet" },
+  { id: "qday-mainnet", name: "QDay Mainnet" },
 ] as const;
+
+export type PreviewChainNetwork = {
+  id: string;
+  name: string;
+  available: boolean;
+  /** Shown wherever the network is picked or used, for networks that are not live. */
+  previewNote?: string;
+};
+export type PreviewChain = {
+  id: string;
+  name: string;
+  available: boolean;
+  /** Shown under a blockchain that is not the active one. */
+  switchNote?: string;
+  networks: PreviewChainNetwork[];
+};
+
+/**
+ * Blockchains and the networks each one offers. A network's name depends on its blockchain:
+ * QDay's testnet is Aevum Testnet. Only one blockchain is active at a time, and mainnets stay
+ * unavailable until they ship, so they are listed as "coming soon" rather than selectable.
+ */
+export const previewChains: PreviewChain[] = [
+  {
+    id: "qday",
+    name: "QDay",
+    available: true,
+    networks: [
+      { id: "testnet", name: "Aevum Testnet", available: true },
+      {
+        id: "qday-mainnet",
+        name: "Mainnet",
+        available: true,
+        previewNote:
+          "Preview only. QDay Mainnet is not live; balances and addresses are illustrative.",
+      },
+    ],
+  },
+  {
+    id: "base",
+    name: "Base",
+    available: false,
+    switchNote:
+      "Separate from QDay. Starts with a new Main Wallet smart account (the first one is sponsored), then new SignetPasses (not sponsored).",
+    networks: [
+      { id: "base-testnet", name: "Base Testnet", available: true },
+      { id: "base-mainnet", name: "Mainnet", available: false },
+    ],
+  },
+];
+
+export function getChain(chainId: string) {
+  return previewChains.find((chain) => chain.id === chainId) ?? (previewChains[0] as PreviewChain);
+}
+
+export function chainForNetwork(networkId: string | undefined) {
+  return (
+    previewChains.find((chain) => chain.networks.some((item) => item.id === networkId)) ??
+    (previewChains[0] as PreviewChain)
+  );
+}
+
+/** Chain and network for an id, with the "QDay · Aevum Testnet" label used across the wallet. */
+export function describeNetwork(networkId: string | undefined) {
+  const chain = chainForNetwork(networkId);
+  const network = chain.networks.find((item) => item.id === networkId) ?? chain.networks[0];
+  return { chain, network, label: `${chain.name} · ${network?.name ?? ""}` };
+}
+
+export function defaultNetworkId(chainId: string) {
+  const chain = getChain(chainId);
+  return (chain.networks.find((item) => item.available) ?? chain.networks[0])?.id ?? "testnet";
+}
 
 export const walletTokens = [
   { id: "qday", name: "QDAY", symbol: "QDAY", detail: "Native token", mark: "Q", tone: "primary" },
   { id: "usd8", name: "USD8", symbol: "USD8", detail: "Stablecoin", mark: "$", tone: "foreground" },
 ] as const;
 
-export type PreviewWallet = { id: string; name: string; address: string; networkId?: string };
+export type PreviewWallet = {
+  id: string;
+  name: string;
+  address: string;
+  networkId?: string;
+  /** How the illustrative account was added; the initial accounts have neither. */
+  source?: "created" | "imported";
+};
 export function getPreviewHolding(
   walletId: string,
   networkId: string,
@@ -89,26 +169,6 @@ export const sampleTransactions: PreviewTx[] = [
     status: "failed",
     minutesAgo: 2900,
   },
-  {
-    id: "tx-6",
-    walletId: "savings",
-    kind: "receive",
-    tokenId: "qday",
-    amount: "300.00",
-    counterparty: "0x7A39fC621B84D09a36e570F8cE214D6b95aC8021",
-    status: "confirmed",
-    minutesAgo: 600,
-  },
-  {
-    id: "tx-7",
-    walletId: "savings",
-    kind: "send",
-    tokenId: "usd8",
-    amount: "25.00",
-    counterparty: "0x3D8b2F6a1E9c4B70d5A3e8C2f6B1a9D4c7E0b532",
-    status: "confirmed",
-    minutesAgo: 4300,
-  },
 ];
 
 export function transactionsFor(walletId: string) {
@@ -136,4 +196,30 @@ export function validateSend(recipient: string, amount: string): SendErrors {
   if (!amount.trim() || !Number.isFinite(value) || value <= 0)
     errors.amount = "Enter an amount greater than 0.";
   return errors;
+}
+
+/** "Wallet 3", "Wallet 4", … : the number keeps increasing and never repeats an existing name. */
+export function nextWalletName(wallets: readonly { name: string }[]) {
+  const used = new Set(wallets.map((wallet) => wallet.name.trim().toLowerCase()));
+  let n = wallets.length + 1;
+  while (used.has(`wallet ${n}`)) n++;
+  return `Wallet ${n}`;
+}
+
+export const WALLET_NAME_MAX = 40;
+export function validateWalletName(name: string, wallets: readonly { name: string }[]) {
+  const value = name.trim();
+  if (!value) return "Enter a wallet name.";
+  if (value.length > WALLET_NAME_MAX) return `Use ${WALLET_NAME_MAX} characters or fewer.`;
+  if (wallets.some((wallet) => wallet.name.trim().toLowerCase() === value.toLowerCase()))
+    return "You already have a wallet with this name.";
+  return undefined;
+}
+
+export function phraseWordCount(phrase: string) {
+  return phrase.trim().split(/\s+/).filter(Boolean).length;
+}
+export function isPhraseLengthValid(phrase: string) {
+  const count = phraseWordCount(phrase);
+  return count === 12 || count === 24;
 }
