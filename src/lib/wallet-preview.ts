@@ -229,7 +229,68 @@ export function isPhraseLengthValid(phrase: string) {
 }
 
 /** A token added with "+" in the token list. Illustrative: nothing is looked up or stored on-chain. */
-export type ImportedToken = { id: string; symbol: string; address: string; decimals: number };
+export type TokenDraft = { symbol: string; address: string; decimals: number; name?: string };
+/** Tokens apply to the blockchain and network of the active wallet, so each one keeps its network. */
+export type ImportedToken = TokenDraft & { id: string; networkId: string };
+
+/**
+ * Sample entries for the Search tab, per blockchain. Not a live token list: nothing is looked up, and
+ * the addresses are illustrative.
+ */
+const sampleCatalogue: Record<string, TokenDraft[]> = {
+  qday: [
+    {
+      name: "Wrapped QDAY",
+      symbol: "WQDAY",
+      address: "0x2f4b8c1d9e6a3705b8d4c2e1f0a9738465bd1c20",
+      decimals: 18,
+    },
+    {
+      name: "Sample Euro",
+      symbol: "SEUR",
+      address: "0x91c3e5a7b2d4f60813a5c7e9b1d3f5a7c9e1b3d5",
+      decimals: 6,
+    },
+    {
+      name: "Sample Gold",
+      symbol: "SGLD",
+      address: "0x5d7f9b1c3e5a7092b4d6f8a0c2e4b6d8f0a2c4e6",
+      decimals: 8,
+    },
+  ],
+  base: [
+    {
+      name: "Wrapped Ether",
+      symbol: "WETH",
+      address: "0x4a6c8e0b2d4f6819a3c5e7b9d1f3a5c7e9b1d3f5",
+      decimals: 18,
+    },
+    {
+      name: "Dai Stablecoin",
+      symbol: "DAI",
+      address: "0x7b9d1f3a5c7e9021b3d5f7a9c1e3b5d7f9a1c3e5",
+      decimals: 18,
+    },
+    {
+      name: "Coinbase Wrapped BTC",
+      symbol: "cbBTC",
+      address: "0x3c5e7a9b1d3f5027c9e1b3d5f7a9c1e3b5d7f9a1",
+      decimals: 8,
+    },
+  ],
+};
+export function searchTokens(networkId: string, query: string, taken: readonly string[]) {
+  const q = query.trim().toLowerCase();
+  const takenSet = new Set(taken.map((symbol) => symbol.toLowerCase()));
+  return (sampleCatalogue[chainForNetwork(networkId).id] ?? [])
+    .filter((token) => !takenSet.has(token.symbol.toLowerCase()))
+    .filter(
+      (token) =>
+        !q ||
+        token.symbol.toLowerCase().includes(q) ||
+        (token.name ?? "").toLowerCase().includes(q),
+    );
+}
 
 export const TOKEN_SYMBOL_MAX = 11;
 export const TOKEN_DECIMALS_MAX = 36;

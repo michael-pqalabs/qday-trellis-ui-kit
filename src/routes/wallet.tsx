@@ -70,7 +70,7 @@ export const Route = createFileRoute("/wallet")({
 
 function WalletOverview() {
   const search = Route.useSearch();
-  const { wallets, importedTokens } = useWalletPreview();
+  const { wallets, importedTokens: allImportedTokens } = useWalletPreview();
   const [walletId, setWalletId] = useState(search.wallet ?? "main");
   const [renameOpen, setRenameOpen] = useState(false);
   const [chainId, setChainId] = useState(() => chainForNetwork(search.network).id);
@@ -78,6 +78,7 @@ function WalletOverview() {
   const [tokenId, setTokenId] = useState("qday");
   const [visible, setVisible] = useState(true);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
+  const importedTokens = allImportedTokens.filter((token) => token.networkId === networkId);
   const holding = getPreviewHolding(walletId, networkId, tokenId, wallets);
   const { wallet, network, token, balance } = holding;
   const { network: chainNetwork, label: where } = describeNetwork(networkId);
@@ -287,7 +288,7 @@ function WalletOverview() {
               <span className="text-xs text-muted-foreground">
                 {walletTokens.length + importedTokens.length} assets
               </span>
-              <AddTokenButton where={where} />
+              <AddTokenButton networkId={networkId} where={where} />
             </div>
           </div>
           <div className="space-y-1">
@@ -343,7 +344,9 @@ function WalletOverview() {
                   {item.symbol.charAt(0)}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-semibold">{item.symbol}</span>
+                  <span className="block truncate text-sm font-semibold">
+                    {item.name ?? item.symbol}
+                  </span>
                   <span className="mt-1 block truncate font-mono text-[11px] text-muted-foreground">
                     Imported · {shortAddress(item.address)}
                   </span>

@@ -14,6 +14,7 @@ import {
   previewWallets,
   sampleTransactions,
   validateTokenImport,
+  searchTokens,
   zeroBalance,
 } from "@/lib/wallet-preview";
 
@@ -123,6 +124,18 @@ describe("Token import", () => {
   });
   it("shows a zero balance matching the decimals", () => {
     expect([0, 1, 6].map(zeroBalance)).toEqual(["0", "0.0", "0.00"]);
+  });
+  it("searches the sample list of the active blockchain only", () => {
+    expect(searchTokens("testnet", "wrapped", []).map((t) => t.symbol)).toEqual(["WQDAY"]);
+    expect(searchTokens("base-testnet", "wrapped", []).map((t) => t.symbol)).toEqual([
+      "WETH",
+      "cbBTC",
+    ]);
+    expect(searchTokens("testnet", "", [])).toHaveLength(3);
+    expect(searchTokens("testnet", "zzz", [])).toEqual([]);
+  });
+  it("hides sample tokens that are already in the list", () => {
+    expect(searchTokens("testnet", "", ["wqday"]).map((t) => t.symbol)).toEqual(["SEUR", "SGLD"]);
   });
   it("lists the default tokens per blockchain", () => {
     expect(getChain("qday").defaultTokens).toEqual(["QDAY", "USD8"]);
