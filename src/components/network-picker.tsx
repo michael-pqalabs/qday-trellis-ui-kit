@@ -157,6 +157,9 @@ function BaseSetupPreview({ onBack }: { onBack: () => void }) {
           </li>
         ))}
       </ol>
+      <p className="text-xs leading-relaxed text-muted-foreground">
+        Every Base wallet starts with ETH and USDC. QDay wallets start with QDAY and USD8.
+      </p>
       <p className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         QDay and Base are not available at the same time. You choose which blockchain manages your

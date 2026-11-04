@@ -22,6 +22,8 @@ export type PreviewChain = {
   available: boolean;
   /** Shown under a blockchain that is not the active one. */
   switchNote?: string;
+  /** Tokens every wallet on this blockchain starts with. */
+  defaultTokens: string[];
   networks: PreviewChainNetwork[];
 };
 
@@ -35,6 +37,7 @@ export const previewChains: PreviewChain[] = [
     id: "qday",
     name: "QDay",
     available: true,
+    defaultTokens: ["QDAY", "USD8"],
     networks: [
       { id: "testnet", name: "Aevum Testnet", available: true },
       {
@@ -50,6 +53,7 @@ export const previewChains: PreviewChain[] = [
     id: "base",
     name: "Base",
     available: false,
+    defaultTokens: ["ETH", "USDC"],
     switchNote:
       "Separate from QDay. Starts with a new Main Wallet smart account (the first one is sponsored), then new SignetPasses (not sponsored).",
     networks: [
@@ -222,4 +226,41 @@ export function phraseWordCount(phrase: string) {
 export function isPhraseLengthValid(phrase: string) {
   const count = phraseWordCount(phrase);
   return count === 12 || count === 24;
+}
+
+/** A token added with "+" in the token list. Illustrative: nothing is looked up or stored on-chain. */
+export type ImportedToken = { id: string; symbol: string; address: string; decimals: number };
+
+export const TOKEN_SYMBOL_MAX = 11;
+export const TOKEN_DECIMALS_MAX = 36;
+/** Balance text for a zero balance, shown with up to two decimals (none for a 0-decimal token). */
+export function zeroBalance(decimals: number) {
+  return decimals <= 0 ? "0" : `0.${"0".repeat(Math.min(decimals, 2))}`;
+}
+export function isTokenAddress(address: string) {
+  return /^0x[0-9a-fA-F]{40}$/.test(address.trim());
+}
+export function validateTokenImport(
+  address: string,
+  symbol: string,
+  decimals: string,
+  existing: readonly { symbol: string; address?: string }[],
+) {
+  const addr = address.trim();
+  const sym = symbol.trim();
+  const errors: { address?: string; symbol?: string; decimals?: string } = {};
+  if (!addr) errors.address = "Enter the token contract address.";
+  else if (!isTokenAddress(addr)) errors.address = "Use a 0x address with 40 hex characters.";
+  else if (existing.some((token) => token.address?.toLowerCase() === addr.toLowerCase()))
+    errors.address = "This token is already in your list.";
+  if (!sym) errors.symbol = "Enter the token symbol.";
+  else if (sym.length > TOKEN_SYMBOL_MAX)
+    errors.symbol = `Use ${TOKEN_SYMBOL_MAX} characters or fewer.`;
+  else if (existing.some((token) => token.symbol.toLowerCase() === sym.toLowerCase()))
+    errors.symbol = "A token with this symbol is already in your list.";
+  const dec = decimals.trim();
+  if (!dec) errors.decimals = "Enter the token decimals.";
+  else if (!/^\d+$/.test(dec) || Number(dec) > TOKEN_DECIMALS_MAX)
+    errors.decimals = `Use a whole number from 0 to ${TOKEN_DECIMALS_MAX}.`;
+  return errors;
 }

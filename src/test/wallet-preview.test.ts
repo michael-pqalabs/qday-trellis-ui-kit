@@ -13,6 +13,8 @@ import {
   isPhraseLengthValid,
   previewWallets,
   sampleTransactions,
+  validateTokenImport,
+  zeroBalance,
 } from "@/lib/wallet-preview";
 
 describe("Wallet token selection", () => {
@@ -91,5 +93,39 @@ describe("Wallet token selection", () => {
     expect(isPhraseLengthValid(`  ${words(24)}  `)).toBe(true);
     expect(isPhraseLengthValid(words(11))).toBe(false);
     expect(isPhraseLengthValid("")).toBe(false);
+  });
+});
+
+describe("Token import", () => {
+  const existing = [{ symbol: "QDAY" }, { symbol: "USD8" }];
+  const address = "0x7A39fC621B84D09a36e570F8cE214D6b95aC8021";
+  it("accepts a 0x address with a new symbol", () => {
+    expect(validateTokenImport(address, "usdt", "6", existing)).toEqual({});
+  });
+  it("rejects empty, malformed and duplicate input", () => {
+    expect(validateTokenImport("", "", "", existing)).toEqual({
+      address: "Enter the token contract address.",
+      symbol: "Enter the token symbol.",
+      decimals: "Enter the token decimals.",
+    });
+    expect(validateTokenImport("0x123", "ABC", "18", existing).address).toMatch(/40 hex/);
+    expect(validateTokenImport(address, "usd8", "18", existing).symbol).toMatch(/already/);
+    expect(
+      validateTokenImport(address, "ABC", "18", [{ symbol: "XYZ", address: address.toLowerCase() }])
+        .address,
+    ).toMatch(/already/);
+  });
+  it("only accepts whole-number decimals from 0 to 36", () => {
+    for (const ok of ["0", "6", "18", "36"])
+      expect(validateTokenImport(address, "ABC", ok, existing).decimals).toBeUndefined();
+    for (const bad of ["-1", "1.5", "37", "abc"])
+      expect(validateTokenImport(address, "ABC", bad, existing).decimals).toMatch(/0 to 36/);
+  });
+  it("shows a zero balance matching the decimals", () => {
+    expect([0, 1, 6].map(zeroBalance)).toEqual(["0", "0.0", "0.00"]);
+  });
+  it("lists the default tokens per blockchain", () => {
+    expect(getChain("qday").defaultTokens).toEqual(["QDAY", "USD8"]);
+    expect(getChain("base").defaultTokens).toEqual(["ETH", "USDC"]);
   });
 });

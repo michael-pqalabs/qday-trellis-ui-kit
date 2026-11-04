@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import {
   agoLabel,
   shortAddress,
+  zeroBalance,
   transactionsFor,
   getPreviewHolding,
   chainForNetwork,
@@ -30,6 +31,7 @@ import { AddWalletMenu, RenameWalletDialog } from "@/components/add-wallet";
 import { NetworkPicker } from "@/components/network-picker";
 import { WalletActions } from "@/components/wallet-actions";
 import { BottomNav } from "@/components/bottom-nav";
+import { AddTokenButton } from "@/components/add-token";
 import { useWalletPreview } from "@/components/wallet-preview-provider";
 import {
   DropdownMenu,
@@ -68,7 +70,7 @@ export const Route = createFileRoute("/wallet")({
 
 function WalletOverview() {
   const search = Route.useSearch();
-  const { wallets } = useWalletPreview();
+  const { wallets, importedTokens } = useWalletPreview();
   const [walletId, setWalletId] = useState(search.wallet ?? "main");
   const [renameOpen, setRenameOpen] = useState(false);
   const [chainId, setChainId] = useState(() => chainForNetwork(search.network).id);
@@ -281,7 +283,12 @@ function WalletOverview() {
             <h2 id="tokens-title" className="font-display text-lg font-semibold">
               Tokens
             </h2>
-            <span className="text-xs text-muted-foreground">{walletTokens.length} assets</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">
+                {walletTokens.length + importedTokens.length} assets
+              </span>
+              <AddTokenButton where={where} />
+            </div>
           </div>
           <div className="space-y-1">
             {walletTokens.map((item) => {
@@ -324,6 +331,33 @@ function WalletOverview() {
                 </Button>
               );
             })}
+            {importedTokens.map((item) => (
+              <div
+                key={item.id}
+                className="flex h-16 w-full items-center gap-3 rounded-lg border border-transparent px-3"
+              >
+                <span
+                  aria-hidden="true"
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-foreground/10 font-display text-base font-semibold text-foreground"
+                >
+                  {item.symbol.charAt(0)}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-semibold">{item.symbol}</span>
+                  <span className="mt-1 block truncate font-mono text-[11px] text-muted-foreground">
+                    Imported · {shortAddress(item.address)}
+                  </span>
+                </span>
+                <span className="text-right">
+                  <span className="block font-display text-base tabular-nums">
+                    {visible ? zeroBalance(item.decimals) : "••••"}
+                  </span>
+                  <span className="mt-1 block text-[10px] text-muted-foreground">
+                    {item.symbol}
+                  </span>
+                </span>
+              </div>
+            ))}
           </div>
         </section>
         <section className="mt-6 border-t border-divider pt-5" aria-labelledby="history-title">
