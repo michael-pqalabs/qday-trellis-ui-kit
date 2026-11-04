@@ -136,6 +136,43 @@ function AgenticPayment() {
     setRequest(null);
     toast.success(decision === "approved" ? "Request approved" : "Request rejected");
   };
+  const cliLogins = state ? (
+    <>
+      {state.cliSessions.length === 0 ? (
+        <Empty label="No CLI logins" />
+      ) : (
+        state.cliSessions.map((s) => (
+          <div
+            key={s.id}
+            className="mb-2 flex items-center gap-3 rounded-2xl border bg-card px-4 py-3"
+          >
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold">{s.label}</p>
+              <p className="mt-1 truncate text-[10px] text-muted-foreground">
+                {s.client} · {s.host}
+              </p>
+              <p className="mt-1 text-[10px] text-muted-foreground">
+                {new Date(s.startedAt).toLocaleDateString()} ·{" "}
+                {s.status === "active" ? "Signed in" : "Logged out"}
+              </p>
+            </div>
+            {s.status === "active" && (
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={`Logout ${s.label}`}
+                title="Logout"
+                className="shrink-0 text-destructive"
+                onClick={() => openAction("logout", s.id)}
+              >
+                <LogOut />
+              </Button>
+            )}
+          </div>
+        ))
+      )}
+    </>
+  ) : null;
   return (
     <div className="flex min-h-screen justify-center bg-background">
       <main className="flex min-h-screen w-full max-w-md flex-col px-5 pb-0 pt-3">
@@ -307,10 +344,10 @@ function AgenticPayment() {
                   </Button>
                 )}
                 <Tabs defaultValue="approvals" className="mt-7">
-                  <TabsList className="flex h-10 w-full gap-1 rounded-full bg-secondary/70 p-[3px]">
+                  <TabsList className="flex h-10 w-full justify-start gap-0.5 overflow-x-auto rounded-full bg-secondary/70 p-[3px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     <TabsTrigger
                       value="approvals"
-                      className="h-full min-w-fit flex-1 rounded-full px-3 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=active]:shadow-primary/25"
+                      className="h-full min-w-fit flex-1 rounded-full px-4 text-[11px] font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=active]:shadow-primary/25"
                     >
                       Spending Sessions{" "}
                       {pending.length > 0 && (
@@ -319,15 +356,21 @@ function AgenticPayment() {
                     </TabsTrigger>
                     <TabsTrigger
                       value="agents"
-                      className="h-full min-w-fit flex-1 rounded-full px-3 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=active]:shadow-primary/25"
+                      className="h-full min-w-fit flex-1 rounded-full px-4 text-[11px] font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=active]:shadow-primary/25"
                     >
                       Agents
                     </TabsTrigger>
                     <TabsTrigger
                       value="activity"
-                      className="h-full min-w-fit flex-1 rounded-full px-3 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=active]:shadow-primary/25"
+                      className="h-full min-w-fit flex-1 rounded-full px-4 text-[11px] font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=active]:shadow-primary/25"
                     >
                       Activities
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="cli"
+                      className="h-full min-w-fit flex-1 rounded-full px-4 text-[11px] font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=active]:shadow-primary/25"
+                    >
+                      CLI Logins
                     </TabsTrigger>
                   </TabsList>
                   <TabsContent value="approvals" className="mt-4">
@@ -473,6 +516,10 @@ function AgenticPayment() {
                       ))
                     )}
                   </TabsContent>
+                  <TabsContent value="cli" className="mt-4">
+                    <h2 className="mb-3 text-sm font-semibold">Signet CLI logins</h2>
+                    {cliLogins}
+                  </TabsContent>
                 </Tabs>
               </>
             ) : (
@@ -486,45 +533,12 @@ function AgenticPayment() {
                 </Button>
               </div>
             )}
-            <section className="mt-6 border-t border-divider pt-5" aria-label="Signet CLI logins">
-              <h2 className="mb-3 flex items-center gap-2 font-display text-base font-semibold">
-                <Terminal className="h-4 w-4 text-primary" />
-                Signet CLI logins
-              </h2>
-              {state.cliSessions.length === 0 ? (
-                <Empty label="No CLI logins" />
-              ) : (
-                state.cliSessions.map((s) => (
-                  <div
-                    key={s.id}
-                    className="mb-2 flex items-center gap-3 rounded-2xl border bg-card px-4 py-3"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold">{s.label}</p>
-                      <p className="mt-1 truncate text-[10px] text-muted-foreground">
-                        {s.client} · {s.host}
-                      </p>
-                      <p className="mt-1 text-[10px] text-muted-foreground">
-                        {new Date(s.startedAt).toLocaleDateString()} ·{" "}
-                        {s.status === "active" ? "Signed in" : "Logged out"}
-                      </p>
-                    </div>
-                    {s.status === "active" && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        aria-label={`Logout ${s.label}`}
-                        title="Logout"
-                        className="shrink-0 text-destructive"
-                        onClick={() => openAction("logout", s.id)}
-                      >
-                        <LogOut />
-                      </Button>
-                    )}
-                  </div>
-                ))
-              )}
-            </section>
+            {!pass && (
+              <section className="mt-6 border-t border-divider pt-5" aria-label="Signet CLI logins">
+                <h2 className="mb-3 text-sm font-semibold">Signet CLI logins</h2>
+                {cliLogins}
+              </section>
+            )}
           </>
         )}
         <BottomNav />
