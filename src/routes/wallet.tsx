@@ -271,7 +271,6 @@ function WalletOverview() {
         )}
         <WalletActions
           key={`${walletId}-${networkId}-${tokenId}`}
-          networkName={network.name}
           networkId={networkId}
           walletId={walletId}
           tokenId={tokenId}

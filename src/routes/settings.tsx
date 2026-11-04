@@ -260,7 +260,7 @@ function Settings() {
             </DialogHeader>
             <p className="text-sm text-muted-foreground">
               Balances are zero and every address shown is illustrative. Nothing here is derived
-              from your recovery phrase, and no real funds can be sent, bought or swapped.
+              from your recovery phrase, and no real funds can be sent.
             </p>
             <Button onClick={() => setAboutOpen(false)} className="mt-1">
               Got it
