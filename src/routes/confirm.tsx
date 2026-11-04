@@ -82,12 +82,13 @@ function ConfirmPhrase() {
       setDone(true);
       return;
     }
-    const badWords = bad.map((i) => answers[i] ?? "");
-    setWrong(bad);
+    // Nothing is revealed about which words were right: a failed check clears all three slots, so
+    // the picks can't be refined one at a time.
+    setWrong([0, 1, 2]);
     setMisses((m) => m + 1);
     setTimeout(() => {
-      setAnswers((a) => a.map((w, i) => (bad.includes(i) ? null : w)));
-      setUsed((u) => u.filter((w) => !badWords.includes(w)));
+      setAnswers([null, null, null]);
+      setUsed([]);
       setWrong([]);
     }, 620);
   };
@@ -193,7 +194,6 @@ function ConfirmPhrase() {
         <section className="mt-6 space-y-3">
           {spots.map((spot, i) => {
             const filled = answers[i];
-            const correct = filled !== null && filled === checks[i];
             const bad = wrong.includes(i);
             return (
               <button
@@ -202,8 +202,8 @@ function ConfirmPhrase() {
                 className={`flex h-14 w-full items-center gap-3 rounded-2xl border px-4 text-left transition-all ${
                   bad
                     ? "animate-shake border-destructive/60 bg-destructive/10"
-                    : correct
-                      ? "animate-pop border-primary/50 bg-primary/10"
+                    : filled
+                      ? "animate-pop border-primary/40 bg-secondary/60"
                       : active === i
                         ? "border-primary/40 bg-secondary/60"
                         : "glass border-dashed"
@@ -217,13 +217,7 @@ function ConfirmPhrase() {
                 >
                   {filled ?? "tap a word below"}
                 </span>
-                {correct ? (
-                  <span className="grid h-6 w-6 place-items-center rounded-full bg-primary text-primary-foreground">
-                    <Check className="h-3.5 w-3.5" strokeWidth={3} />
-                  </span>
-                ) : (
-                  <span className="text-xs text-muted-foreground/40">{i + 1}/3</span>
-                )}
+                <span className="text-xs text-muted-foreground/40">{i + 1}/3</span>
               </button>
             );
           })}
@@ -255,7 +249,7 @@ function ConfirmPhrase() {
           <ShieldCheck className="h-4 w-4 shrink-0 text-accent" />
           <span>
             {wrong.length
-              ? "Those words don't match your phrase — tap them again."
+              ? "Those words don't match your phrase. Check it and pick all three again."
               : misses > 1
                 ? "No rush — go back to the phrase any time and try again."
                 : "We only check three words, so nobody watching can copy your whole phrase."}
