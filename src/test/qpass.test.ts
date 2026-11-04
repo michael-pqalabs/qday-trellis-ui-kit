@@ -50,21 +50,21 @@ describe("SignetPass accounts demo", () => {
     expect(next.agents.find((a) => a.id === "agent-req-01")?.passId).toBe("qp-shopping");
   });
   it("rejects without linking an agent", () => {
-    loadQPassState(NOW);
+    const before = loadQPassState(NOW).agents.length;
     const next = resolveApproval("req-01", "rejected", NOW);
     expect(next.approvals[0]?.status).toBe("rejected");
-    expect(next.agents).toHaveLength(4);
+    expect(next.agents).toHaveLength(before);
   });
   it("cannot approve an expired request", () => {
-    loadQPassState(NOW);
+    const before = loadQPassState(NOW).agents.length;
     const next = resolveApproval("req-01", "approved", NOW + 15 * 60000);
     expect(next.approvals[0]?.status).toBe("expired");
-    expect(next.agents).toHaveLength(4);
+    expect(next.agents).toHaveLength(before);
   });
   it("cannot approve twice", () => {
-    loadQPassState(NOW);
+    const before = loadQPassState(NOW).agents.length;
     resolveApproval("req-01", "approved", NOW);
-    expect(resolveApproval("req-01", "approved", NOW).agents).toHaveLength(5);
+    expect(resolveApproval("req-01", "approved", NOW).agents).toHaveLength(before + 1);
   });
   it("revokes an agent without revoking its SignetPass", () => {
     loadQPassState(NOW);
@@ -101,5 +101,40 @@ describe("agent spending sessions", () => {
     loadQPassState(NOW);
     const s = revokeAgent("agent-checkout-01", NOW);
     expect(s.agents[0]?.session?.status).toBe("revoked");
+  });
+});
+
+describe("Registered agents", () => {
+  it("records when an agent is revoked", () => {
+    const next = revokeAgent("agent-checkout-01", NOW);
+    expect(next.agents.find((a) => a.id === "agent-checkout-01")?.revokedAt).toBe(NOW);
+  });
+  it("keeps the seeded revoked agent with its revocation date", () => {
+    const state = loadQPassState(NOW);
+    const scraper = state.agents.find((a) => a.id === "agent-scraper-04");
+    expect(scraper?.status).toBe("revoked");
+    expect(scraper?.revokedAt).toBeLessThan(NOW);
+  });
+  it("allows an agent that is registered without a spending session", () => {
+    const state = loadQPassState(NOW);
+    const agent = state.agents.find((a) => a.id === "agent-newsletter-05");
+    expect(agent?.status).toBe("linked");
+    expect(agent?.session).toBeUndefined();
+  });
+  it("replaces the session instead of adding a second one for the same agent", () => {
+    const state = loadQPassState(NOW);
+    state.approvals.push({
+      ...state.approvals[0]!,
+      id: "req-extra",
+      totalBudget: 500,
+      status: "pending",
+      expiresAt: NOW + 3600000,
+    });
+    window.sessionStorage.setItem("trellis-qpass-v12", JSON.stringify(state));
+    resolveApproval("req-01", "approved", NOW);
+    const next = resolveApproval("req-extra", "approved", NOW);
+    const matches = next.agents.filter((a) => a.name === "Research assistant");
+    expect(matches).toHaveLength(1);
+    expect(matches[0]?.session?.totalBudget).toBe(500);
   });
 });

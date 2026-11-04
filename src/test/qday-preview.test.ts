@@ -3,18 +3,11 @@ import {
   canEnterQPass,
   completePreviewStep,
   emptyQDayPreview,
-  isWalletTabBlocked,
   setupSteps,
   validPreviewOTP,
 } from "@/lib/qday-preview";
 
 describe("QDay setup preview rules", () => {
-  it("blocks the other bottom tab on Agentic until login succeeds", () => {
-    expect(isWalletTabBlocked("/agentic", null, true)).toBe(true);
-    expect(isWalletTabBlocked("/agentic/new", null, true)).toBe(true);
-    expect(isWalletTabBlocked("/agentic", "preview@example.com", true)).toBe(false);
-    expect(isWalletTabBlocked("/wallet", null, true)).toBe(false);
-  });
   it("requires exactly 8 numeric OTP digits", () => {
     expect(validPreviewOTP("12345678")).toBe(true);
     expect(validPreviewOTP("123456")).toBe(false);

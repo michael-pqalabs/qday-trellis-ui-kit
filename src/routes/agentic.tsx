@@ -85,6 +85,8 @@ function AgenticPage() {
     </QDayEntry>
   );
 }
+const formatDate = (at: number) =>
+  new Date(at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 type Action = "rename" | "activate" | "fund" | "receive" | "revoke" | "logout";
 function AgenticPayment() {
   const { update } = useQDayPreview();
@@ -104,15 +106,19 @@ function AgenticPayment() {
   useEffect(() => {
     const loaded = loadQPassState();
     setState(loaded);
-    setSelectedId(loaded.passes[0]?.id ?? "");
+    setSelectedId(search.pass ?? loaded.passes[0]?.id ?? "");
     setNow(Date.now());
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [search.pass]);
   const pass = state?.passes.find((p) => p.id === selectedId) ?? state?.passes[0];
   const approvals = state?.approvals.filter((r) => r.passId === pass?.id) ?? [];
   const pending = approvals.filter((r) => r.status === "pending" && r.expiresAt > now);
-  const agents = state?.agents.filter((a) => a.passId === pass?.id) ?? [];
+  const passAgents = state?.agents.filter((a) => a.passId === pass?.id) ?? [];
+  const agents = passAgents.filter((a) => a.status === "linked");
+  const revokedAgents = passAgents
+    .filter((a) => a.status === "revoked")
+    .sort((a, b) => (b.revokedAt ?? 0) - (a.revokedAt ?? 0));
   const activity = state?.activity.filter((a) => a.passId === pass?.id) ?? [];
   const currentRequest = state?.approvals.find((r) => r.id === request?.id);
   const openAction = (value: Action, id = "") => {
@@ -438,22 +444,13 @@ function AgenticPayment() {
                   <TabsContent value="agents" className="mt-4">
                     <h2 className="mb-3 text-sm font-semibold">Registered agents</h2>
                     {agents.length === 0 ? (
-                      <Empty label="No linked agents" />
+                      <Empty label="No registered agents" />
                     ) : (
                       agents.map((a) => (
                         <div key={a.id} className="mb-3 rounded-2xl border bg-card p-4">
                           <div className="flex items-center justify-between gap-2">
-                            <Link
-                              to="/agentic/agent/$agentId"
-                              params={{ agentId: a.id }}
-                              className="min-w-0 truncate text-sm font-semibold hover:text-primary"
-                            >
-                              {a.name}
-                            </Link>
-                            <Badge
-                              variant="outline"
-                              className={`capitalize ${a.status === "linked" ? "text-primary" : "text-muted-foreground"}`}
-                            >
+                            <p className="min-w-0 truncate text-sm font-semibold">{a.name}</p>
+                            <Badge variant="outline" className="capitalize text-primary">
                               {a.status}
                             </Badge>
                           </div>
@@ -483,14 +480,56 @@ function AgenticPayment() {
                               </div>
                             </div>
                           )}
-                          <Button asChild variant="secondary" className="mt-3 h-9 w-full text-xs">
-                            <Link to="/agentic/agent/$agentId" params={{ agentId: a.id }}>
-                              View details
-                              <ArrowRight />
-                            </Link>
-                          </Button>
+                          <div className="mt-3 flex gap-2">
+                            {a.session && (
+                              <Button
+                                asChild
+                                variant="secondary"
+                                className="h-9 min-w-0 flex-1 text-xs"
+                              >
+                                <Link to="/agentic/agent/$agentId" params={{ agentId: a.id }}>
+                                  View Spending Session
+                                  <ArrowRight />
+                                </Link>
+                              </Button>
+                            )}
+                            <Button
+                              variant="outline"
+                              className={`h-9 shrink-0 border-destructive/40 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive ${a.session ? "" : "w-full"}`}
+                              aria-label={`Revoke ${a.name}`}
+                              onClick={() => openAction("revoke", a.id)}
+                            >
+                              Revoke
+                            </Button>
+                          </div>
                         </div>
                       ))
+                    )}
+                    {revokedAgents.length > 0 && (
+                      <div className="mt-5 border-t border-divider pt-4">
+                        <h3 className="mb-2 text-xs font-medium text-muted-foreground">History</h3>
+                        {revokedAgents.map((a) => (
+                          <div
+                            key={a.id}
+                            className="flex items-center justify-between gap-3 border-b border-divider py-3 last:border-0"
+                          >
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-medium text-muted-foreground">
+                                {a.name}
+                              </p>
+                              <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                                {a.client}
+                              </p>
+                              <p className="mt-0.5 text-[11px] text-muted-foreground">
+                                Revoked{a.revokedAt ? ` on ${formatDate(a.revokedAt)}` : ""}
+                              </p>
+                            </div>
+                            <Badge variant="outline" className="shrink-0 text-muted-foreground">
+                              Revoked
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </TabsContent>
                   <TabsContent value="activity" className="mt-4">

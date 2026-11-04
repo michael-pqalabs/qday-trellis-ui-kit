@@ -23,6 +23,9 @@ export interface RegisteredAgent {
   client: string;
   status: "linked" | "revoked";
   linkedAt?: number;
+  /** When the agent was unregistered. Revoked agents are listed under History. */
+  revokedAt?: number;
+  /** An agent has at most one spending session. It can be registered before it has one. */
   session?: SpendingSession;
 }
 export interface ApprovalRequest {
@@ -59,7 +62,7 @@ export interface QPassState {
   cliSessions: CliSession[];
   activity: AgenticActivity[];
 }
-const KEY = "trellis-qpass-v11";
+const KEY = "trellis-qpass-v12";
 const SAMPLE_AGENTS = [
   "Price watcher",
   "Invoice payer",
@@ -190,12 +193,22 @@ export function seedQPassState(now: number): QPassState {
         },
       },
       {
+        // Registered in this SignetPass but has no spending session yet.
+        id: "agent-newsletter-05",
+        passId: "qp-shopping",
+        name: "Newsletter writer",
+        client: "signet-cli · imac-studio",
+        status: "linked",
+        linkedAt: now - 3 * 3600000,
+      },
+      {
         id: "agent-scraper-04",
         passId: "qp-shopping",
         name: "Data scraper",
         client: "signet-cli · vps-sg-1",
         status: "revoked",
         linkedAt: now - 9 * 86400000,
+        revokedAt: now - 2 * 86400000,
         session: {
           id: "sess-0x0c55a8",
           perPaymentLimit: 2,
@@ -408,7 +421,28 @@ export function resolveApproval(
     const pass = state.passes.find((p) => p.id === request.passId);
     if (decision === "approved" && pass?.status !== "active") return;
     request.status = decision;
-    if (decision === "approved")
+    // An agent has only one spending session: approving a new one replaces its current session.
+    const existing =
+      decision === "approved"
+        ? state.agents.find(
+            (a) =>
+              a.status === "linked" &&
+              a.passId === request.passId &&
+              a.name === request.agentName &&
+              a.client === request.client,
+          )
+        : undefined;
+    if (existing)
+      existing.session = {
+        id: `sess-${request.id}`,
+        perPaymentLimit: request.perPaymentLimit,
+        totalBudget: request.totalBudget,
+        spent: 0,
+        startedAt: now,
+        expiresAt: now + request.durationDays * 86400000,
+        status: "active",
+      };
+    else if (decision === "approved")
       state.agents.push({
         id: `agent-${request.id}`,
         passId: request.passId,
@@ -442,6 +476,7 @@ export function revokeAgent(id: string, now = Date.now()): QPassState {
     const agent = state.agents.find((a) => a.id === id);
     if (agent?.status === "linked") {
       agent.status = "revoked";
+      agent.revokedAt = now;
       if (agent.session) agent.session.status = "revoked";
       log(state, agent.passId, `${agent.name} · access revoked`, "revoke", now);
     }

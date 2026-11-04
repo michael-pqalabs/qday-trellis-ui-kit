@@ -28,9 +28,6 @@ export function validPreviewOTP(code: string) {
 export function canEnterQPass(state: QDayPreview) {
   return state.walletReady && !!state.email && state.completed === 5;
 }
-export function isWalletTabBlocked(path: string, email: string | null, ready: boolean) {
-  return path.startsWith("/agentic") && (!ready || !email);
-}
 export function completePreviewStep(state: QDayPreview, index: number): QDayPreview {
   if (!state.walletReady || !state.email || index !== state.completed || index >= setupSteps.length)
     return state;
