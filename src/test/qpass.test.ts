@@ -1,13 +1,17 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   activateQPass,
+  CLI_SIGN_MS,
   createQPass,
   endCliSession,
+  isAwaitingCli,
   loadQPassState,
   renameQPass,
   resolveApproval,
   REVOKE_CONFIRM_MS,
   startRevokeAgent,
+  updateApprovalLimits,
+  validateApprovalLimits,
   validateQPassInput,
 } from "@/lib/qpass";
 const NOW = 1800000000000;
@@ -128,7 +132,7 @@ describe("Registered agents", () => {
       status: "pending",
       expiresAt: NOW + 3600000,
     });
-    window.sessionStorage.setItem("trellis-qpass-v14", JSON.stringify(state));
+    window.sessionStorage.setItem("trellis-qpass-v15", JSON.stringify(state));
     resolveApproval("req-01", "approved", NOW);
     const next = resolveApproval("req-extra", "approved", NOW);
     const matches = next.agents.filter((a) => a.name === "Research assistant");
@@ -186,5 +190,80 @@ describe("Spending sessions have no pause or resume", () => {
       .map((a) => a.session?.status);
     expect(sessions.length).toBeGreaterThan(0);
     expect(new Set(sessions)).toEqual(new Set(["active"]));
+  });
+});
+
+describe("Editing spending limits before approval", () => {
+  const current = { perPaymentLimit: 10, totalBudget: 100, durationDays: 7 };
+  const input = (per: string, total: string, days: string) => ({
+    perPaymentLimit: per,
+    totalBudget: total,
+    durationDays: days,
+  });
+  it("accepts lowered limits", () => {
+    const { values, errors } = validateApprovalLimits(current, input("5", "50.5", "3"));
+    expect(errors).toEqual({});
+    expect(values).toEqual({ perPaymentLimit: 5, totalBudget: 50.5, durationDays: 3 });
+  });
+  it("rejects raised, zero, malformed and inconsistent limits", () => {
+    expect(
+      validateApprovalLimits(current, input("11", "100", "7")).errors.perPaymentLimit,
+    ).toBeTruthy();
+    expect(
+      validateApprovalLimits(current, input("10", "101", "7")).errors.totalBudget,
+    ).toBeTruthy();
+    expect(
+      validateApprovalLimits(current, input("0", "100", "7")).errors.perPaymentLimit,
+    ).toBeTruthy();
+    expect(
+      validateApprovalLimits(current, input("1e2", "100", "7")).errors.perPaymentLimit,
+    ).toBeTruthy();
+    expect(
+      validateApprovalLimits(current, input("1.1234567", "100", "7")).errors.perPaymentLimit,
+    ).toBeTruthy();
+    expect(
+      validateApprovalLimits(current, input("10", "100", "8")).errors.durationDays,
+    ).toBeTruthy();
+    expect(
+      validateApprovalLimits(current, input("10", "100", "0")).errors.durationDays,
+    ).toBeTruthy();
+    expect(
+      validateApprovalLimits(current, input("10", "100", "1.5")).errors.durationDays,
+    ).toBeTruthy();
+    expect(
+      validateApprovalLimits(current, input("60", "50", "7")).errors.perPaymentLimit,
+    ).toBeTruthy();
+  });
+  it("rejects a per-payment limit above the lowered total", () => {
+    const { values, errors } = validateApprovalLimits(current, input("10", "5", "7"));
+    expect(values).toBeNull();
+    expect(errors.perPaymentLimit).toBeTruthy();
+  });
+  it("saves lowered limits, keeps the terminal values and waits for the terminal to sign", () => {
+    loadQPassState(NOW);
+    const next = updateApprovalLimits(
+      "req-01",
+      { perPaymentLimit: 5, totalBudget: 40, durationDays: 3 },
+      NOW,
+    );
+    const r = next.approvals.find((a) => a.id === "req-01")!;
+    expect(r.perPaymentLimit).toBe(5);
+    expect(r.terminal).toEqual({ perPaymentLimit: 10, totalBudget: 100, durationDays: 7 });
+    expect(isAwaitingCli(r, NOW + CLI_SIGN_MS - 1)).toBe(true);
+    expect(isAwaitingCli(r, NOW + CLI_SIGN_MS)).toBe(false);
+  });
+  it("cannot be approved until the terminal has signed, then grants the edited limits", () => {
+    loadQPassState(NOW);
+    updateApprovalLimits("req-01", { perPaymentLimit: 5, totalBudget: 40, durationDays: 3 }, NOW);
+    const blocked = resolveApproval("req-01", "approved", NOW + 1000);
+    expect(blocked.approvals.find((a) => a.id === "req-01")?.status).toBe("pending");
+    const done = resolveApproval("req-01", "approved", NOW + CLI_SIGN_MS);
+    expect(done.approvals.find((a) => a.id === "req-01")?.status).toBe("approved");
+    expect(done.agents.find((a) => a.id === "agent-req-01")?.session?.totalBudget).toBe(40);
+  });
+  it("ignores an edit that changes nothing", () => {
+    loadQPassState(NOW);
+    const next = updateApprovalLimits("req-01", current, NOW);
+    expect(next.approvals.find((a) => a.id === "req-01")?.terminal).toBeUndefined();
   });
 });

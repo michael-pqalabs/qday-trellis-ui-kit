@@ -47,7 +47,19 @@ export interface ApprovalRequest {
   durationDays: number;
   expiresAt: number;
   status: "pending" | "approved" | "rejected" | "expired";
+  /** Limits as first requested in the terminal. Set once the user lowers any of them. */
+  terminal?: ApprovalLimits;
+  /** After the user saves edited limits the terminal must sign the updated request; approving waits until then. */
+  signAt?: number;
 }
+export interface ApprovalLimits {
+  perPaymentLimit: number;
+  totalBudget: number;
+  durationDays: number;
+}
+export type LimitField = keyof ApprovalLimits;
+/** How long the illustrative terminal re-signature takes after limits are saved. */
+export const CLI_SIGN_MS = 3000;
 export interface CliSession {
   id: string;
   label: string;
@@ -71,7 +83,7 @@ export interface QPassState {
   cliSessions: CliSession[];
   activity: AgenticActivity[];
 }
-const KEY = "trellis-qpass-v14";
+const KEY = "trellis-qpass-v15";
 const SAMPLE_AGENTS = [
   "Price watcher",
   "Invoice payer",
@@ -444,6 +456,69 @@ export function activateQPass(id: string, now = Date.now()): QPassState {
     }
   }, now);
 }
+/** True while an edited request still waits for the terminal to sign it again. */
+export function isAwaitingCli(request: ApprovalRequest, now: number): boolean {
+  return request.signAt !== undefined && request.signAt > now;
+}
+const AMOUNT = /^\d{1,9}(?:\.\d{1,6})?$/;
+const WHOLE = /^\d{1,5}$/;
+/**
+ * Mirrors the server-side rules the wallet follows before limits are saved: limits must be
+ * positive, can only be lowered (never raised), the per-payment limit cannot exceed the total, and
+ * the duration is a whole number of days. The real check runs on the server; this is a preview.
+ */
+export function validateApprovalLimits(
+  request: ApprovalLimits,
+  input: { perPaymentLimit: string; totalBudget: string; durationDays: string },
+): { values: ApprovalLimits | null; errors: Partial<Record<LimitField, string>> } {
+  const errors: Partial<Record<LimitField, string>> = {};
+  const amount = (raw: string, max: number, field: "perPaymentLimit" | "totalBudget") => {
+    const text = raw.trim();
+    if (!AMOUNT.test(text) || Number(text) <= 0) {
+      errors[field] = "Enter an amount above 0, with up to 6 decimals.";
+      return max;
+    }
+    if (Number(text) > max) errors[field] = `Can't be higher than the current ${max} USD8.`;
+    return Number(text);
+  };
+  const per = amount(input.perPaymentLimit, request.perPaymentLimit, "perPaymentLimit");
+  const total = amount(input.totalBudget, request.totalBudget, "totalBudget");
+  if (!errors.perPaymentLimit && !errors.totalBudget && per > total)
+    errors.perPaymentLimit = "Per-payment limit can't exceed the total budget.";
+  const daysText = input.durationDays.trim();
+  const days = Number(daysText);
+  if (!WHOLE.test(daysText) || days < 1)
+    errors.durationDays = "Enter a whole number of days, 1 or more.";
+  else if (days > request.durationDays)
+    errors.durationDays = `Can't be longer than the current ${request.durationDays} days.`;
+  if (Object.keys(errors).length) return { values: null, errors };
+  return { values: { perPaymentLimit: per, totalBudget: total, durationDays: days }, errors };
+}
+/** Saves edited limits after the (previewed) server check passed; the terminal then re-signs. */
+export function updateApprovalLimits(
+  id: string,
+  values: ApprovalLimits,
+  now = Date.now(),
+): QPassState {
+  return update((state) => {
+    const request = state.approvals.find((r) => r.id === id);
+    if (!request || request.status !== "pending" || request.expiresAt <= now) return;
+    const changed =
+      values.perPaymentLimit !== request.perPaymentLimit ||
+      values.totalBudget !== request.totalBudget ||
+      values.durationDays !== request.durationDays;
+    if (!changed) return;
+    request.terminal ??= {
+      perPaymentLimit: request.perPaymentLimit,
+      totalBudget: request.totalBudget,
+      durationDays: request.durationDays,
+    };
+    request.perPaymentLimit = values.perPaymentLimit;
+    request.totalBudget = values.totalBudget;
+    request.durationDays = values.durationDays;
+    request.signAt = now + CLI_SIGN_MS;
+  }, now);
+}
 export function resolveApproval(
   id: string,
   decision: "approved" | "rejected",
@@ -458,6 +533,7 @@ export function resolveApproval(
     }
     const pass = state.passes.find((p) => p.id === request.passId);
     if (decision === "approved" && pass?.status !== "active") return;
+    if (decision === "approved" && isAwaitingCli(request, now)) return;
     request.status = decision;
     // An agent has only one spending session: approving a new one replaces its current session.
     const existing =

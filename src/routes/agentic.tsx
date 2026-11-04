@@ -38,6 +38,7 @@ import { useQDayPreview } from "@/components/qday-preview-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { AgentCard, RevokedAgentCard } from "@/components/agent-list";
 import { RevokeAgentDialog } from "@/components/revoke-agent-dialog";
+import { SpendingLimitsEditor } from "@/components/spending-limits-editor";
 import { useRevocationWatcher } from "@/hooks/use-revocation-watcher";
 import { NetworkSummary } from "@/components/network-picker";
 import { useWalletPreview } from "@/components/wallet-preview-provider";
@@ -53,7 +54,10 @@ import {
   endCliSession,
   loadQPassState,
   renameQPass,
+  isAwaitingCli,
   resolveApproval,
+  updateApprovalLimits,
+  type ApprovalLimits,
   type QPassState,
   type ApprovalRequest,
   type ActivityKind,
@@ -139,6 +143,13 @@ function AgenticPayment() {
     } catch {
       toast.error("Unable to copy. Select the identifier manually.");
     }
+  };
+  const saveLimits = (values: ApprovalLimits) => {
+    if (!currentRequest) return;
+    setState(updateApprovalLimits(currentRequest.id, values));
+    toast.success("Limits saved", {
+      description: "Waiting for the terminal to sign the updated request.",
+    });
   };
   const decide = (decision: "approved" | "rejected") => {
     if (!currentRequest) return;
@@ -685,16 +696,24 @@ function AgenticPayment() {
           passActive={pass?.status === "active"}
           onClose={() => setRequest(null)}
           onDecide={decide}
+          onSaveLimits={saveLimits}
         />
       </main>
     </div>
   );
 }
-function Detail({ label, value }: { label: string; value: string }) {
+function Detail({ label, value, was }: { label: string; value: string; was?: string | undefined }) {
   return (
     <div className="flex justify-between gap-4 border-b border-divider pb-2">
       <span className="shrink-0 text-muted-foreground">{label}</span>
-      <span className="min-w-0 break-words text-right font-medium">{value}</span>
+      <span className="min-w-0 break-words text-right font-medium">
+        {was && (
+          <span className="mr-1.5 text-xs font-normal text-muted-foreground line-through">
+            {was}
+          </span>
+        )}
+        {value}
+      </span>
     </div>
   );
 }
@@ -742,6 +761,7 @@ function ReviewRequestDialog({
   passActive,
   onClose,
   onDecide,
+  onSaveLimits,
 }: {
   request: ApprovalRequest | null;
   open: boolean;
@@ -750,11 +770,18 @@ function ReviewRequestDialog({
   passActive: boolean;
   onClose: () => void;
   onDecide: (d: "approved" | "rejected") => void;
+  onSaveLimits: (values: ApprovalLimits) => void;
 }) {
   const [verifying, setVerifying] = useState(false);
+  const [editing, setEditing] = useState(false);
   useEffect(() => {
-    if (!open) setVerifying(false);
+    if (!open) {
+      setVerifying(false);
+      setEditing(false);
+    }
   }, [open]);
+  const awaitingCli = request ? isAwaitingCli(request, now) : false;
+  const terminal = request?.terminal;
   const left = request ? Math.max(0, request.expiresAt - now) : 0;
   const expired = left <= 0;
   const mm = Math.floor(left / 60000);
@@ -786,19 +813,80 @@ function ReviewRequestDialog({
             {request ? `${request.agentName} · ${request.client}` : null}
           </DialogDescription>
         </DialogHeader>
-        {request && (
+        {request && editing && (
+          <SpendingLimitsEditor
+            key={`${request.perPaymentLimit}-${request.totalBudget}-${request.durationDays}`}
+            current={{
+              perPaymentLimit: request.perPaymentLimit,
+              totalBudget: request.totalBudget,
+              durationDays: request.durationDays,
+            }}
+            onSave={(values) => {
+              onSaveLimits(values);
+              setEditing(false);
+            }}
+            onDiscard={() => setEditing(false)}
+          />
+        )}
+        {request && !editing && (
           <>
             <div className="rounded-2xl bg-primary/5 p-4 text-center">
               <p className="text-xs text-muted-foreground">Requested total budget</p>
               <p className="font-display text-3xl font-semibold">
                 {request.totalBudget} <span className="text-base text-muted-foreground">USD8</span>
               </p>
+              {terminal && terminal.totalBudget !== request.totalBudget && (
+                <p className="text-xs text-muted-foreground line-through">
+                  {terminal.totalBudget} USD8
+                </p>
+              )}
               <p className="mt-1 text-xs text-muted-foreground">from {passName}</p>
             </div>
             <div className="space-y-2.5 text-sm">
-              <Detail label="Per-payment limit" value={`${request.perPaymentLimit} USD8`} />
-              <Detail label="Permission duration" value={`${request.durationDays} days`} />
+              <Detail
+                label="Per-payment limit"
+                value={`${request.perPaymentLimit} USD8`}
+                was={
+                  terminal && terminal.perPaymentLimit !== request.perPaymentLimit
+                    ? `${terminal.perPaymentLimit} USD8`
+                    : undefined
+                }
+              />
+              <Detail
+                label="Permission duration"
+                value={`${request.durationDays} days`}
+                was={
+                  terminal && terminal.durationDays !== request.durationDays
+                    ? `${terminal.durationDays} days`
+                    : undefined
+                }
+              />
             </div>
+            {terminal && (
+              <p className="text-center text-[11px] text-muted-foreground">
+                Limits lowered from what the terminal requested.
+              </p>
+            )}
+            {!expired && (
+              <Button
+                variant="outline"
+                className="w-full"
+                disabled={verifying}
+                onClick={() => setEditing(true)}
+              >
+                <Pencil />
+                Edit spending limits
+              </Button>
+            )}
+            {awaitingCli && (
+              <p
+                role="status"
+                className="flex items-center justify-center gap-1.5 text-center text-xs text-primary"
+              >
+                <Clock className="h-3.5 w-3.5 animate-pulse" />
+                Waiting for the terminal to sign the updated request. Keep the CLI running.
+              </p>
+            )}
             <div
               className={`flex items-center justify-center gap-1.5 rounded-full py-2 text-xs font-medium ${expired ? "bg-destructive/10 text-destructive" : "bg-secondary text-secondary-foreground"}`}
             >
@@ -811,8 +899,8 @@ function ReviewRequestDialog({
               </p>
             )}
             <p className="text-center text-[11px] text-muted-foreground">
-              Limits were set in the terminal and can't be edited here. This preview cannot move
-              funds.
+              Limits start from the terminal request and can only be lowered here. The server checks
+              any change before you can approve. This preview cannot move funds.
             </p>
             <div className="flex gap-3">
               <Button
@@ -825,7 +913,7 @@ function ReviewRequestDialog({
               </Button>
               <Button
                 className="flex-1"
-                disabled={expired || !passActive || verifying}
+                disabled={expired || !passActive || verifying || awaitingCli}
                 onClick={approve}
               >
                 {verifying ? (
