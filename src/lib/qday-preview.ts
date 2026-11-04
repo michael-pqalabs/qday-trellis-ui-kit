@@ -14,7 +14,11 @@ export const setupSteps = [
     manual: false,
   },
   { title: "Passkey setup", detail: "Secure access with your device", manual: true },
-  { title: "Main Wallet activation", detail: "Prepare your account on QDay", manual: true },
+  {
+    title: "SignetPass Spending Wallet Activation",
+    detail: "Deploy spending wallet smart contract.",
+    manual: true,
+  },
 ] as const;
 export type QDayPreview = { walletReady: boolean; email: string | null; completed: number };
 export const emptyQDayPreview: QDayPreview = { walletReady: false, email: null, completed: 0 };

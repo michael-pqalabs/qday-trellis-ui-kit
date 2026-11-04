@@ -38,7 +38,7 @@ function CreateQPass() {
   const [error, setError] = useState<string | null>(null);
   return (
     <div className="flex min-h-screen justify-center bg-background">
-      <main className="flex min-h-screen w-full max-w-md flex-col px-6 pb-8 pt-6">
+      <main className="flex min-h-screen w-full max-w-md flex-col px-4 pb-8 pt-6">
         <header className="flex items-center gap-3">
           <Button
             asChild

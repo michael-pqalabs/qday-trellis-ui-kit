@@ -48,7 +48,7 @@ function CreateWallet() {
 
   return (
     <div className="flex min-h-screen justify-center bg-background">
-      <main className="relative flex min-h-screen w-full max-w-md flex-col overflow-hidden bg-hero px-6 pb-8 pt-6">
+      <main className="relative flex min-h-screen w-full max-w-md flex-col overflow-hidden bg-hero px-4 pb-8 pt-6">
         <header className="flex items-center justify-between">
           <TrellisLockup />
           <span className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs text-muted-foreground">

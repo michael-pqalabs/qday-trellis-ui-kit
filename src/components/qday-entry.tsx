@@ -19,6 +19,14 @@ import { toast } from "sonner";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { TrellisLockup } from "@/components/trellis-lockup";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -63,6 +71,8 @@ function QDayOnboarding() {
   const [manualBusy, setManualBusy] = useState(false);
   const [setupError, setSetupError] = useState(false);
   const [feeAccepted, setFeeAccepted] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const fee = signetPassFee("qday");
   useEffect(() => {
     if (!cooldown) return;
     const timer = setTimeout(() => setCooldown((c) => Math.max(0, c - 1)), 1000);
@@ -98,7 +108,7 @@ function QDayOnboarding() {
   };
   return (
     <div className="flex min-h-screen justify-center bg-background">
-      <main className="flex min-h-screen w-full max-w-md flex-col px-6 pt-6">
+      <main className="flex min-h-screen w-full max-w-md flex-col px-4 pt-6">
         <header className="flex items-center justify-between">
           <TrellisLockup />
           {state.email && (
@@ -353,9 +363,10 @@ function QDayOnboarding() {
                           </Button>
                         </div>
                       )}
-                      {index === 4 && current && (
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          The platform covers the deployment fee — no QDAY or USD8 needed.
+                      {index === 4 && current && !manualBusy && !setupError && (
+                        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                          {fee.amount} {fee.token} is going to be charged from your main wallet to
+                          cover the activation fee.
                         </p>
                       )}
                       {index === 4 && done && (
@@ -367,11 +378,22 @@ function QDayOnboarding() {
                           <MiniCopy value={PREVIEW_ACCOUNT_ADDRESS} label="Smart account address" />
                         </div>
                       )}
-                      {current && step.manual && !manualBusy && !setupError && (
+                      {current && step.manual && !manualBusy && !setupError && index === 3 && (
                         <Button className="mt-4 h-10 w-full" onClick={() => setManualBusy(true)}>
-                          {index === 3 ? <Fingerprint /> : <ShieldCheck />}
-                          {index === 3 ? "Preview Passkey setup" : "Preview wallet activation"}
+                          <Fingerprint />
+                          Preview Passkey setup
                         </Button>
+                      )}
+                      {current && step.manual && !manualBusy && !setupError && index === 4 && (
+                        <div className="mt-4 grid gap-2">
+                          <Button className="h-11 w-full" onClick={() => setConfirmOpen(true)}>
+                            Activate Spending Wallet
+                          </Button>
+                          <Button asChild variant="outline" className="h-11 w-full">
+                            {/* Progress is kept for the session, so coming back continues here. */}
+                            <Link to="/wallet">Cancel</Link>
+                          </Button>
+                        </div>
                       )}
                       {current && setupError && (
                         <div className="mt-3">
@@ -416,6 +438,15 @@ function QDayOnboarding() {
             </p>
           </section>
         )}
+        <ActivationConfirm
+          open={confirmOpen}
+          onOpenChange={setConfirmOpen}
+          fee={fee}
+          onConfirm={() => {
+            setConfirmOpen(false);
+            setManualBusy(true);
+          }}
+        />
         <BottomNav />
       </main>
     </div>
@@ -572,5 +603,53 @@ function DeploymentFeeNotice({ onAccept }: { onAccept: () => void }) {
         </div>
       </div>
     </section>
+  );
+}
+
+/** Transaction details shown after "Activate Spending Wallet", before anything is confirmed. */
+function ActivationConfirm({
+  open,
+  onOpenChange,
+  fee,
+  onConfirm,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  fee: { amount: number; token: string };
+  onConfirm: () => void;
+}) {
+  const rows = [
+    ["Action", "Deploy spending wallet smart contract"],
+    ["Network", "QDay · Aevum Testnet"],
+    ["Paid from", "Main Wallet"],
+    ["Gas fee", `${fee.amount.toFixed(2)} ${fee.token}`],
+  ] as const;
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="w-[calc(100%-2rem)] max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Confirm transaction</DialogTitle>
+          <DialogDescription>
+            Review the details. This is a preview: nothing is sent or charged.
+          </DialogDescription>
+        </DialogHeader>
+        <dl className="divide-y divide-divider rounded-xl border bg-card text-sm">
+          {rows.map(([label, value]) => (
+            <div key={label} className="flex items-start justify-between gap-4 px-4 py-3">
+              <dt className="text-muted-foreground">{label}</dt>
+              <dd className="text-right font-medium tabular-nums">{value}</dd>
+            </div>
+          ))}
+        </dl>
+        <DialogFooter className="grid grid-cols-2 gap-2 sm:grid-cols-2">
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button type="button" onClick={onConfirm}>
+            OK
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
