@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 import {
+  defaultNetworkId,
   previewWallets,
   type ImportedToken,
   type PreviewWallet,
@@ -10,6 +11,9 @@ const WalletPreviewContext = createContext<{
   wallets: PreviewWallet[];
   addWallet: (name: string, networkId: string, source?: "created" | "imported") => PreviewWallet;
   renameWallet: (id: string, name: string) => void;
+  /** Active network, chosen on the wallet screen and shown read-only elsewhere. */
+  networkId: string;
+  setNetworkId: (networkId: string) => void;
   importedTokens: ImportedToken[];
   importTokens: (networkId: string, tokens: TokenDraft[]) => ImportedToken[];
 } | null>(null);
@@ -38,6 +42,7 @@ export function WalletPreviewProvider({ children }: { children: ReactNode }) {
       current.map((wallet) => (wallet.id === id ? { ...wallet, name: name.trim() } : wallet)),
     );
   };
+  const [networkId, setNetworkId] = useState(() => defaultNetworkId("qday"));
   const [importedTokens, setImportedTokens] = useState<ImportedToken[]>([]);
   const importTokens = (networkId: string, tokens: TokenDraft[]) => {
     const added = tokens.map((token) => ({
@@ -52,7 +57,15 @@ export function WalletPreviewProvider({ children }: { children: ReactNode }) {
   };
   return (
     <WalletPreviewContext.Provider
-      value={{ wallets, addWallet, renameWallet, importedTokens, importTokens }}
+      value={{
+        wallets,
+        addWallet,
+        renameWallet,
+        networkId,
+        setNetworkId,
+        importedTokens,
+        importTokens,
+      }}
     >
       {children}
     </WalletPreviewContext.Provider>

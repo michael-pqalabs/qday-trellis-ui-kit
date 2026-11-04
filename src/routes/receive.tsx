@@ -139,7 +139,7 @@ function ReceivePage() {
         <p className="mt-5 flex gap-2 rounded-2xl bg-secondary/60 p-3 text-xs text-muted-foreground">
           <Info className="h-4 w-4 shrink-0" />
           Only send {token.symbol} on {network.name} to this address. This is your Main Wallet —
-          TrellisPass accounts have their own separate addresses. Preview address: don't send real
+          SignetPass accounts have their own separate addresses. Preview address: don't send real
           funds.
         </p>
       </main>

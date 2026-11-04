@@ -11,9 +11,9 @@ import {
 } from "@/lib/qpass";
 const NOW = 1800000000000;
 beforeEach(() => window.sessionStorage.clear());
-describe("TrellisPass accounts demo", () => {
-  it("requires only a TrellisPass name, without terminal limits", () => {
-    expect(validateQPassInput({ name: " " })).toBe("TrellisPass name is required.");
+describe("SignetPass accounts demo", () => {
+  it("requires only a SignetPass name, without terminal limits", () => {
+    expect(validateQPassInput({ name: " " })).toBe("SignetPass name is required.");
     const pass = createQPass({ name: "  Travel  " }, NOW);
     expect(pass.name).toBe("Travel");
     expect(pass.balance).toBe(0);
@@ -21,7 +21,7 @@ describe("TrellisPass accounts demo", () => {
     expect(pass).not.toHaveProperty("perPaymentLimit");
     expect(pass).not.toHaveProperty("totalBudget");
   });
-  it("gives each TrellisPass its own hex address and zero initial balance", () => {
+  it("gives each SignetPass its own hex address and zero initial balance", () => {
     const a = createQPass({ name: "A" }, NOW);
     const b = createQPass({ name: "B" }, NOW);
     expect(a.address).not.toBe(b.address);
@@ -66,7 +66,7 @@ describe("TrellisPass accounts demo", () => {
     resolveApproval("req-01", "approved", NOW);
     expect(resolveApproval("req-01", "approved", NOW).agents).toHaveLength(5);
   });
-  it("revokes an agent without revoking its TrellisPass", () => {
+  it("revokes an agent without revoking its SignetPass", () => {
     loadQPassState(NOW);
     const next = revokeAgent("agent-checkout-01", NOW);
     expect(next.agents[0]?.status).toBe("revoked");

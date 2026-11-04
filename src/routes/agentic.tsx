@@ -16,6 +16,7 @@ import {
   Ban,
   LogOut,
   ArrowRight,
+  ChevronDown,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
@@ -35,6 +36,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { QDayEntry } from "@/components/qday-entry";
 import { useQDayPreview } from "@/components/qday-preview-provider";
 import { BottomNav } from "@/components/bottom-nav";
+import { NetworkSummary } from "@/components/network-picker";
+import { useWalletPreview } from "@/components/wallet-preview-provider";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { chainForNetwork, signetPassFee } from "@/lib/wallet-preview";
 import {
   activateQPass,
   endCliSession,
@@ -49,16 +59,16 @@ import {
 export const Route = createFileRoute("/agentic")({
   head: () => ({
     meta: [
-      { title: "TrellisPass Accounts — Trellis Wallet" },
+      { title: "SignetPass Accounts — Trellis Wallet" },
       {
         name: "description",
         content:
-          "Manage separate TrellisPass accounts, review terminal approvals, linked agents and Signet CLI logins in the Trellis preview.",
+          "Manage separate SignetPass accounts, review terminal approvals, linked agents and Signet CLI logins in the Trellis preview.",
       },
-      { property: "og:title", content: "TrellisPass Accounts — Trellis Wallet" },
+      { property: "og:title", content: "SignetPass Accounts — Trellis Wallet" },
       {
         property: "og:description",
-        content: "Your TrellisPass accounts, agent permissions and terminal sessions in one place.",
+        content: "Your SignetPass accounts, agent permissions and terminal sessions in one place.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -78,6 +88,8 @@ function AgenticPayment() {
   const { update } = useQDayPreview();
   const [state, setState] = useState<QPassState | null>(null);
   const [selectedId, setSelectedId] = useState("");
+  const { networkId } = useWalletPreview();
+  const chain = chainForNetwork(networkId);
   const [now, setNow] = useState(0);
   const [visible, setVisible] = useState(true);
   const [action, setAction] = useState<Action | null>(null);
@@ -122,8 +134,9 @@ function AgenticPayment() {
   };
   return (
     <div className="flex min-h-screen justify-center bg-background">
-      <main className="flex min-h-screen w-full max-w-md flex-col px-4 pb-0 pt-6">
-        <header className="flex items-center justify-between">
+      <main className="flex min-h-screen w-full max-w-md flex-col px-4 pb-0 pt-3">
+        <NetworkSummary networkId={networkId} />
+        <header className="mt-2 flex items-center justify-between">
           <TrellisLockup />
           <Button
             variant="ghost"
@@ -138,14 +151,14 @@ function AgenticPayment() {
         <div className="mb-6 mt-7 flex items-center justify-between">
           <div>
             <p className="mb-1 text-xs font-medium text-muted-foreground">AGENTIC PAYMENTS</p>
-            <h1 className="font-display text-3xl font-semibold">My TrellisPasses</h1>
+            <h1 className="font-display text-3xl font-semibold">My SignetPasses</h1>
           </div>
           <Button
             asChild
             variant="outline"
             size="icon"
-            aria-label="Create TrellisPass"
-            title="Create TrellisPass"
+            aria-label="Create SignetPass"
+            title="Create SignetPass"
           >
             <Link to="/agentic/new">
               <Plus />
@@ -156,28 +169,55 @@ function AgenticPayment() {
           <Skeleton className="h-60 rounded-2xl" />
         ) : (
           <>
-            <div
-              role="group"
-              aria-label="Select TrellisPass"
-              className="mb-4 flex gap-2 overflow-x-auto pb-1"
-            >
-              {state.passes.map((p) => (
-                <Button
-                  key={p.id}
-                  variant={p.id === pass?.id ? "default" : "outline"}
-                  size="sm"
-                  aria-pressed={p.id === pass?.id}
-                  onClick={() => setSelectedId(p.id)}
-                  className="max-w-48 shrink-0"
+            <div className="mb-4">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    aria-label="Select SignetPass"
+                    className="h-11 w-full min-w-0 justify-start gap-2.5 bg-card px-3.5 text-[13px] shadow-sm"
+                  >
+                    <WalletCards className="!h-4 !w-4 shrink-0 text-primary" />
+                    <span className="min-w-0 flex-1 truncate text-left">{pass?.name}</span>
+                    <span className="shrink-0 text-xs font-normal text-muted-foreground">
+                      {state.passes.length}{" "}
+                      {state.passes.length === 1 ? "SignetPass" : "SignetPasses"}
+                    </span>
+                    <ChevronDown className="!h-4 !w-4 shrink-0 text-muted-foreground" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  className="max-h-72 w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto p-1.5"
+                  aria-label="SignetPasses"
                 >
-                  <span className="truncate">{p.name}</span>
-                </Button>
-              ))}
+                  {state.passes.map((p) => {
+                    const selected = p.id === pass?.id;
+                    return (
+                      <DropdownMenuItem
+                        key={p.id}
+                        aria-current={selected ? "true" : undefined}
+                        onSelect={() => setSelectedId(p.id)}
+                        className={`gap-2.5 rounded-lg px-2.5 py-2 ${selected ? "bg-primary/10" : ""}`}
+                      >
+                        <WalletCards className="!h-4 !w-4 shrink-0" />
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-[13px] font-medium">{p.name}</span>
+                          <span className="mt-px block truncate font-mono text-[11px] text-muted-foreground">
+                            {p.address.slice(0, 6)}…{p.address.slice(-4)}
+                            {p.status === "inactive" ? " · Not activated" : ""}
+                          </span>
+                        </span>
+                        {selected && <Check className="!h-4 !w-4 shrink-0 text-primary" />}
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
             {pass ? (
               <>
                 <section
-                  aria-label="TrellisPass balance"
+                  aria-label="SignetPass balance"
                   className="rounded-2xl border border-primary/15 bg-card bg-card-hero px-5 py-4 shadow-card"
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -187,8 +227,8 @@ function AgenticPayment() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        aria-label="Rename TrellisPass"
-                        title="Rename TrellisPass"
+                        aria-label="Rename SignetPass"
+                        title="Rename SignetPass"
                         className="h-7 w-7 shrink-0"
                         onClick={() => openAction("rename")}
                       >
@@ -207,11 +247,11 @@ function AgenticPayment() {
                     )}
                   </div>
                   <div className="mt-4 flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">TrellisPass balance</span>
+                    <span className="text-xs text-muted-foreground">SignetPass balance</span>
                     <Button
                       variant="ghost"
                       size="icon"
-                      aria-label={visible ? "Hide TrellisPass balance" : "Show TrellisPass balance"}
+                      aria-label={visible ? "Hide SignetPass balance" : "Show SignetPass balance"}
                       className="h-7 w-7"
                       onClick={() => setVisible((v) => !v)}
                     >
@@ -229,7 +269,7 @@ function AgenticPayment() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      aria-label="Copy TrellisPass address"
+                      aria-label="Copy SignetPass address"
                       title="Copy address"
                       className="h-7 w-7 shrink-0"
                       onClick={copy}
@@ -238,7 +278,9 @@ function AgenticPayment() {
                     </Button>
                   </div>
                   <div className="mt-4 flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">QDay · USD8</span>
+                    <span className="text-muted-foreground">
+                      {chain.name} · {signetPassFee(chain.id).token}
+                    </span>
                     <Badge
                       variant="outline"
                       className={`gap-1.5 rounded-full ${pass.status === "active" ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}
@@ -257,7 +299,7 @@ function AgenticPayment() {
                 {pass.status === "inactive" && (
                   <Button className="mt-3 h-11 w-full" onClick={() => openAction("activate")}>
                     <ShieldCheck />
-                    Activate TrellisPass
+                    Activate SignetPass
                   </Button>
                 )}
                 <Tabs defaultValue="approvals" className="mt-7">
@@ -405,7 +447,7 @@ function AgenticPayment() {
                     )}
                   </TabsContent>
                   <TabsContent value="activity" className="mt-4">
-                    <h2 className="mb-3 text-sm font-semibold">TrellisPass activity</h2>
+                    <h2 className="mb-3 text-sm font-semibold">SignetPass activity</h2>
                     {activity.length === 0 ? (
                       <Empty label="No activity yet" />
                     ) : (
@@ -431,11 +473,11 @@ function AgenticPayment() {
               </>
             ) : (
               <div className="py-8 text-center">
-                <Empty label="No TrellisPass accounts" />
+                <Empty label="No SignetPass accounts" />
                 <Button asChild>
                   <Link to="/agentic/new">
                     <Plus />
-                    Create TrellisPass
+                    Create SignetPass
                   </Link>
                 </Button>
               </div>
@@ -492,13 +534,13 @@ function AgenticPayment() {
             <DialogHeader>
               <DialogTitle>
                 {action === "rename"
-                  ? "Rename TrellisPass"
+                  ? "Rename SignetPass"
                   : action === "activate"
-                    ? "Activate TrellisPass"
+                    ? "Activate SignetPass"
                     : action === "fund"
-                      ? "Add funds to TrellisPass"
+                      ? "Add funds to SignetPass"
                       : action === "receive"
-                        ? "Receive to TrellisPass"
+                        ? "Receive to SignetPass"
                         : action === "revoke"
                           ? "Revoke agent?"
                           : "Logout of Signet CLI?"}
@@ -507,8 +549,8 @@ function AgenticPayment() {
                 {action === "logout"
                   ? "CLI logout does not revoke agent spending permissions."
                   : action === "revoke"
-                    ? "Remove this agent’s link to the selected TrellisPass in this preview."
-                    : `${pass?.name ?? "TrellisPass"} · ${pass?.address.slice(0, 10)}…${pass?.address.slice(-6)}`}
+                    ? "Remove this agent’s link to the selected SignetPass in this preview."
+                    : `${pass?.name ?? "SignetPass"} · ${pass?.address.slice(0, 10)}…${pass?.address.slice(-6)}`}
               </DialogDescription>
             </DialogHeader>
             {action === "rename" && (
@@ -520,12 +562,12 @@ function AgenticPayment() {
                     setState(renameQPass(pass.id, name));
                     setAction(null);
                   } catch {
-                    setError("TrellisPass name is required.");
+                    setError("SignetPass name is required.");
                   }
                 }}
               >
                 <label htmlFor="rename-name" className="mb-2 block text-xs font-medium">
-                  TrellisPass name
+                  SignetPass name
                 </label>
                 <Input
                   id="rename-name"
@@ -551,7 +593,7 @@ function AgenticPayment() {
                   <Detail label="Network fee" value="Unavailable in demo" />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Activation deploys your TrellisPass smart account on QDay. The network fee is paid
+                  Activation deploys your SignetPass smart account on QDay. The network fee is paid
                   by your main wallet.
                 </p>
                 <Button
@@ -559,10 +601,10 @@ function AgenticPayment() {
                     if (!pass) return;
                     setState(activateQPass(pass.id));
                     setAction(null);
-                    toast.success("TrellisPass activated");
+                    toast.success("SignetPass activated");
                   }}
                 >
-                  Activate TrellisPass
+                  Activate SignetPass
                 </Button>
               </>
             )}
@@ -584,7 +626,7 @@ function AgenticPayment() {
               <>
                 <div className="space-y-3 text-sm">
                   <Detail label="From" value="Main wallet" />
-                  <Detail label="To" value={pass?.name ?? "TrellisPass"} />
+                  <Detail label="To" value={pass?.name ?? "SignetPass"} />
                   <Detail label="Available balance" value="0.00 USD8" />
                 </div>
                 <label htmlFor="fund-amount" className="text-xs font-medium">
@@ -592,7 +634,7 @@ function AgenticPayment() {
                 </label>
                 <Input id="fund-amount" placeholder="0.00" disabled className="h-11 rounded-full" />
                 <p className="text-xs text-muted-foreground">
-                  Funding transfers USD8 from your main wallet to this TrellisPass.
+                  Funding transfers USD8 from your main wallet to this SignetPass.
                 </p>
                 <Button disabled>Transfer unavailable</Button>
               </>
@@ -601,11 +643,11 @@ function AgenticPayment() {
               <>
                 <div className="mx-auto rounded-xl bg-card p-4 text-foreground">
                   <QRCodeSVG
-                    value={`qpass:${pass.address}`}
+                    value={`signetpass:${pass.address}`}
                     size={160}
                     fgColor="currentColor"
                     bgColor="transparent"
-                    title="TrellisPass address QR"
+                    title="SignetPass address QR"
                   />
                 </div>
                 <p className="break-all text-center font-mono text-xs">{pass.address}</p>
@@ -641,7 +683,7 @@ function AgenticPayment() {
           request={currentRequest ?? null}
           open={request !== null}
           now={now}
-          passName={pass?.name ?? "TrellisPass"}
+          passName={pass?.name ?? "SignetPass"}
           passActive={pass?.status === "active"}
           onClose={() => setRequest(null)}
           onDecide={decide}
@@ -767,7 +809,7 @@ function ReviewRequestDialog({
             </div>
             {!passActive && !expired && (
               <p role="alert" className="text-center text-xs text-destructive">
-                Activate this TrellisPass before approving agents.
+                Activate this SignetPass before approving agents.
               </p>
             )}
             <p className="text-center text-[11px] text-muted-foreground">

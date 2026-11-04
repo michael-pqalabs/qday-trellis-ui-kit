@@ -41,12 +41,12 @@ export const Route = createFileRoute("/agentic_/agent/$agentId")({
       {
         name: "description",
         content:
-          "Review an agent linked to your TrellisPass: budget used, per-payment limit, session expiry, and pause or revoke controls.",
+          "Review an agent linked to your SignetPass: budget used, per-payment limit, session expiry, and pause or revoke controls.",
       },
       { property: "og:title", content: "Agent & Spending Session — Trellis Wallet" },
       {
         property: "og:description",
-        content: "Budget, limits and revoke controls for an agent on your TrellisPass.",
+        content: "Budget, limits and revoke controls for an agent on your SignetPass.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -220,7 +220,7 @@ function AgentDetail() {
             value={
               <span className="flex items-center gap-1">
                 <Wallet className="h-3 w-3" />
-                {pass?.name ?? "TrellisPass"}
+                {pass?.name ?? "SignetPass"}
               </span>
             }
             last
@@ -311,7 +311,7 @@ function AgentDetail() {
             </AlertDialogTitle>
             <AlertDialogDescription>
               {confirm === "agent"
-                ? `${agent.name} will be unlinked and can no longer spend from ${pass?.name ?? "this TrellisPass"}.`
+                ? `${agent.name} will be unlinked and can no longer spend from ${pass?.name ?? "this SignetPass"}.`
                 : `${agent.name} stays linked but can't pay until a new session is approved from the terminal.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -336,7 +336,7 @@ function BackLink() {
       className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
     >
       <ArrowLeft className="h-4 w-4" />
-      TrellisPass
+      SignetPass
     </Link>
   );
 }

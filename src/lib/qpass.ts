@@ -1,4 +1,4 @@
-// Client-only preview. TrellisPass accounts, agents and terminal requests are distinct.
+// Client-only preview. SignetPass accounts, agents and terminal requests are distinct.
 export interface QPass {
   id: string;
   name: string;
@@ -59,7 +59,7 @@ export interface QPassState {
   cliSessions: CliSession[];
   activity: AgenticActivity[];
 }
-const KEY = "trellis-qpass-v10";
+const KEY = "trellis-qpass-v11";
 const SAMPLE_AGENTS = [
   "Price watcher",
   "Invoice payer",
@@ -122,7 +122,7 @@ export function seedQPassState(now: number): QPassState {
     passes: [
       {
         id: "qp-shopping",
-        name: "Shopping TrellisPass",
+        name: "Shopping SignetPass",
         address: "0x8f3a2c1d9b4e7a6c5f0b3d2e8a1c4b7d9e6f3a5b",
         balance: 50,
         status: "active",
@@ -130,7 +130,7 @@ export function seedQPassState(now: number): QPassState {
       },
       {
         id: "qp-research",
-        name: "Research TrellisPass",
+        name: "Research SignetPass",
         address: "0x2b7d4e9f1a3c5b8d6f0a2c4e7b9d1f3a5c8e0b2d",
         balance: 0,
         status: "inactive",
@@ -300,14 +300,14 @@ export function seedQPassState(now: number): QPassState {
       {
         id: "act-4",
         passId: "qp-shopping",
-        label: "TrellisPass activated",
+        label: "SignetPass activated",
         kind: "activate",
         at: now - 20 * 3600000,
       },
       {
         id: "act-5",
         passId: "qp-shopping",
-        label: "TrellisPass created",
+        label: "SignetPass created",
         kind: "create",
         at: now - 86400000,
       },
@@ -344,7 +344,7 @@ export interface CreateQPassInput {
   name: string;
 }
 export function validateQPassInput(input: CreateQPassInput): string | null {
-  return input.name.trim() ? null : "TrellisPass name is required.";
+  return input.name.trim() ? null : "SignetPass name is required.";
 }
 function update(change: (state: QPassState) => void, now = Date.now()): QPassState {
   const state = loadQPassState(now);
@@ -369,7 +369,7 @@ export function createQPass(input: CreateQPassInput, now = Date.now()): QPass {
   };
   update((state) => {
     state.passes.unshift(pass);
-    log(state, id, "TrellisPass created", "create", now);
+    log(state, id, "SignetPass created", "create", now);
   }, now);
   return pass;
 }
@@ -380,7 +380,7 @@ export function renameQPass(id: string, name: string, now = Date.now()): QPassSt
     const pass = state.passes.find((p) => p.id === id);
     if (pass) {
       pass.name = name.trim();
-      log(state, id, "TrellisPass renamed", "rename", now);
+      log(state, id, "SignetPass renamed", "rename", now);
     }
   }, now);
 }
@@ -389,7 +389,7 @@ export function activateQPass(id: string, now = Date.now()): QPassState {
     const pass = state.passes.find((p) => p.id === id);
     if (pass?.status === "inactive") {
       pass.status = "active";
-      log(state, id, "TrellisPass activated", "activate", now);
+      log(state, id, "SignetPass activated", "activate", now);
     }
   }, now);
 }

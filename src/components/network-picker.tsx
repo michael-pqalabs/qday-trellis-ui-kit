@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { ArrowLeft, ChevronDown, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
-import { defaultNetworkId, getChain, previewChains } from "@/lib/wallet-preview";
+import { chainForNetwork, defaultNetworkId, getChain, previewChains } from "@/lib/wallet-preview";
 
 type Option = {
   id: string;
@@ -284,5 +285,31 @@ export function NetworkPicker({
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+/**
+ * Read-only blockchain and network line for screens that follow the Main Wallet choice (for example
+ * Agentic Payments). It cannot be changed here: go back to the Main Wallet to switch.
+ */
+export function NetworkSummary({ networkId }: { networkId: string }) {
+  const chain = chainForNetwork(networkId);
+  const network = chain.networks.find((item) => item.id === networkId) ?? chain.networks[0];
+  return (
+    <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+      <p
+        className="flex items-center gap-2 whitespace-nowrap"
+        aria-label={`Blockchain ${chain.name}, network ${network?.name}`}
+      >
+        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden="true" />
+        <span>
+          Blockchain: <span className="font-semibold text-foreground">{chain.name}</span>
+        </span>
+        <span aria-hidden="true">·</span>
+        <span>
+          Network: <span className="font-medium text-foreground">{network?.name}</span>
+        </span>
+      </p>
+    </div>
   );
 }

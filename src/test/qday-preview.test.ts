@@ -27,14 +27,14 @@ describe("QDay setup preview rules", () => {
     expect(completePreviewStep(state, 0).completed).toBe(0);
     expect(canEnterQPass({ ...state, completed: 5 })).toBe(false);
   });
-  it("requires sign-in before entering TrellisPass", () => {
+  it("requires sign-in before entering SignetPass", () => {
     expect(canEnterQPass({ walletReady: true, email: null, completed: 5 })).toBe(false);
   });
   it("has 5 ordered steps with only Passkey and activation manual", () => {
     expect(setupSteps).toHaveLength(5);
     expect(setupSteps.map((s) => s.manual)).toEqual([false, false, false, true, true]);
   });
-  it("cannot skip steps or enter TrellisPass before all 5 complete", () => {
+  it("cannot skip steps or enter SignetPass before all 5 complete", () => {
     let state = { walletReady: true, email: "preview@example.com", completed: 0 };
     expect(completePreviewStep(state, 3).completed).toBe(0);
     for (let i = 0; i < 5; i++) {

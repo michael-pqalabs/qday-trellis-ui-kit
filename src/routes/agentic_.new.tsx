@@ -8,16 +8,16 @@ import { QDayEntry } from "@/components/qday-entry";
 export const Route = createFileRoute("/agentic_/new")({
   head: () => ({
     meta: [
-      { title: "Create TrellisPass — Trellis Wallet" },
+      { title: "Create SignetPass — Trellis Wallet" },
       {
         name: "description",
-        content: "Name a separate TrellisPass spending account in the Trellis Wallet preview.",
+        content: "Name a separate SignetPass spending account in the Trellis Wallet preview.",
       },
-      { property: "og:title", content: "Create TrellisPass — Trellis Wallet" },
+      { property: "og:title", content: "Create SignetPass — Trellis Wallet" },
       {
         property: "og:description",
         content:
-          "Create a named TrellisPass account; spending permissions are requested from the terminal.",
+          "Create a named SignetPass account; spending permissions are requested from the terminal.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -51,7 +51,7 @@ function CreateQPass() {
               <ArrowLeft />
             </Link>
           </Button>
-          <h1 className="font-display text-xl font-semibold">Create TrellisPass</h1>
+          <h1 className="font-display text-xl font-semibold">Create SignetPass</h1>
         </header>
         <div className="pb-8 pt-12">
           <span className="grid h-16 w-16 place-items-center rounded-2xl bg-primary/10 text-primary">
@@ -73,7 +73,7 @@ function CreateQPass() {
           }}
         >
           <label htmlFor="qpass-name" className="mb-2 block text-sm font-medium">
-            TrellisPass name
+            SignetPass name
           </label>
           <Input
             id="qpass-name"
@@ -82,7 +82,7 @@ function CreateQPass() {
               setName(event.target.value);
               setError(null);
             }}
-            placeholder="e.g. Shopping TrellisPass"
+            placeholder="e.g. Shopping SignetPass"
             autoComplete="off"
             className="h-12 rounded-full bg-card px-4"
             aria-invalid={!!error}
@@ -98,7 +98,7 @@ function CreateQPass() {
             <span className="font-semibold">0.00 USD8</span>
           </div>
           <Button type="submit" className="mt-6 h-12 w-full">
-            Create TrellisPass
+            Create SignetPass
           </Button>
         </form>
         <p className="mt-4 flex items-center justify-center gap-2 text-center text-[11px] text-muted-foreground">

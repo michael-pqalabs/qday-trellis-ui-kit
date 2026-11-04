@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Check,
   Copy,
@@ -23,7 +23,6 @@ import {
   transactionsFor,
   getPreviewHolding,
   chainForNetwork,
-  defaultNetworkId,
   describeNetwork,
   walletTokens,
 } from "@/lib/wallet-preview";
@@ -70,11 +69,18 @@ export const Route = createFileRoute("/wallet")({
 
 function WalletOverview() {
   const search = Route.useSearch();
-  const { wallets, importedTokens: allImportedTokens } = useWalletPreview();
+  const {
+    wallets,
+    importedTokens: allImportedTokens,
+    networkId,
+    setNetworkId,
+  } = useWalletPreview();
   const [walletId, setWalletId] = useState(search.wallet ?? "main");
   const [renameOpen, setRenameOpen] = useState(false);
-  const [chainId, setChainId] = useState(() => chainForNetwork(search.network).id);
-  const [networkId, setNetworkId] = useState(() => search.network ?? defaultNetworkId("qday"));
+  const chainId = chainForNetwork(networkId).id;
+  useEffect(() => {
+    if (search.network) setNetworkId(search.network);
+  }, [search.network, setNetworkId]);
   const [tokenId, setTokenId] = useState("qday");
   const [visible, setVisible] = useState(true);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
@@ -82,8 +88,7 @@ function WalletOverview() {
   const holding = getPreviewHolding(walletId, networkId, tokenId, wallets);
   const { wallet, network, token, balance } = holding;
   const { network: chainNetwork, label: where } = describeNetwork(networkId);
-  const changeNetwork = (nextChainId: string, nextNetworkId: string) => {
-    setChainId(nextChainId);
+  const changeNetwork = (_chainId: string, nextNetworkId: string) => {
     setNetworkId(nextNetworkId);
     setCopyState("idle");
   };
@@ -158,10 +163,7 @@ function WalletOverview() {
                     aria-current={selected ? "true" : undefined}
                     onSelect={() => {
                       setWalletId(item.id);
-                      if (item.networkId) {
-                        setChainId(chainForNetwork(item.networkId).id);
-                        setNetworkId(item.networkId);
-                      }
+                      if (item.networkId) setNetworkId(item.networkId);
                       setCopyState("idle");
                     }}
                     className={`gap-2.5 rounded-lg px-2.5 py-2 ${selected ? "bg-primary/10" : ""}`}
