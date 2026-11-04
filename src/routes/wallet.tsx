@@ -104,7 +104,7 @@ function WalletOverview() {
 
   return (
     <div className="flex min-h-screen justify-center bg-background">
-      <main className="flex min-h-screen w-full max-w-md flex-col px-4 pb-0 pt-3">
+      <main className="flex min-h-screen w-full max-w-md flex-col px-5 pb-0 pt-3">
         <NetworkPicker chainId={chainId} networkId={networkId} onChange={changeNetwork} />
         <header className="mt-1 flex items-center justify-between">
           <TrellisLockup />

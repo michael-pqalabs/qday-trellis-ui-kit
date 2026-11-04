@@ -74,6 +74,8 @@ export const Route = createFileRoute("/agentic")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  validateSearch: (s: Record<string, unknown>): { pass?: string } =>
+    typeof s["pass"] === "string" ? { pass: s["pass"] } : {},
   component: AgenticPage,
 });
 function AgenticPage() {
@@ -87,7 +89,9 @@ type Action = "rename" | "activate" | "fund" | "receive" | "revoke" | "logout";
 function AgenticPayment() {
   const { update } = useQDayPreview();
   const [state, setState] = useState<QPassState | null>(null);
-  const [selectedId, setSelectedId] = useState("");
+  const search = Route.useSearch();
+  // A SignetPass that was just created arrives as ?pass=<id> and starts selected.
+  const [selectedId, setSelectedId] = useState(search.pass ?? "");
   const { networkId } = useWalletPreview();
   const chain = chainForNetwork(networkId);
   const [now, setNow] = useState(0);
@@ -134,7 +138,7 @@ function AgenticPayment() {
   };
   return (
     <div className="flex min-h-screen justify-center bg-background">
-      <main className="flex min-h-screen w-full max-w-md flex-col px-4 pb-0 pt-3">
+      <main className="flex min-h-screen w-full max-w-md flex-col px-5 pb-0 pt-3">
         <NetworkSummary networkId={networkId} />
         <header className="mt-2 flex items-center justify-between">
           <TrellisLockup />

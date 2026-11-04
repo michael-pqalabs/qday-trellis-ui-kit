@@ -13,20 +13,11 @@ import {
   Trash2,
   Wallet,
   RotateCcw,
-  CircleAlert,
 } from "lucide-react";
 import { toast } from "sonner";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { TrellisLockup } from "@/components/trellis-lockup";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -43,7 +34,7 @@ import {
   validPreviewOTP,
 } from "@/lib/qday-preview";
 import { signetPassFee } from "@/lib/wallet-preview";
-import { cn } from "@/lib/utils";
+import { DeploymentFeeNotice, TransactionConfirm } from "@/components/signet-fee";
 
 export function QDayEntry({ children }: { children: ReactNode }) {
   const { state, ready } = useQDayPreview();
@@ -108,7 +99,7 @@ function QDayOnboarding() {
   };
   return (
     <div className="flex min-h-screen justify-center bg-background">
-      <main className="flex min-h-screen w-full max-w-md flex-col px-4 pt-6">
+      <main className="flex min-h-screen w-full max-w-md flex-col px-5 pt-6">
         <header className="flex items-center justify-between">
           <TrellisLockup />
           {state.email && (
@@ -147,7 +138,12 @@ function QDayOnboarding() {
             </Button>
           </section>
         ) : !state.email && !feeAccepted ? (
-          <DeploymentFeeNotice onAccept={() => setFeeAccepted(true)} />
+          <DeploymentFeeNotice
+            title="Create your Signet account"
+            subtitle="Smart-contract account on QDay"
+            cancelTo="/wallet"
+            onAccept={() => setFeeAccepted(true)}
+          />
         ) : !state.email ? (
           <section className="pb-10 pt-6">
             <span className="mb-6 grid h-14 w-14 place-items-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
@@ -438,10 +434,10 @@ function QDayOnboarding() {
             </p>
           </section>
         )}
-        <ActivationConfirm
+        <TransactionConfirm
           open={confirmOpen}
           onOpenChange={setConfirmOpen}
-          fee={fee}
+          action="Deploy spending wallet smart contract"
           onConfirm={() => {
             setConfirmOpen(false);
             setManualBusy(true);
@@ -471,185 +467,5 @@ function MiniCopy({ value, label }: { value: string; label: string }) {
     >
       <Copy className="h-3 w-3" />
     </Button>
-  );
-}
-
-/**
- * Shown before the email step: creating a SignetPass costs a smart contract deployment fee charged on
- * the Main Wallet. The balances are illustrative, so a preview switch shows both outcomes.
- */
-const PREVIEW_ENOUGH_BALANCE = 10;
-const money = (value: number) => value.toFixed(2);
-
-function DeploymentFeeNotice({ onAccept }: { onAccept: () => void }) {
-  const [balance, setBalance] = useState<"enough" | "low">("enough");
-  const { amount, token } = signetPassFee("qday");
-  const enough = balance === "enough";
-  const available = enough ? PREVIEW_ENOUGH_BALANCE : 0;
-
-  return (
-    <section className="pb-32 pt-6" aria-labelledby="fee-title">
-      <div className="flex items-center gap-4">
-        <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
-          <Wallet className="h-6 w-6" />
-        </span>
-        <div className="min-w-0">
-          <h1 id="fee-title" className="font-display text-xl font-semibold leading-tight">
-            Create your Signet account
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">Smart-contract account on QDay</p>
-        </div>
-      </div>
-      <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
-        Creating your SignetPass requires a one-time smart-contract deployment fee, charged on your
-        Main Wallet.
-      </p>
-
-      <div className="mt-5 overflow-hidden rounded-2xl border bg-card">
-        <div className="px-5 py-3 text-center">
-          <p className="text-[10px] font-semibold uppercase text-muted-foreground">
-            Deployment fee
-          </p>
-          <p className="mt-1 flex items-baseline justify-center gap-2 font-display font-semibold tabular-nums">
-            <span className="text-2xl leading-none">{money(amount)}</span>
-            <span className="text-md text-muted-foreground">{token}</span>
-          </p>
-        </div>
-        <dl className="space-y-3 border-t border-divider px-5 py-3 text-xs">
-          <div className="flex items-center justify-between gap-3">
-            <dt className="text-muted-foreground text-xs">Main Wallet balance</dt>
-            <dd className="flex items-center gap-2 font-medium tabular-nums">
-              {!enough && (
-                <CircleAlert className="h-4 w-4 text-destructive" aria-label="Not enough" />
-              )}
-              {money(available)} {token}
-            </dd>
-          </div>
-          <div className="flex items-center justify-between gap-3">
-            <dt className="text-muted-foreground text-xs">Remaining after fee</dt>
-            <dd className="font-medium tabular-nums text-xs">
-              {enough ? `${money(available - amount)} ${token}` : "—"}
-            </dd>
-          </div>
-        </dl>
-      </div>
-
-      {!enough && (
-        <div
-          role="alert"
-          className="mt-3 flex items-start gap-3 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-xs"
-        >
-          <CircleAlert className="mt-0.5 h-5 w-5 shrink-0 text-destructive" aria-hidden="true" />
-          <div>
-            <p className="font-semibold text-destructive text-xs">Not enough {token}</p>
-            <p className="mt-1 leading-relaxed text-muted-foreground text-xs">
-              You don’t have enough {token} in your Main Wallet to cover the creation fee. Top up to
-              continue.
-            </p>
-          </div>
-        </div>
-      )}
-
-      <div className="mt-3 grid grid-cols-2 gap-3">
-        <Button asChild variant="outline" className="h-12">
-          <Link to="/wallet">Cancel</Link>
-        </Button>
-        {enough ? (
-          <Button className="h-12" onClick={onAccept}>
-            OK
-          </Button>
-        ) : (
-          <Button asChild className="h-12">
-            <Link to="/receive" search={{ wallet: "main", token: "usd8", network: "testnet" }}>
-              Top-Up {token}
-            </Link>
-          </Button>
-        )}
-      </div>
-
-      <div className="mt-10 flex items-center justify-between gap-3 rounded-xl border border-dashed border-border px-3 py-2.5">
-        <span className="text-[11px] leading-tight text-muted-foreground">
-          Preview only
-          <br />
-          Main Wallet balance
-        </span>
-        <div
-          className="inline-flex rounded-full border border-border/60 bg-secondary/60 p-0.5"
-          role="radiogroup"
-          aria-label="Preview balance"
-        >
-          {(
-            [
-              ["enough", "Enough"],
-              ["low", "Not enough"],
-            ] as const
-          ).map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              role="radio"
-              aria-checked={balance === value}
-              onClick={() => setBalance(value)}
-              className={cn(
-                "h-7 rounded-full px-3 text-xs font-medium transition-colors",
-                balance === value
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/** Transaction details shown after "Activate Spending Wallet", before anything is confirmed. */
-function ActivationConfirm({
-  open,
-  onOpenChange,
-  fee,
-  onConfirm,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  fee: { amount: number; token: string };
-  onConfirm: () => void;
-}) {
-  const rows = [
-    ["Action", "Deploy spending wallet smart contract"],
-    ["Network", "QDay · Aevum Testnet"],
-    ["Paid from", "Main Wallet"],
-    ["Gas fee", `${fee.amount.toFixed(2)} ${fee.token}`],
-  ] as const;
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100%-2rem)] max-w-sm">
-        <DialogHeader>
-          <DialogTitle>Confirm transaction</DialogTitle>
-          <DialogDescription>
-            Review the details. This is a preview: nothing is sent or charged.
-          </DialogDescription>
-        </DialogHeader>
-        <dl className="divide-y divide-divider rounded-xl border bg-card text-sm">
-          {rows.map(([label, value]) => (
-            <div key={label} className="flex items-start justify-between gap-4 px-4 py-3">
-              <dt className="text-muted-foreground">{label}</dt>
-              <dd className="text-right font-medium tabular-nums">{value}</dd>
-            </div>
-          ))}
-        </dl>
-        <DialogFooter className="grid grid-cols-2 gap-2 sm:grid-cols-2">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button type="button" onClick={onConfirm}>
-            OK
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   );
 }

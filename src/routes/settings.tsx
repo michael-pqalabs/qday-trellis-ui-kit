@@ -134,7 +134,7 @@ function Settings() {
 
   return (
     <div className="flex min-h-screen justify-center bg-background">
-      <main className="flex min-h-screen w-full max-w-md flex-col px-4 pb-10 pt-6">
+      <main className="flex min-h-screen w-full max-w-md flex-col px-5 pb-10 pt-6">
         <header className="flex items-center gap-3">
           <Button asChild variant="ghost" size="icon" aria-label="Back to wallet">
             <Link to="/wallet">

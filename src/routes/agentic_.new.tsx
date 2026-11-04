@@ -3,7 +3,9 @@ import { useState } from "react";
 import { ArrowLeft, ShieldCheck, WalletCards } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createQPass, validateQPassInput } from "@/lib/qpass";
+import { toast } from "sonner";
+import { activateQPass, createQPass, validateQPassInput } from "@/lib/qpass";
+import { DeploymentFeeDialog, TransactionConfirm } from "@/components/signet-fee";
 import { QDayEntry } from "@/components/qday-entry";
 export const Route = createFileRoute("/agentic_/new")({
   head: () => ({
@@ -36,9 +38,21 @@ function CreateQPass() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [feeAccepted, setFeeAccepted] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  // Same flow as the first setup: accept the deployment fee, name the SignetPass, review, then activate.
+  const create = () => {
+    const pass = createQPass({ name });
+    activateQPass(pass.id);
+    setConfirmOpen(false);
+    toast.success("SignetPass created", {
+      description: `${pass.name} is active. Preview only: nothing was deployed or charged.`,
+    });
+    navigate({ to: "/agentic", search: { pass: pass.id } });
+  };
   return (
     <div className="flex min-h-screen justify-center bg-background">
-      <main className="flex min-h-screen w-full max-w-md flex-col px-4 pb-8 pt-6">
+      <main className="flex min-h-screen w-full max-w-md flex-col px-5 pb-8 pt-6">
         <header className="flex items-center gap-3">
           <Button
             asChild
@@ -68,8 +82,7 @@ function CreateQPass() {
               setError(invalid);
               return;
             }
-            createQPass({ name });
-            navigate({ to: "/agentic" });
+            setConfirmOpen(true);
           }}
         >
           <label htmlFor="qpass-name" className="mb-2 block text-sm font-medium">
@@ -101,6 +114,19 @@ function CreateQPass() {
             Create SignetPass
           </Button>
         </form>
+        <DeploymentFeeDialog
+          open={!feeAccepted}
+          title="Create SignetPass"
+          cancelTo="/agentic"
+          onAccept={() => setFeeAccepted(true)}
+        />
+        <TransactionConfirm
+          open={confirmOpen}
+          onOpenChange={setConfirmOpen}
+          action="Deploy SignetPass smart contract"
+          details={[["SignetPass", name.trim()]]}
+          onConfirm={create}
+        />
         <p className="mt-4 flex items-center justify-center gap-2 text-center text-[11px] text-muted-foreground">
           <ShieldCheck className="h-3.5 w-3.5" />
           Owned by your main wallet · USD8 on QDay
