@@ -36,6 +36,8 @@ const WORDS: string[] = [
 
 const KEY = "trellis.recovery.phrase";
 
+export const PHRASE_LENGTH = 24;
+
 export function shuffle<T>(list: readonly T[]): T[] {
   const out: T[] = [...list];
   const buf = new Uint32Array(out.length);
@@ -50,10 +52,9 @@ export function shuffle<T>(list: readonly T[]): T[] {
   return out;
 }
 
+// Distinct words keep every confirm slot unambiguous and leave enough sample words for distractors.
 export function makePhrase(): string[] {
-  const buf = new Uint32Array(12);
-  crypto.getRandomValues(buf);
-  return Array.from(buf, (n) => WORDS[n % WORDS.length] ?? "orbit");
+  return shuffle(WORDS).slice(0, PHRASE_LENGTH);
 }
 
 export function savePhrase(phrase: string[]) {
@@ -69,7 +70,7 @@ export function loadPhrase(): string[] {
     const raw = sessionStorage.getItem(KEY);
     if (raw) {
       const parts = raw.split(" ");
-      if (parts.length === 12 && parts.every((p) => WORDS.includes(p))) return parts;
+      if (parts.length === PHRASE_LENGTH && parts.every((p) => WORDS.includes(p))) return parts;
     }
   } catch {
     /* fall through to a fresh phrase */
@@ -93,7 +94,7 @@ export function distractors(count: number, phrase: string[]): string[] {
   return shuffle(pool).slice(0, count);
 }
 
-// Three positions inside a 12-word phrase whose words all differ, so each slot has one clear answer.
+// Three positions inside the 24-word phrase whose words all differ, so each slot has one clear answer.
 export function pickSpots(phrase: string[]): number[] {
   for (let attempt = 0; attempt < 12; attempt++) {
     const buf = new Uint32Array(6);
@@ -104,8 +105,8 @@ export function pickSpots(phrase: string[]): number[] {
       if (!spots.includes(i)) spots.push(i);
       if (spots.length === 3) break;
     }
-    while (spots.length < 3) spots.push(((spots[spots.length - 1] ?? 0) + 4) % phrase.length);
+    while (spots.length < 3) spots.push(((spots[spots.length - 1] ?? 0) + 8) % phrase.length);
     if (new Set(spots.map((i) => phrase[i])).size === 3) return spots.sort((a, b) => a - b);
   }
-  return [0, 4, 8];
+  return [0, 8, 16];
 }

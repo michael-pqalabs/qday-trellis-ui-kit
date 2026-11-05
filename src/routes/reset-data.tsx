@@ -11,6 +11,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -116,18 +118,26 @@ function ResetDataPage() {
               <Button asChild variant="outline" className="mt-3 w-full">
                 <Link to="/backup">Back up wallet first</Link>
               </Button>
-              <label className="mt-3 flex items-start gap-2 text-xs">
-                <input
-                  type="checkbox"
-                  className="mt-0.5"
+              <div className="mt-4 flex items-start gap-3">
+                <Checkbox
+                  id="r-ack"
+                  className="mt-[3px]"
                   checked={ack}
-                  onChange={(e) => setAck(e.target.checked)}
+                  onCheckedChange={(v) => setAck(v === true)}
                 />
-                I have backed up every wallet and understand this cannot be undone.
-              </label>
-              <label htmlFor="r-delete" className="mb-1 mt-3 block text-xs text-muted-foreground">
-                Type DELETE to confirm. Device authentication is required.
-              </label>
+                <Label htmlFor="r-ack" className="text-sm font-normal leading-snug">
+                  I have backed up every wallet and understand this cannot be undone.
+                </Label>
+              </div>
+              <Label
+                htmlFor="r-delete"
+                className="mt-5 text-xs text-muted-foreground font-normal block"
+              >
+                Type <span className="text-destructive font-bold text-xs">DELETE</span> to confirm
+              </Label>
+              <p className="mb-2 mt-1 text-xs text-muted-foreground">
+                Device authentication is required.
+              </p>
               <Input
                 id="r-delete"
                 aria-label="Type DELETE to confirm deletion"

@@ -1,9 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { TrellisLockup } from "@/components/trellis-lockup";
-import { ShieldCheck, Plus, Download, ChevronRight, Fingerprint } from "lucide-react";
+import { ShieldCheck, ShieldAlert, Plus, Download, ChevronRight, Fingerprint } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import { useQDayPreview } from "@/components/qday-preview-provider";
+import { isPhraseLengthValid, phraseWordCount } from "@/lib/wallet-preview";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -34,7 +38,11 @@ export const Route = createFileRoute("/")({
 
 function CreateWallet() {
   const [importOpen, setImportOpen] = useState(false);
+  const [importPhrase, setImportPhrase] = useState("");
+  const { update } = useQDayPreview();
   const navigate = useNavigate();
+  const importWords = phraseWordCount(importPhrase);
+  const importOk = isPhraseLengthValid(importPhrase);
   const [agreed, setAgreed] = useState(false);
   const [introFailed, setIntroFailed] = useState(false);
   const introRef = useRef<HTMLVideoElement>(null);
@@ -133,8 +141,23 @@ function CreateWallet() {
             />
             <span>
               I agree to the{" "}
-              <span className="text-foreground underline underline-offset-2">Terms</span> and{" "}
-              <span className="text-foreground underline underline-offset-2">Privacy Policy</span>
+              <a
+                href="https://example.com/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-foreground underline underline-offset-2"
+              >
+                Terms
+              </a>{" "}
+              and{" "}
+              <a
+                href="https://example.com/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-foreground underline underline-offset-2"
+              >
+                Privacy Policy
+              </a>
             </span>
           </label>
           <Button
@@ -158,16 +181,75 @@ function CreateWallet() {
             <Fingerprint className="h-4 w-4" /> Protect with PassKey after setup
           </p>
         </div>
-        <Dialog open={importOpen} onOpenChange={setImportOpen}>
+        <Dialog
+          open={importOpen}
+          onOpenChange={(open) => {
+            setImportOpen(open);
+            // The phrase is never kept: closing the dialog drops it.
+            if (!open) setImportPhrase("");
+          }}
+        >
           <DialogContent className="w-[calc(100%-2rem)] max-w-sm">
             <DialogHeader>
               <DialogTitle>Import existing wallet</DialogTitle>
               <DialogDescription>
-                Wallet import isn't connected in this preview. Never enter a real recovery phrase
-                here.
+                Enter the 12 or 24-word recovery phrase of your existing wallet.
               </DialogDescription>
             </DialogHeader>
-            <Button onClick={() => setImportOpen(false)}>Got it</Button>
+            <form
+              className="space-y-3"
+              onSubmit={(event) => {
+                event.preventDefault();
+                if (!importOk) return;
+                // Preview only: the phrase is counted, never verified or stored.
+                setImportPhrase("");
+                setImportOpen(false);
+                update((state) => ({ ...state, walletReady: true }));
+                navigate({ to: "/wallet" });
+              }}
+            >
+              <div className="flex items-start gap-2 rounded-lg bg-secondary/70 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground">
+                <ShieldAlert
+                  className="mt-0.5 h-4 w-4 shrink-0 text-destructive"
+                  aria-hidden="true"
+                />
+                <span>
+                  Preview only. Never enter a real recovery phrase here. It is not verified or
+                  stored.
+                </span>
+              </div>
+              <label className="block space-y-2 text-xs text-muted-foreground">
+                Recovery phrase
+                <Textarea
+                  value={importPhrase}
+                  onChange={(event) => setImportPhrase(event.target.value)}
+                  rows={3}
+                  autoComplete="off"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  placeholder="12 or 24 words separated by spaces"
+                  className="font-mono text-sm text-foreground"
+                />
+              </label>
+              <p
+                className={cn(
+                  "text-xs",
+                  importWords === 0 || importOk ? "text-muted-foreground" : "text-destructive",
+                )}
+                aria-live="polite"
+              >
+                {importWords === 0
+                  ? "Paste or type your phrase."
+                  : importOk
+                    ? `${importWords} words`
+                    : `${importWords} words. A phrase has 12 or 24.`}
+              </p>
+              <Button type="submit" className="w-full" disabled={!importOk}>
+                <Download />
+                Import wallet
+              </Button>
+            </form>
           </DialogContent>
         </Dialog>
       </main>

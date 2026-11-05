@@ -18,6 +18,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { Grid2X2 } from "lucide-react";
 import { QDayPreviewProvider } from "@/components/qday-preview-provider";
 import { WalletPreviewProvider } from "@/components/wallet-preview-provider";
+import { AppSplash } from "@/components/splash-screen";
 
 function NotFoundComponent() {
   return (
@@ -131,6 +132,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <ThemeProvider>
+        <AppSplash />
         <div className="border-b border-divider bg-background">
           <div className="mx-auto flex w-full max-w-md items-center justify-between px-6 py-1">
             <Button asChild variant="ghost" size="sm">

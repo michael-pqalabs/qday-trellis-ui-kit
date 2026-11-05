@@ -3,6 +3,8 @@ import { useState } from "react";
 import { ArrowLeft, CheckCircle2, CircleDashed, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { useWalletPreview } from "@/components/wallet-preview-provider";
 import { cn } from "@/lib/utils";
 
@@ -69,7 +71,7 @@ function ActivationPage() {
             {checking ? (
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             ) : status === "deployed" ? (
-              <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+              <CheckCircle2 className="h-6 w-6 text-success" />
             ) : (
               <CircleDashed className="h-6 w-6 text-muted-foreground" />
             )}
@@ -151,22 +153,26 @@ function ActivationPage() {
               </button>
             ))}
           </div>
-          <label className="flex items-center gap-2 text-[11px] text-muted-foreground">
-            <input
-              type="checkbox"
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="aa-deposit"
               checked={deposit}
-              onChange={(e) => setDeposit(e.target.checked)}
+              onCheckedChange={(v) => setDeposit(v === true)}
             />
-            Gas deposit exists
-          </label>
-          <label className="flex items-center gap-2 text-[11px] text-muted-foreground">
-            <input
-              type="checkbox"
+            <Label htmlFor="aa-deposit" className="text-[11px] font-normal text-muted-foreground">
+              Gas deposit exists
+            </Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="aa-approval"
               checked={approval}
-              onChange={(e) => setApproval(e.target.checked)}
+              onCheckedChange={(v) => setApproval(v === true)}
             />
-            USD8 fee approval granted
-          </label>
+            <Label htmlFor="aa-approval" className="text-[11px] font-normal text-muted-foreground">
+              USD8 fee approval granted
+            </Label>
+          </div>
         </section>
       </main>
     </div>

@@ -5,8 +5,10 @@ import { distractors, loadPhrase, makePhrase, pickSpots, savePhrase } from "@/li
 // The confirm step asks for three words only, so those three must never be ambiguous
 // and the extra words on offer must never come from the user's own phrase.
 describe("Recovery phrase helpers", () => {
-  it("makes a twelve word phrase", () => {
-    expect(makePhrase()).toHaveLength(12);
+  it("makes a 24 word phrase of distinct words", () => {
+    const phrase = makePhrase();
+    expect(phrase).toHaveLength(24);
+    expect(new Set(phrase).size).toBe(24);
   });
 
   it("asks for three different positions holding three different words", () => {
@@ -15,7 +17,7 @@ describe("Recovery phrase helpers", () => {
 
     expect(spots).toHaveLength(3);
     expect(new Set(spots).size).toBe(3);
-    expect(Math.max(...spots)).toBeLessThan(12);
+    expect(Math.max(...spots)).toBeLessThan(24);
     expect(Math.min(...spots)).toBeGreaterThanOrEqual(0);
     expect(new Set(spots.map((i) => phrase[i])).size).toBe(3);
   });
@@ -44,6 +46,18 @@ describe("Recovery phrase helpers", () => {
       "meadow",
       "falcon",
       "prism",
+      "river",
+      "copper",
+      "tundra",
+      "willow",
+      "beacon",
+      "glacier",
+      "raven",
+      "saddle",
+      "timber",
+      "violet",
+      "anchor",
+      "cobalt",
     ];
     savePhrase(phrase);
 

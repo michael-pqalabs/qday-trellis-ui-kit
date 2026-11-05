@@ -63,6 +63,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SplashScreen } from "@/components/splash-screen";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
@@ -535,6 +536,12 @@ function DesignKit() {
           </div>
           <Progress value={progress} aria-label="Loading progress" />
           <p className="mt-2 text-right text-xs text-muted-foreground">{progress}%</p>
+          <div className="mt-5 overflow-hidden rounded-2xl border">
+            <SplashScreen className="min-h-[30rem] pt-16" />
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Splash screen: shown on app launch and while a route is pending.
+          </p>
         </Section>
 
         <Section number="09" title="Image & avatar">

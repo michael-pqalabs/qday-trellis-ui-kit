@@ -3,6 +3,8 @@ import { useState } from "react";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useWalletPreview } from "@/components/wallet-preview-provider";
 import { shortAddress } from "@/lib/wallet-preview";
@@ -117,13 +119,14 @@ function TokenApprovalsPage() {
             </span>
           </div>
           <div>
-            <label htmlFor="ta-token" className="mb-1 block text-xs text-muted-foreground">
+            <Label htmlFor="ta-token" className="mb-2 block">
               Token contract
-            </label>
+            </Label>
             <Input
               id="ta-token"
               placeholder="0x…"
               value={token}
+              aria-invalid={errors.token ? true : undefined}
               className={fieldCls(errors.token)}
               onChange={(e) => setToken(e.target.value)}
             />
@@ -134,13 +137,14 @@ function TokenApprovalsPage() {
             )}
           </div>
           <div>
-            <label htmlFor="ta-spender" className="mb-1 block text-xs text-muted-foreground">
+            <Label htmlFor="ta-spender" className="mb-2 block">
               Spender
-            </label>
+            </Label>
             <Input
               id="ta-spender"
               placeholder="0x…"
               value={spender}
+              aria-invalid={errors.spender ? true : undefined}
               className={fieldCls(errors.spender)}
               onChange={(e) => setSpender(e.target.value)}
             />
@@ -149,13 +153,15 @@ function TokenApprovalsPage() {
                 {errors.spender}
               </p>
             )}
-            <button
+            <Button
               type="button"
-              className="mt-1 text-[11px] text-primary hover:underline"
+              variant="link"
+              size="sm"
+              className="mt-1 h-auto px-0 py-0 text-[11px]"
               onClick={() => setSpender(GAS_SERVICE)}
             >
               Use the wallet gas service (sample)
-            </button>
+            </Button>
           </div>
           <Button className="w-full" onClick={check}>
             Check allowance
@@ -174,13 +180,14 @@ function TokenApprovalsPage() {
                 USD8-paid operations until you authorize it again.
               </p>
             )}
-            <label htmlFor="ta-next" className="mb-1 mt-4 block text-xs text-muted-foreground">
+            <Label htmlFor="ta-next" className="mb-2 mt-4 block">
               New total allowance (0 to revoke)
-            </label>
+            </Label>
             <Input
               id="ta-next"
               inputMode="decimal"
               value={next}
+              aria-invalid={errors.amount ? true : undefined}
               className={fieldCls(errors.amount)}
               onChange={(e) => {
                 setNext(e.target.value);
@@ -211,19 +218,18 @@ function TokenApprovalsPage() {
                   <span className="font-medium">{MAX_FEE} QDAY</span>
                 </div>
                 <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed border-border px-3 py-2">
-                  <label
+                  <Label
                     htmlFor="ta-fail"
-                    className="text-[10px] leading-tight text-muted-foreground"
+                    className="text-[10px] font-normal leading-tight text-muted-foreground"
                   >
                     Preview only
                     <br />
                     Result is not confirmed
-                  </label>
-                  <input
+                  </Label>
+                  <Checkbox
                     id="ta-fail"
-                    type="checkbox"
                     checked={failNext}
-                    onChange={(e) => setFailNext(e.target.checked)}
+                    onCheckedChange={(v) => setFailNext(v === true)}
                   />
                 </div>
                 <div className="flex gap-3">
@@ -260,7 +266,7 @@ function TokenApprovalsPage() {
               {saved.label} · {saved.amount} (amount in token units)
             </p>
             {saved.status === "confirmed" ? (
-              <p role="status" className="mt-2 text-xs text-emerald-600 dark:text-emerald-400">
+              <p role="status" className="mt-2 text-xs text-success">
                 Confirmed: matching Approval event found. Refresh the allowance to check its current
                 value.
               </p>

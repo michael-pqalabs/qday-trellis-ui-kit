@@ -13,6 +13,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { shortAddress } from "@/lib/wallet-preview";
 
@@ -101,9 +102,9 @@ function ContactsPage() {
             aria-label="Contact form"
           >
             <div>
-              <label htmlFor="c-name" className="mb-1 block text-xs text-muted-foreground">
+              <Label htmlFor="c-name" className="mb-2 block">
                 Contact name
-              </label>
+              </Label>
               <Input
                 id="c-name"
                 value={name}
@@ -118,9 +119,9 @@ function ContactsPage() {
               )}
             </div>
             <div>
-              <label htmlFor="c-address" className="mb-1 block text-xs text-muted-foreground">
+              <Label htmlFor="c-address" className="mb-2 block">
                 Contact address
-              </label>
+              </Label>
               <Input
                 id="c-address"
                 placeholder="0x…"

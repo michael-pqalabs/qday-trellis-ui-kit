@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ArrowLeft, Eye, ExternalLink, Loader2, RefreshCw, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { shortAddress, walletTokens } from "@/lib/wallet-preview";
 import { cn } from "@/lib/utils";
@@ -73,9 +74,9 @@ function WatchAddressPage() {
           signing access.
         </p>
         <section className="mt-5 space-y-3 rounded-2xl border bg-card p-4">
-          <label htmlFor="w-address" className="block text-xs text-muted-foreground">
+          <Label htmlFor="w-address" className="block">
             Public address
-          </label>
+          </Label>
           <Input
             id="w-address"
             placeholder="0x…"

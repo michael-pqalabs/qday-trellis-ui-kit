@@ -29,7 +29,7 @@ export function TransactionRow({ tx, visible = true }: { tx: PreviewTx; visible?
               ? "bg-destructive/10 text-destructive"
               : sent
                 ? "bg-primary/10 text-primary"
-                : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                : "bg-success/10 text-success"
           }`}
         >
           {sent ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownLeft className="h-4 w-4" />}
@@ -44,7 +44,7 @@ export function TransactionRow({ tx, visible = true }: { tx: PreviewTx; visible?
         </span>
         <span className="text-right">
           <span
-            className={`block font-display text-sm tabular-nums ${!sent && tx.status === "confirmed" ? "text-emerald-600 dark:text-emerald-400" : ""}`}
+            className={`block font-display text-sm tabular-nums ${!sent && tx.status === "confirmed" ? "text-success" : ""}`}
           >
             {visible ? `${sign}${tx.amount}` : "••••"}
           </span>

@@ -98,7 +98,7 @@ function FaucetPage() {
             </div>
           </dl>
           {result === "received" && (
-            <p role="status" className="mt-3 text-xs text-emerald-600 dark:text-emerald-400">
+            <p role="status" className="mt-3 text-xs text-success">
               1 tUSD8 received. Sample transaction 0x7c1e…a9d2.
             </p>
           )}

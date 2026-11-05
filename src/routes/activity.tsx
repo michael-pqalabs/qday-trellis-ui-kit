@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ArrowLeft, History, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TransactionRow } from "@/components/transaction-row";
 import { useWalletPreview } from "@/components/wallet-preview-provider";
 import { describeNetwork, transactionsFor, txGroupLabel } from "@/lib/wallet-preview";
@@ -80,24 +81,15 @@ function ActivityPage() {
             {refreshing ? "Refreshing…" : "Refresh"}
           </Button>
         </div>
-        <div
-          className="mt-2 grid grid-cols-3 gap-1 rounded-full bg-secondary/70 p-[3px]"
-          role="tablist"
-          aria-label="Filter activity"
-        >
-          {FILTERS.map((f) => (
-            <Button
-              key={f.id}
-              variant="ghost"
-              role="tab"
-              aria-selected={filter === f.id}
-              onClick={() => setFilter(f.id)}
-              className={`h-9 rounded-full text-xs font-semibold transition ${filter === f.id ? "bg-primary text-primary-foreground shadow-md shadow-primary/25" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              {f.label}
-            </Button>
-          ))}
-        </div>
+        <Tabs value={filter} onValueChange={(value) => setFilter(value as Filter)} className="mt-2">
+          <TabsList className="w-full" aria-label="Filter activity">
+            {FILTERS.map((f) => (
+              <TabsTrigger key={f.id} value={f.id} className="flex-1">
+                {f.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
         {shown.length === 0 ? (
           <div role="status" className="flex flex-col items-center py-16 text-center">
             <History className="mb-3 h-7 w-7 text-muted-foreground/50" />

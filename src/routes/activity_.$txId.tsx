@@ -101,7 +101,7 @@ function ActivityDetailPage() {
                 ? "bg-destructive/10 text-destructive"
                 : sent
                   ? "bg-primary/10 text-primary"
-                  : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                  : "bg-success/10 text-success"
             }`}
           >
             {failed ? (

@@ -13,7 +13,7 @@ import {
   WifiOff,
   UserX,
 } from "lucide-react";
-import { makePhrase, savePhrase } from "@/lib/phrase";
+import { makePhrase, PHRASE_LENGTH, savePhrase } from "@/lib/phrase";
 
 export const Route = createFileRoute("/recovery")({
   head: () => ({
@@ -21,12 +21,12 @@ export const Route = createFileRoute("/recovery")({
       { title: "Recovery Phrase — Trellis Wallet" },
       {
         name: "description",
-        content: "Back up your 12-word secret recovery phrase for Trellis Wallet.",
+        content: "Back up your 24-word secret recovery phrase for Trellis Wallet.",
       },
       { property: "og:title", content: "Recovery Phrase — Trellis Wallet" },
       {
         property: "og:description",
-        content: "Back up your 12-word secret recovery phrase for Trellis Wallet.",
+        content: "Back up your 24-word secret recovery phrase for Trellis Wallet.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -78,7 +78,7 @@ function Recovery() {
             Your secret <span className="text-accent">recovery phrase</span>
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Write these 12 words down in order. They're the only way to restore your Trellis Wallet.
+            Write these 24 words down in order. They're the only way to restore your Trellis Wallet.
           </p>
         </section>
 
@@ -86,7 +86,7 @@ function Recovery() {
           <div
             className={`glass grid grid-cols-2 gap-2.5 rounded-3xl border p-4 transition-all duration-500 ${revealed ? "" : "select-none blur-md"}`}
           >
-            {(phrase.length ? phrase : Array(12).fill("•••••")).map((w, i) => (
+            {(phrase.length ? phrase : Array(PHRASE_LENGTH).fill("•••••")).map((w, i) => (
               <div
                 key={i}
                 className="flex items-center gap-3 rounded-xl border bg-secondary/60 px-3 py-2.5"
