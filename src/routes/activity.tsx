@@ -114,8 +114,8 @@ function ActivityPage() {
                   {group} <span className="font-normal">· {rows.length}</span>
                 </h2>
                 <ul className="mt-1 divide-y divide-divider">
-                  {rows.map((tx) => (
-                    <TransactionRow key={tx.id} tx={tx} />
+                  {rows.map((tx, index) => (
+                    <TransactionRow key={tx.id} tx={tx} index={index} />
                   ))}
                 </ul>
               </section>

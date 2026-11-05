@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, type ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import {
   ArrowLeft,
@@ -8,6 +8,7 @@ import {
   Copy,
   ImageOff,
   LoaderCircle,
+  RefreshCw,
   Search,
   ShieldCheck,
   Wallet,
@@ -64,6 +65,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SplashScreen } from "@/components/splash-screen";
+import { CountUp } from "@/components/count-up";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
@@ -143,6 +145,7 @@ function DesignKit() {
   const [saved, setSaved] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [progress, setProgress] = useState(64);
+  const [replay, setReplay] = useState(0);
   const [imageVisible, setImageVisible] = useState(true);
   const [query, setQuery] = useState("");
   const form = useForm<{ name: string; email: string }>({ defaultValues: { name: "", email: "" } });
@@ -625,6 +628,38 @@ function DesignKit() {
               <AccordionContent>Aevum Testnet and Base Testnet.</AccordionContent>
             </AccordionItem>
           </Accordion>
+        </Section>
+        <Section number="11" title="Motion">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">Staggered list and count-up</p>
+            <Button size="sm" variant="outline" onClick={() => setReplay((n) => n + 1)}>
+              <RefreshCw />
+              Replay
+            </Button>
+          </div>
+          <div key={replay} className="mt-3">
+            <p className="font-display text-3xl font-semibold tabular-nums">
+              <CountUp value={1248.5} />{" "}
+              <span className="text-base text-muted-foreground">USD8</span>
+            </p>
+            <ul className="mt-3 divide-y divide-divider">
+              {["Main Wallet", "Savings", "Agent budget", "Faucet"].map((name, index) => (
+                <li
+                  key={name}
+                  style={{ "--i": index } as CSSProperties}
+                  className="animate-stagger py-3 text-sm"
+                >
+                  {name}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-secondary">
+              <div className="animate-bar-grow h-full w-2/3 rounded-full bg-primary" />
+            </div>
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Screens also fade and rise in when you navigate. All motion is off with reduced motion.
+          </p>
         </Section>
         <footer className="border-t border-divider pt-5 text-xs text-muted-foreground">
           Trellis Wallet · Component library

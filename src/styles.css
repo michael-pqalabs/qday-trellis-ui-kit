@@ -359,6 +359,57 @@
   animation: splash-bar 1.4s cubic-bezier(0.45, 0, 0.25, 1) infinite;
 }
 
+/* Staggered entrance: set `--i` on each item. `backwards` keeps hover and press transforms working afterwards. */
+@utility animate-stagger {
+  animation: fade-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: calc(min(var(--i, 0), 8) * 55ms);
+}
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@utility animate-bar-grow {
+  transform-origin: left;
+  animation: bar-grow 0.9s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+/* Page transition: only the screen column moves, so the top bar and splash stay still. */
+.trellis-screen {
+  view-transition-name: trellis-page;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+@keyframes page-out {
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+::view-transition-old(trellis-page) {
+  animation: page-out 140ms ease-in both;
+}
+::view-transition-new(trellis-page) {
+  animation: page-in 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(trellis-page),
+  ::view-transition-new(trellis-page) {
+    animation: none;
+  }
+}
+
 /* Comment pick mode: crosshair everywhere except the comment UI itself. */
 html.comment-picking *:not([data-comment-ui], [data-comment-ui] *) {
   cursor: crosshair !important;

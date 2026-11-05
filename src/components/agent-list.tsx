@@ -16,15 +16,20 @@ export function AgentCard({
   agent,
   now,
   onRevoke,
+  index = 0,
 }: {
   agent: RegisteredAgent;
   now: number;
   onRevoke: (id: string) => void;
+  index?: number;
 }) {
   const { session } = agent;
   const revoking = agent.status === "revoking";
   return (
-    <div className="mb-3 rounded-2xl border bg-card p-4">
+    <div
+      style={{ "--i": index } as React.CSSProperties}
+      className="animate-stagger mb-3 rounded-2xl border bg-card p-4"
+    >
       <div className="flex items-center justify-between gap-2">
         <p className="min-w-0 truncate text-sm font-semibold">{agent.name}</p>
         {revoking ? (
@@ -56,7 +61,7 @@ export function AgentCard({
           </div>
           <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-secondary">
             <div
-              className="h-full rounded-full bg-primary"
+              className="animate-bar-grow h-full rounded-full bg-primary"
               style={{ width: `${Math.min(100, (session.spent / session.totalBudget) * 100)}%` }}
             />
           </div>

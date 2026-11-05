@@ -12,13 +12,21 @@ export function BottomNav() {
       aria-label="Primary"
       className="sticky bottom-0 z-20 mt-auto flex w-full justify-center pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3"
     >
+      {/*
+        Fade behind the tabs. It repeats the screen's own mesh background, fixed to the viewport so the
+        pixels line up, and spans the full column. A flat `bg-background` fill showed as a pale box.
+      */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-background"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/90 to-transparent"
+        className="pointer-events-none absolute -inset-x-5 bottom-0 h-40"
+        style={{
+          backgroundImage: "var(--gradient-mesh)",
+          backgroundAttachment: "fixed",
+          backgroundSize: "100% 100%",
+          backgroundRepeat: "no-repeat",
+          maskImage: "linear-gradient(to top, black 55%, transparent)",
+          WebkitMaskImage: "linear-gradient(to top, black 55%, transparent)",
+        }}
       />
       <div className="relative z-10 flex w-full max-w-xs items-center gap-1 rounded-full border border-primary/20 bg-card p-1.5 shadow-glow">
         {items.map((item) => (

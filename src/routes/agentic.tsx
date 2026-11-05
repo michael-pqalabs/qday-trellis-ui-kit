@@ -37,6 +37,7 @@ import { QDayEntry } from "@/components/qday-entry";
 import { useQDayPreview } from "@/components/qday-preview-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { AgentCard, RevokedAgentCard } from "@/components/agent-list";
+import { CountUp } from "@/components/count-up";
 import { RevokeAgentDialog } from "@/components/revoke-agent-dialog";
 import { SpendingLimitsEditor } from "@/components/spending-limits-editor";
 import { useRevocationWatcher } from "@/hooks/use-revocation-watcher";
@@ -321,7 +322,7 @@ function AgenticPayment() {
                     </Button>
                   </div>
                   <p className="mt-1 truncate font-display text-3xl font-semibold tabular-nums">
-                    {visible ? pass.balance.toFixed(2) : "••••"}{" "}
+                    {visible ? <CountUp value={pass.balance} /> : "••••"}{" "}
                     <span className="text-base font-medium text-muted-foreground">USD8</span>
                   </p>
                   <div className="mt-4 flex items-center justify-between gap-2 rounded-full bg-secondary/70 py-1.5 pl-3 pr-1.5">
@@ -461,9 +462,10 @@ function AgenticPayment() {
                     {agents.length === 0 ? (
                       <Empty label="No registered agents" />
                     ) : (
-                      agents.map((a) => (
+                      agents.map((a, index) => (
                         <AgentCard
                           key={a.id}
+                          index={index}
                           agent={a}
                           now={now}
                           onRevoke={(id) => setRevokeId(id)}

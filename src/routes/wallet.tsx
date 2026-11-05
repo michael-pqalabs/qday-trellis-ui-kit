@@ -302,7 +302,7 @@ function WalletOverview() {
             </div>
           </div>
           <div className="space-y-1">
-            {walletTokens.map((item) => {
+            {walletTokens.map((item, index) => {
               const selected = item.id === tokenId;
               const tone =
                 item.tone === "primary"
@@ -312,10 +312,11 @@ function WalletOverview() {
                 <Button
                   key={item.id}
                   variant="ghost"
+                  style={{ "--i": index } as React.CSSProperties}
                   aria-pressed={selected}
                   aria-label={`Select ${item.name}`}
                   onClick={() => setTokenId(item.id)}
-                  className={`h-16 w-full justify-start gap-3 rounded-lg border px-3 text-left hover:bg-secondary hover:text-foreground ${selected ? "border-primary/30 bg-primary/5" : "border-transparent"}`}
+                  className={`animate-stagger h-16 w-full justify-start gap-3 rounded-lg border px-3 text-left hover:bg-card hover:text-foreground hover:shadow-card ${selected ? "border-primary/30 bg-primary/5" : "border-transparent"}`}
                 >
                   <span
                     className={`grid h-9 w-9 shrink-0 place-items-center rounded-full font-display text-base font-semibold ${tone}`}
@@ -342,10 +343,11 @@ function WalletOverview() {
                 </Button>
               );
             })}
-            {importedTokens.map((item) => (
+            {importedTokens.map((item, index) => (
               <div
                 key={item.id}
-                className="flex h-16 w-full items-center gap-3 rounded-lg border border-transparent px-3"
+                style={{ "--i": walletTokens.length + index } as React.CSSProperties}
+                className="animate-stagger flex h-16 w-full items-center gap-3 rounded-lg border border-transparent px-3"
               >
                 <span
                   aria-hidden="true"
@@ -393,8 +395,8 @@ function WalletOverview() {
             </div>
           ) : (
             <ul className="mt-2 divide-y divide-divider">
-              {transactionsFor(walletId).map((tx) => (
-                <TransactionRow key={tx.id} tx={tx} visible={visible} />
+              {transactionsFor(walletId).map((tx, index) => (
+                <TransactionRow key={tx.id} tx={tx} visible={visible} index={index} />
               ))}
             </ul>
           )}

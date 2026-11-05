@@ -153,8 +153,12 @@ function ContactsPage() {
               </div>
             ) : (
               <ul className="mt-4 divide-y divide-divider">
-                {contacts.map((c) => (
-                  <li key={c.id} className="flex items-center gap-3 py-3">
+                {contacts.map((c, index) => (
+                  <li
+                    key={c.id}
+                    style={{ "--i": index } as React.CSSProperties}
+                    className="animate-stagger flex items-center gap-3 py-3"
+                  >
                     <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 font-display text-sm font-semibold text-primary">
                       {c.name.charAt(0).toUpperCase()}
                     </span>

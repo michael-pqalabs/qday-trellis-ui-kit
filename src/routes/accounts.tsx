@@ -48,7 +48,11 @@ function AccountsPage() {
         </p>
         <ul className="mt-4 space-y-3">
           {wallets.map((w, index) => (
-            <li key={w.id} className="rounded-2xl border bg-card p-4">
+            <li
+              key={w.id}
+              style={{ "--i": index } as React.CSSProperties}
+              className="animate-stagger rounded-2xl border bg-card p-4"
+            >
               <div className="flex items-center gap-2">
                 <p className="min-w-0 flex-1 truncate text-sm font-semibold">{w.name}</p>
                 <Button

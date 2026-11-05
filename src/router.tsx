@@ -12,6 +12,7 @@ export const getRouter = () => {
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
     defaultPendingComponent: SplashScreen,
+    defaultViewTransition: true,
   });
 
   return router;
