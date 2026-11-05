@@ -74,7 +74,9 @@ function CreateWallet() {
 
         {/* Visual */}
         <div className="relative mx-auto mt-10 grid h-56 w-56 place-items-center">
-          <div className="pointer-events-none absolute -inset-10 rounded-full bg-primary/35 blur-3xl" />
+          {/* A radial gradient, not a blurred circle: Safari clips CSS blur to the video's square when a
+              transparent video sits on top, which showed as a lighter box in dark mode. */}
+          <div className="pointer-events-none absolute -inset-16 bg-[radial-gradient(closest-side,color-mix(in_srgb,var(--primary)_35%,transparent),transparent)]" />
           <div className="absolute inset-0 animate-spin-slow rounded-full border border-dashed border-primary/40" />
           <div className="absolute inset-6 rounded-full border border-accent/25" />
           <div className="absolute inset-0 animate-spin-slow [animation-direction:reverse]">
