@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { TrellisLockup } from "@/components/trellis-lockup";
-import logo from "@/assets/trellis-app-icon.svg";
 import { ShieldCheck, Plus, Download, ChevronRight, Fingerprint } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -56,6 +55,13 @@ function CreateWallet() {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) setIntroFailed(true);
   }, []);
 
+  // Autoplay can be refused (iOS Low Power Mode, data saver). Show the static icon instead of a
+  // frozen frame with a play button.
+  useEffect(() => {
+    if (!introSrc) return;
+    introRef.current?.play().catch(() => setIntroFailed(true));
+  }, [introSrc]);
+
   return (
     <div className="flex min-h-screen justify-center bg-background">
       <main className="relative flex min-h-screen w-full max-w-md flex-col overflow-hidden bg-hero px-5 pb-8 pt-6">
@@ -79,22 +85,22 @@ function CreateWallet() {
           </div>
           {/* The intro video is sized for its own padding; without the file, show the plain icon instead. */}
           {introFailed ? (
+            // Same frame and size as the video's last frame, so switching between them never jumps.
             <img
-              src={logo}
+              src="/trellis-intro-poster.png"
               alt="Trellis Wallet"
-              className="animate-floaty h-28 w-28 object-contain"
+              className="animate-floaty h-56 w-56 scale-150 object-contain"
             />
           ) : (
             <video
               ref={introRef}
               src={introSrc ?? undefined}
-              poster={logo}
               autoPlay
               muted
               playsInline
               aria-label="Trellis Wallet"
               onError={() => setIntroFailed(true)}
-              className="animate-floaty h-56 w-56 scale-150 object-contain"
+              className="trellis-intro animate-floaty h-56 w-56 scale-150 object-contain"
             />
           )}
         </div>

@@ -347,3 +347,11 @@ html.comment-picking *:not([data-comment-ui], [data-comment-ui] *) {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* The intro animation is decorative: never show the browser's own play button over it. */
+video.trellis-intro::-webkit-media-controls,
+video.trellis-intro::-webkit-media-controls-start-playback-button,
+video.trellis-intro::-webkit-media-controls-overlay-play-button {
+  display: none !important;
+  -webkit-appearance: none;
+}
