@@ -39,8 +39,18 @@ function CreateWallet() {
   const [agreed, setAgreed] = useState(false);
   const [introFailed, setIntroFailed] = useState(false);
   const introRef = useRef<HTMLVideoElement>(null);
+  // The intro has a transparent background. Chrome and Firefox read it from the VP9 WebM, but
+  // Safari (and every browser on iOS) ignores WebM alpha and paints it black, so WebKit gets an
+  // HEVC-with-alpha copy instead. Chrome would also pick HEVC and lose the alpha, so the source is
+  // chosen by engine rather than by codec support. Set after mount to keep server markup stable.
+  const [introSrc, setIntroSrc] = useState<string | null>(null);
   // The video can fail before hydration, in which case onError never reaches React.
   useEffect(() => {
+    const ua = navigator.userAgent;
+    const webkit =
+      /AppleWebKit/.test(ua) &&
+      (!/Chrome|Chromium|Edg|Android/.test(ua) || /CriOS|FxiOS|EdgiOS/.test(ua));
+    setIntroSrc(webkit ? "/trellis-intro-alpha.mov" : "/trellis-intro.webm");
     if (introRef.current?.error) setIntroFailed(true);
     // Brand kit: logo animations respect reduced motion and show the final frame (the static icon).
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) setIntroFailed(true);
@@ -77,7 +87,7 @@ function CreateWallet() {
           ) : (
             <video
               ref={introRef}
-              src="/trellis-intro.webm"
+              src={introSrc ?? undefined}
               poster={logo}
               autoPlay
               muted
