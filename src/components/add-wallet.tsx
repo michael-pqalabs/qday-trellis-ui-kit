@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useWalletPreview } from "@/components/wallet-preview-provider";
+import { titleActionClass } from "@/components/screen-header";
 import {
   WALLET_NAME_MAX,
   isPhraseLengthValid,
@@ -328,7 +329,7 @@ export function AddWalletMenu({
             size="icon"
             aria-label="Add wallet"
             title="Add wallet"
-            className="h-10 w-10 shrink-0 rounded-full border-primary/30 bg-card text-primary shadow-sm hover:bg-primary/10 hover:text-primary"
+            className={titleActionClass}
           >
             <Plus />
           </Button>

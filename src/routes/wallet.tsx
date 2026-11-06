@@ -14,7 +14,7 @@ import {
   ArrowUpRight,
   ArrowDownLeft,
 } from "lucide-react";
-import { TrellisLockup } from "@/components/trellis-lockup";
+import { ScreenHeader, ScreenTitle, headerActionClass } from "@/components/screen-header";
 import { Button } from "@/components/ui/button";
 import {
   agoLabel,
@@ -107,37 +107,41 @@ function WalletOverview() {
     <div className="flex min-h-screen justify-center bg-background">
       <main className="flex min-h-screen w-full max-w-md flex-col px-5 pb-0 pt-3">
         <NetworkPicker chainId={chainId} networkId={networkId} onChange={changeNetwork} />
-        <header className="mt-1 flex items-center justify-between">
-          <TrellisLockup />
-          <Button
-            asChild
-            variant="ghost"
-            size="icon"
-            aria-label="Open settings"
-            title="Settings"
-            className="relative h-9 w-9 rounded-full border border-border/60 bg-card text-muted-foreground shadow-sm hover:bg-secondary hover:text-primary"
-          >
-            <Link to="/settings">
-              <Settings className="h-4 w-4" />
-              <span
-                className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-accent ring-2 ring-card"
-                aria-hidden="true"
-              />
-            </Link>
-          </Button>
-        </header>
+        <ScreenHeader
+          action={
+            <Button
+              asChild
+              variant="ghost"
+              size="icon"
+              aria-label="Open settings"
+              title="Settings"
+              className={headerActionClass}
+            >
+              <Link to="/settings">
+                <Settings className="h-4 w-4" />
+                <span
+                  className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-accent ring-2 ring-card"
+                  aria-hidden="true"
+                />
+              </Link>
+            </Button>
+          }
+        />
 
-        <div className="mb-4 mt-6 flex items-center justify-between gap-3">
-          <h1 className="font-display text-3xl font-semibold">My Wallets</h1>
-          <AddWalletMenu
-            networkId={networkId}
-            where={where}
-            onAdded={(added) => {
-              setWalletId(added.id);
-              setCopyState("idle");
-            }}
-          />
-        </div>
+        <ScreenTitle
+          eyebrow="QDay Wallet"
+          title="My Wallets"
+          action={
+            <AddWalletMenu
+              networkId={networkId}
+              where={where}
+              onAdded={(added) => {
+                setWalletId(added.id);
+                setCopyState("idle");
+              }}
+            />
+          }
+        />
 
         <div className="mb-4 flex min-w-0 items-center gap-2">
           <DropdownMenu>

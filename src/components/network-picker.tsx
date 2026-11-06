@@ -296,7 +296,7 @@ export function NetworkSummary({ networkId }: { networkId: string }) {
   const chain = chainForNetwork(networkId);
   const network = chain.networks.find((item) => item.id === networkId) ?? chain.networks[0];
   return (
-    <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+    <div className="flex h-9 items-center justify-end px-2 text-xs text-muted-foreground">
       <p
         className="flex items-center gap-2 whitespace-nowrap"
         aria-label={`Blockchain ${chain.name}, network ${network?.name}`}
@@ -309,6 +309,8 @@ export function NetworkSummary({ networkId }: { networkId: string }) {
         <span>
           Network: <span className="font-medium text-foreground">{network?.name}</span>
         </span>
+        {/* Same width as the picker's chevron, so the line ends in the same place on both screens. */}
+        <span className="w-3.5 shrink-0" aria-hidden="true" />
       </p>
     </div>
   );

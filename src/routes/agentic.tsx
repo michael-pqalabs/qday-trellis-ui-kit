@@ -20,7 +20,12 @@ import {
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
-import { TrellisLockup } from "@/components/trellis-lockup";
+import {
+  ScreenHeader,
+  ScreenTitle,
+  headerActionClass,
+  titleActionClass,
+} from "@/components/screen-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -199,35 +204,38 @@ function AgenticPayment() {
     <div className="flex min-h-screen justify-center bg-background">
       <main className="flex min-h-screen w-full max-w-md flex-col px-5 pb-0 pt-3">
         <NetworkSummary networkId={networkId} />
-        <header className="mt-2 flex items-center justify-between">
-          <TrellisLockup />
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Sign out of Signet preview"
-            title="Sign out of Signet"
-            onClick={() => update((s) => ({ ...s, email: null, completed: 0 }))}
-          >
-            <LogOut />
-          </Button>
-        </header>
-        <div className="mb-6 mt-7 flex items-center justify-between">
-          <div>
-            <p className="mb-1 text-xs font-medium text-muted-foreground">AGENTIC PAYMENTS</p>
-            <h1 className="font-display text-3xl font-semibold">My SignetPasses</h1>
-          </div>
-          <Button
-            asChild
-            variant="outline"
-            size="icon"
-            aria-label="Create SignetPass"
-            title="Create SignetPass"
-          >
-            <Link to="/agentic/new">
-              <Plus />
-            </Link>
-          </Button>
-        </div>
+        <ScreenHeader
+          action={
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Sign out of Signet preview"
+              title="Sign out of Signet"
+              className={headerActionClass}
+              onClick={() => update((s) => ({ ...s, email: null, completed: 0 }))}
+            >
+              <LogOut />
+            </Button>
+          }
+        />
+        <ScreenTitle
+          eyebrow="Agentic Payments"
+          title="My SignetPasses"
+          action={
+            <Button
+              asChild
+              variant="outline"
+              size="icon"
+              aria-label="Create SignetPass"
+              title="Create SignetPass"
+              className={titleActionClass}
+            >
+              <Link to="/agentic/new">
+                <Plus />
+              </Link>
+            </Button>
+          }
+        />
         {!state ? (
           <Skeleton className="h-60 rounded-2xl" />
         ) : (
