@@ -3,7 +3,7 @@ import logo from "@/assets/trellis-app-icon.svg";
 import { cn } from "@/lib/utils";
 
 /** Shortest time the launch splash stays up, so it never flashes by. */
-const MIN_VISIBLE_MS = 3000;
+const MIN_VISIBLE_MS = 1200;
 const FADE_MS = 350;
 
 /**

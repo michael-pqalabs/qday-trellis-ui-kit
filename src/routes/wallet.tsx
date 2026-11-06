@@ -14,8 +14,9 @@ import {
   ArrowUpRight,
   ArrowDownLeft,
 } from "lucide-react";
-import { ScreenHeader, ScreenTitle, headerActionClass } from "@/components/screen-header";
+import { ScreenHeader, headerActionClass } from "@/components/screen-header";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   agoLabel,
   shortAddress,
@@ -73,6 +74,7 @@ function WalletOverview() {
   const {
     wallets,
     importedTokens: allImportedTokens,
+    quantumMode,
     networkId,
     setNetworkId,
   } = useWalletPreview();
@@ -128,21 +130,9 @@ function WalletOverview() {
           }
         />
 
-        <ScreenTitle
-          title="My Wallets"
-          action={
-            <AddWalletMenu
-              networkId={networkId}
-              where={where}
-              onAdded={(added) => {
-                setWalletId(added.id);
-                setCopyState("idle");
-              }}
-            />
-          }
-        />
+        <h1 className="sr-only">My Wallets</h1>
 
-        <div className="mb-4 flex min-w-0 items-center gap-2">
+        <div className="mb-4 mt-6 flex min-w-0 items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -203,6 +193,14 @@ function WalletOverview() {
           >
             <Pencil className="!h-4 !w-4" />
           </Button>
+          <AddWalletMenu
+            networkId={networkId}
+            where={where}
+            onAdded={(added) => {
+              setWalletId(added.id);
+              setCopyState("idle");
+            }}
+          />
         </div>
         <RenameWalletDialog
           key={wallet.id}
@@ -215,7 +213,23 @@ function WalletOverview() {
           aria-label="Selected token balance"
           className="overflow-hidden rounded-2xl border border-primary/15 bg-card bg-card-hero px-5 py-4 shadow-card"
         >
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
+            <span className="flex min-w-0 items-center gap-1 text-sm font-semibold">
+              <Wallet className="mr-1 h-4 w-4 shrink-0 text-primary" />
+              <span className="truncate">{chainForNetwork(networkId).name} Personal Wallet</span>
+            </span>
+            {/* Like "Add funds" on a SignetPass: an action that only shows while it applies. */}
+            {quantumMode === "classic" && (
+              <Button
+                asChild
+                size="sm"
+                className="relative h-7 shrink-0 gap-1 px-3 text-[11px] shadow-sm shadow-primary/25 after:absolute after:-inset-2 after:content-['']"
+              >
+                <Link to="/pq">Enable protection</Link>
+              </Button>
+            )}
+          </div>
+          <div className="mt-4 flex items-center justify-between">
             <span className="text-xs text-muted-foreground">{token.name} balance</span>
             <Button
               variant="ghost"
@@ -235,7 +249,6 @@ function WalletOverview() {
             </span>
             <span className="font-display text-sm font-medium text-primary">{token.symbol}</span>
           </div>
-          <p className="mt-1 text-[10px] text-muted-foreground">{where}</p>
           {chainNetwork?.previewNote && (
             <p
               role="note"
@@ -245,7 +258,7 @@ function WalletOverview() {
               {chainNetwork.previewNote}
             </p>
           )}
-          <div className="mt-3 flex items-center gap-2 border-t border-divider pt-3">
+          <div className="mt-4 flex items-center gap-2">
             <div className="flex min-w-0 flex-1 items-center gap-2 rounded-full bg-secondary/70 px-3 py-2">
               <span
                 className="min-w-0 flex-1 truncate font-mono text-[11px] text-muted-foreground"
@@ -269,6 +282,22 @@ function WalletOverview() {
                 )}
               </Button>
             </div>
+          </div>
+          <div className="mt-4 flex items-center justify-between gap-2 text-xs">
+            <span className="min-w-0 truncate text-muted-foreground">{where}</span>
+            {/* Status, not an action: the Enable protection button above is the way to change it. */}
+            <Badge
+              variant="outline"
+              aria-label={
+                quantumMode === "hybrid"
+                  ? "Quantum protection: Protected, ECDSA + ML-DSA-65"
+                  : "Quantum protection: Classic, ECDSA"
+              }
+              className="shrink-0 gap-1.5 rounded-full border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+              {quantumMode === "hybrid" ? "Protected" : "Classic"}
+            </Badge>
           </div>
         </section>
         {copyState !== "idle" && (

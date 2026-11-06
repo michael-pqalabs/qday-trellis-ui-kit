@@ -20,12 +20,7 @@ import {
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
-import {
-  ScreenHeader,
-  ScreenTitle,
-  headerActionClass,
-  titleActionClass,
-} from "@/components/screen-header";
+import { ScreenHeader, headerActionClass, rowActionClass } from "@/components/screen-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -218,34 +213,18 @@ function AgenticPayment() {
             </Button>
           }
         />
-        <ScreenTitle
-          title="My SignetPasses"
-          action={
-            <Button
-              asChild
-              variant="outline"
-              size="icon"
-              aria-label="Create SignetPass"
-              title="Create SignetPass"
-              className={titleActionClass}
-            >
-              <Link to="/agentic/new">
-                <Plus />
-              </Link>
-            </Button>
-          }
-        />
+        <h1 className="sr-only">My SignetPasses</h1>
         {!state ? (
           <Skeleton className="h-60 rounded-2xl" />
         ) : (
           <>
-            <div className="mb-4">
+            <div className="mb-4 mt-6 flex min-w-0 items-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="outline"
                     aria-label="Select SignetPass"
-                    className="h-11 w-full min-w-0 justify-start gap-2.5 bg-card px-3.5 text-[13px] shadow-sm"
+                    className="h-11 min-w-0 flex-1 justify-start gap-2.5 bg-card px-3.5 text-[13px] shadow-sm"
                   >
                     <WalletCards className="!h-4 !w-4 shrink-0 text-primary" />
                     <span className="min-w-0 flex-1 truncate text-left">{pass?.name}</span>
@@ -283,6 +262,31 @@ function AgenticPayment() {
                   })}
                 </DropdownMenuContent>
               </DropdownMenu>
+              {pass && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  aria-label="Rename SignetPass"
+                  title="Rename SignetPass"
+                  onClick={() => openAction("rename")}
+                  className="h-11 w-11 shrink-0 bg-card text-muted-foreground shadow-sm hover:text-primary"
+                >
+                  <Pencil className="!h-4 !w-4" />
+                </Button>
+              )}
+              <Button
+                asChild
+                variant="outline"
+                size="icon"
+                aria-label="Create SignetPass"
+                title="Create SignetPass"
+                className={rowActionClass}
+              >
+                <Link to="/agentic/new">
+                  <Plus />
+                </Link>
+              </Button>
             </div>
             {pass ? (
               <>
@@ -294,16 +298,6 @@ function AgenticPayment() {
                     <span className="flex min-w-0 items-center gap-1 text-sm font-semibold">
                       <WalletCards className="mr-1 h-4 w-4 shrink-0 text-primary" />
                       <span className="truncate">{pass.name}</span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        aria-label="Rename SignetPass"
-                        title="Rename SignetPass"
-                        className="h-7 w-7 shrink-0"
-                        onClick={() => openAction("rename")}
-                      >
-                        <Pencil />
-                      </Button>
                     </span>
                     {pass.status === "active" && (
                       <Button

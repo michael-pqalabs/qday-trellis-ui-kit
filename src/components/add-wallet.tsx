@@ -19,7 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useWalletPreview } from "@/components/wallet-preview-provider";
-import { titleActionClass } from "@/components/screen-header";
+import { rowActionClass } from "@/components/screen-header";
 import {
   WALLET_NAME_MAX,
   isPhraseLengthValid,
@@ -303,7 +303,7 @@ export function ImportWalletForm({
 }
 
 /**
- * The "+" next to "My Wallets": create an additional wallet in a dialog, or open the import page.
+ * The "+" beside the wallet selector: create an additional wallet in a dialog, or open the import page.
  * Both are client-only previews that add an illustrative account; nothing is created on-chain.
  */
 export function AddWalletMenu({
@@ -329,7 +329,7 @@ export function AddWalletMenu({
             size="icon"
             aria-label="Add wallet"
             title="Add wallet"
-            className={titleActionClass}
+            className={rowActionClass}
           >
             <Plus />
           </Button>

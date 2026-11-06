@@ -7,6 +7,8 @@ import {
   type TokenDraft,
 } from "@/lib/wallet-preview";
 
+export type QuantumMode = "classic" | "hybrid";
+
 const WalletPreviewContext = createContext<{
   wallets: PreviewWallet[];
   addWallet: (name: string, networkId: string, source?: "created" | "imported") => PreviewWallet;
@@ -16,6 +18,9 @@ const WalletPreviewContext = createContext<{
   setNetworkId: (networkId: string) => void;
   importedTokens: ImportedToken[];
   importTokens: (networkId: string, tokens: TokenDraft[]) => ImportedToken[];
+  /** Quantum protection mode of the personal wallet, shared by /wallet and /pq. Preview only. */
+  quantumMode: QuantumMode;
+  setQuantumMode: (mode: QuantumMode) => void;
 } | null>(null);
 
 export function WalletPreviewProvider({ children }: { children: ReactNode }) {
@@ -44,6 +49,7 @@ export function WalletPreviewProvider({ children }: { children: ReactNode }) {
   };
   const [networkId, setNetworkId] = useState(() => defaultNetworkId("qday"));
   const [importedTokens, setImportedTokens] = useState<ImportedToken[]>([]);
+  const [quantumMode, setQuantumMode] = useState<QuantumMode>("classic");
   const importTokens = (networkId: string, tokens: TokenDraft[]) => {
     const added = tokens.map((token) => ({
       ...token,
@@ -65,6 +71,8 @@ export function WalletPreviewProvider({ children }: { children: ReactNode }) {
         setNetworkId,
         importedTokens,
         importTokens,
+        quantumMode,
+        setQuantumMode,
       }}
     >
       {children}

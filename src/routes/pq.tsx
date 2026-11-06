@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useWalletPreview } from "@/components/wallet-preview-provider";
 import { useState } from "react";
 import { ArrowLeft, Check, KeyRound, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
@@ -37,7 +38,9 @@ export const Route = createFileRoute("/pq")({
 });
 
 function PqPage() {
-  const [hybrid, setHybrid] = useState(false);
+  const { quantumMode, setQuantumMode } = useWalletPreview();
+  const hybrid = quantumMode === "hybrid";
+  const setHybrid = (on: boolean) => setQuantumMode(on ? "hybrid" : "classic");
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(-1);
   const running = step >= 0 && step < STEPS.length;
