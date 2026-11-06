@@ -345,13 +345,19 @@ export function signetPassFee(chainId: string) {
 }
 
 export type TxStatus = PreviewTx["status"];
-/** Plain-language status used on activity rows and details, matching the wallet app. */
-export function txStatusLabel(status: TxStatus) {
-  return status === "confirmed"
-    ? "Completed"
-    : status === "failed"
-      ? "Failed · not transferred"
-      : "Checking status";
+/** Illustrative block height of a sample row. Not a real block. */
+export function txBlock(tx: PreviewTx) {
+  return 1_284_302 - Math.floor(tx.minutesAgo / 2);
+}
+/**
+ * Status line on a history row: Sending, then "Sent · Block N" (incoming: "Received · Block N"), or
+ * Failed. The reason for a failure is on the detail screen.
+ */
+export function txStatusLabel(tx: PreviewTx) {
+  const sent = tx.kind === "send";
+  if (tx.status === "failed") return "Failed";
+  if (tx.status === "pending") return sent ? "Sending" : "Receiving";
+  return `${sent ? "Sent" : "Received"} · Block ${txBlock(tx).toLocaleString("en-US")}`;
 }
 /** Day bucket for grouping activity: Today, Yesterday or Earlier. */
 export function txGroupLabel(minutesAgo: number) {
@@ -370,7 +376,7 @@ function pseudoHex(seed: string, length: number) {
 export function txDetail(tx: PreviewTx, now = Date.now()) {
   return {
     hash: `0x${pseudoHex(tx.id, 64)}`,
-    block: 1_204_000 - Math.floor(tx.minutesAgo / 2),
+    block: txBlock(tx),
     at: now - tx.minutesAgo * 60000,
     explorerNote: "Sample hash. Not an on-chain record.",
   };

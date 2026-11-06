@@ -404,13 +404,10 @@ function WalletOverview() {
               ))}
             </ul>
           )}
-          <p className="mt-2 text-center text-[10px] text-muted-foreground">
+          <p className="mb-6 mt-2 text-center text-[10px] text-muted-foreground">
             Sample history for layout review · not on-chain records
           </p>
         </section>
-        <footer className="pt-8 text-center text-[10px] text-muted-foreground">
-          Trellis Wallet · Your keys. Your crypto.
-        </footer>
         <BottomNav />
       </main>
     </div>

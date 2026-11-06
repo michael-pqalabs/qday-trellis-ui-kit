@@ -32,7 +32,7 @@ export function TransactionRow({
       <Link
         to="/activity/$txId"
         params={{ txId: tx.id }}
-        aria-label={`${sent ? "Sent" : "Received"} ${tx.amount} ${token.symbol}, ${txStatusLabel(tx.status)}`}
+        aria-label={`${sent ? "Sent" : "Received"} ${tx.amount} ${token.symbol}, ${txStatusLabel(tx)}`}
         className="-mx-2 flex items-center gap-3 rounded-xl px-2 py-3 transition-all hover:bg-card hover:shadow-card focus-visible:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
       >
         <span
@@ -61,7 +61,7 @@ export function TransactionRow({
             {visible ? `${sign}${tx.amount}` : "••••"}
           </span>
           <span className={`mt-0.5 block text-[10px] ${txStatusTone(tx.status)}`}>
-            {txStatusLabel(tx.status)}
+            {txStatusLabel(tx)}
           </span>
         </span>
       </Link>

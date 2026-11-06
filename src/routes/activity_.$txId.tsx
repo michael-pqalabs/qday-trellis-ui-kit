@@ -8,7 +8,6 @@ import {
   describeNetwork,
   sampleTransactions,
   txDetail,
-  txStatusLabel,
   txStatusTone,
   walletTokens,
 } from "@/lib/wallet-preview";
@@ -118,12 +117,19 @@ function ActivityDetailPage() {
             {tx.amount} <span className="text-base text-muted-foreground">{token.symbol}</span>
           </p>
           <p className={`mt-1 text-xs font-medium ${txStatusTone(tx.status)}`}>
-            {txStatusLabel(tx.status)}
+            {failed
+              ? "Failed"
+              : tx.status === "pending"
+                ? sent
+                  ? "Sending"
+                  : "Receiving"
+                : "Completed"}
           </p>
         </section>
         {failed && (
           <p className="mt-4 text-center text-xs text-muted-foreground">
-            This amount was not transferred. Network fees may still apply.
+            Reason: the network did not accept this transfer (sample reason). The amount was not
+            transferred, and network fees may still apply.
           </p>
         )}
         {tx.status === "pending" && (
