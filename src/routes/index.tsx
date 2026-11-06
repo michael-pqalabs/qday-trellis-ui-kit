@@ -174,7 +174,7 @@ function CreateWallet() {
             <Download />I already have a wallet
           </Button>
           <p className="mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground">
-            <Fingerprint className="h-4 w-4" /> Protect with PassKey after setup
+            <Fingerprint className="h-4 w-4" /> Protect with Passkey after setup
           </p>
         </div>
         <Dialog

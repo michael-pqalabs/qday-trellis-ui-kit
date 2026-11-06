@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Check, ShieldCheck, Sparkles, ChevronRight, PartyPopper } from "lucide-react";
-import { loadPhrase, shuffle, distractors, pickSpots, clearPhrase } from "@/lib/phrase";
+import { ArrowLeft, Check, ScanFace, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
+import { loadPhrase, shuffle, distractors, pickSpots, clearPhrase, ordinal } from "@/lib/phrase";
 import { Button } from "@/components/ui/button";
 import { useQDayPreview } from "@/components/qday-preview-provider";
 
@@ -26,8 +27,6 @@ export const Route = createFileRoute("/confirm")({
   }),
   component: ConfirmPhrase,
 });
-
-const ORDINAL = (n: number) => (n === 1 ? "1st" : n === 2 ? "2nd" : n === 3 ? "3rd" : `${n}th`);
 
 function ConfirmPhrase() {
   const { update } = useQDayPreview();
@@ -66,27 +65,33 @@ function ConfirmPhrase() {
     setWrong([]);
   };
 
-  const confirm = () => {
-    const bad = answers.map((w, i) => (w === checks[i] ? -1 : i)).filter((i) => i >= 0);
-    if (!bad.length) {
-      clearPhrase();
-      update((state) => ({ ...state, walletReady: true }));
-      setDone(true);
-      return;
-    }
-    // Nothing is revealed about which words were right: a failed check clears all three slots, so
-    // the picks can't be refined one at a time.
-    setWrong([0, 1, 2]);
-    setMisses((m) => m + 1);
-    setTimeout(() => {
-      setAnswers([null, null, null]);
-      setUsed([]);
-      setWrong([]);
-    }, 620);
-  };
+  // There is no confirm button: once the third word is picked, the picks are checked on their own.
+  // A short pause lets the last pick register first, and clearing a slot cancels the check.
+  useEffect(() => {
+    if (!complete || done || wrong.length) return;
+    const check = setTimeout(() => {
+      const bad = answers.map((w, i) => (w === checks[i] ? -1 : i)).filter((i) => i >= 0);
+      if (!bad.length) {
+        clearPhrase();
+        update((state) => ({ ...state, walletReady: true }));
+        setDone(true);
+        return;
+      }
+      // Nothing is revealed about which words were right: a failed check clears all three slots, so
+      // the picks can't be refined one at a time.
+      setWrong([0, 1, 2]);
+      setMisses((m) => m + 1);
+      setTimeout(() => {
+        setAnswers([null, null, null]);
+        setUsed([]);
+        setWrong([]);
+      }, 620);
+    }, 450);
+    return () => clearTimeout(check);
+  }, [complete, done, wrong.length, answers, checks, update]);
 
   const clearSlot = (i: number) => {
-    if (done || answers[i] === null) return;
+    if (done || wrong.length || answers[i] === null) return;
     const word = answers[i] as string;
     setAnswers((a) => a.map((w, j) => (j === i ? null : w)));
     setUsed((u) => u.filter((w) => w !== word));
@@ -114,34 +119,41 @@ function ConfirmPhrase() {
                 <Check className="h-8 w-8" strokeWidth={3} />
               </span>
             </div>
-            <h1 className="mt-7 font-display text-3xl font-semibold leading-tight tracking-tight">
-              Your wallet is <span className="text-accent">ready</span>
+            <h1 className="mt-7 font-display text-4xl font-semibold leading-tight tracking-tight">
+              Your <span className="text-accent">post-quantum</span> wallet is ready
             </h1>
             <p className="mx-auto mt-3 max-w-xs text-sm text-muted-foreground">
-              Phrase confirmed and backed up. Trellis never store a copy of it.
+              Phrase confirmed and backed up. Trellis never stores a copy of it.
             </p>
 
-            <div className="mt-7 flex items-center justify-center gap-2 text-xs text-muted-foreground">
-              <Sparkles className="h-4 w-4 text-accent" />
-              {misses === 0
-                ? "First try — no mistakes"
-                : `${misses} wrong tap${misses > 1 ? "s" : ""} along the way`}
+            <div className="mt-7 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+              <ShieldCheck className="h-4 w-4 shrink-0 text-accent" />
+              <span>Quantum protection on · ECDSA + ML-DSA-65</span>
+              <Link to="/pq" className="text-foreground underline underline-offset-2">
+                Learn more
+              </Link>
             </div>
           </section>
 
           <div className="mt-auto">
+            {/* Preview only: no biometric prompt or WebAuthn call is made. */}
             <Button
               onClick={() => {
                 clearPhrase();
+                toast("Passkey turned on (preview)");
                 navigate({ to: "/wallet" });
               }}
               className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-primary font-display text-base font-semibold text-primary-foreground shadow-glow transition-all active:scale-[0.98]"
             >
-              <PartyPopper className="h-5 w-5" /> Open Trellis
+              <ScanFace className="h-5 w-5" /> Turn on Passkey
             </Button>
-            <p className="mt-3 text-center text-xs text-muted-foreground">
-              Keep your phrase offline — it's the only way back in.
-            </p>
+            <Link
+              to="/wallet"
+              onClick={() => clearPhrase()}
+              className="mt-4 block text-center text-sm text-muted-foreground underline underline-offset-2"
+            >
+              Skip for now
+            </Link>
           </div>
         </main>
       </div>
@@ -195,8 +207,8 @@ function ConfirmPhrase() {
                         : "glass border-dashed"
                 }`}
               >
-                <span className="w-14 shrink-0 text-xs text-muted-foreground">
-                  {ORDINAL(spot + 1)} word
+                <span className="w-[4.5rem] shrink-0 whitespace-nowrap text-xs tabular-nums text-muted-foreground">
+                  {ordinal(spot + 1)} word
                 </span>
                 <span
                   className={`flex-1 font-display text-lg font-medium ${filled ? "" : "text-muted-foreground/50"}`}
@@ -210,7 +222,7 @@ function ConfirmPhrase() {
         </section>
 
         <section className="mt-6">
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-3 gap-2">
             {bank.map((word) => {
               const spent = used.includes(word);
               return (
@@ -218,7 +230,7 @@ function ConfirmPhrase() {
                   key={word}
                   disabled={spent}
                   onClick={() => tap(word)}
-                  className={`rounded-xl border px-4 py-2.5 font-display text-sm font-medium transition-all active:scale-95 ${
+                  className={`rounded-xl border px-2 py-2.5 text-center font-display text-sm font-medium transition-all active:scale-95 ${
                     spent
                       ? "border-transparent bg-secondary/30 text-muted-foreground/30 line-through"
                       : "glass hover:border-primary/50"
@@ -240,16 +252,6 @@ function ConfirmPhrase() {
                 ? "No rush — go back to the phrase any time and try again."
                 : "We only check three words, so nobody watching can copy your whole phrase."}
           </span>
-        </div>
-
-        <div className="pt-6">
-          <button
-            onClick={confirm}
-            disabled={!complete}
-            className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-primary font-display text-base font-semibold text-primary-foreground shadow-glow transition-all active:scale-[0.98] disabled:opacity-40 disabled:shadow-none"
-          >
-            Confirm phrase <ChevronRight className="h-5 w-5" />
-          </button>
         </div>
       </main>
     </div>
