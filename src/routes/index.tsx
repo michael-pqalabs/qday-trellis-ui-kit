@@ -71,8 +71,8 @@ function CreateWallet() {
   }, [introSrc]);
 
   return (
-    <div className="flex min-h-screen justify-center bg-background">
-      <main className="relative flex min-h-screen w-full max-w-md flex-col overflow-hidden bg-hero px-5 pb-8 pt-6">
+    <div className="flex min-h-dvh justify-center bg-background">
+      <main className="relative flex min-h-dvh w-full max-w-md flex-col justify-between gap-3 overflow-hidden bg-hero px-5 pb-5 pt-6 [@media(min-height:700px)]:gap-6 [@media(min-height:700px)]:pb-8">
         <header className="flex items-center justify-between">
           <TrellisLockup />
           <span className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs text-muted-foreground">
@@ -81,7 +81,7 @@ function CreateWallet() {
         </header>
 
         {/* Visual */}
-        <div className="relative mx-auto mt-10 grid h-56 w-56 place-items-center">
+        <div className="relative mx-auto grid size-[clamp(8rem,26dvh,14rem)] shrink-0 place-items-center">
           {/* A radial gradient, not a blurred circle: Safari clips CSS blur to the video's square when a
               transparent video sits on top, which showed as a lighter box in dark mode. */}
           <div className="pointer-events-none absolute -inset-16 bg-[radial-gradient(closest-side,color-mix(in_srgb,var(--primary)_35%,transparent),transparent)]" />
@@ -99,7 +99,7 @@ function CreateWallet() {
             <img
               src="/trellis-intro-poster.png"
               alt="Trellis Wallet"
-              className="animate-floaty h-56 w-56 scale-150 object-contain"
+              className="animate-floaty h-full w-full scale-150 object-contain"
             />
           ) : (
             <video
@@ -110,29 +110,21 @@ function CreateWallet() {
               playsInline
               aria-label="Trellis Wallet"
               onError={() => setIntroFailed(true)}
-              className="trellis-intro animate-floaty h-56 w-56 scale-150 object-contain"
+              className="trellis-intro animate-floaty h-full w-full scale-150 object-contain"
             />
           )}
         </div>
 
-        <section className="mt-8 text-center">
-          <h1 className="font-display text-4xl font-semibold leading-[1.05] tracking-tight">
-            Grow your <span className="text-accent">on-chain</span> life.
+        <section className="text-center">
+          <h1 className="font-display text-2xl font-semibold leading-[1.05] min-[375px]:text-3xl tracking-tight">
+            The post-quantum wallet built for you and your AI agents
           </h1>
           <p className="mx-auto mt-3 max-w-xs text-sm text-muted-foreground">
-            Your keys, your crypto. Set up Trellis Wallet in under a minute.
+            Send and receive safely today and into the quantum era
           </p>
         </section>
 
-        <div className="mt-6 flex items-start gap-3 rounded-2xl border border-accent/20 bg-accent/5 p-4">
-          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
-          <p className="text-xs leading-relaxed text-muted-foreground">
-            Trellis never stores your recovery phrase. Write it down and keep it offline — it's the
-            only way to restore your wallet.
-          </p>
-        </div>
-
-        <div className="mt-auto pt-8">
+        <div>
           <label className="mb-4 flex cursor-pointer items-center gap-3 text-xs text-muted-foreground">
             <Checkbox
               checked={agreed}

@@ -6,7 +6,6 @@ import {
   Check,
   Eye,
   EyeOff,
-  RefreshCw,
   ShieldAlert,
   ChevronRight,
   PenLine,
@@ -55,8 +54,8 @@ function Recovery() {
   };
 
   return (
-    <div className="flex min-h-screen justify-center bg-background">
-      <main className="relative flex min-h-screen w-full max-w-md flex-col bg-hero px-6 pb-8 pt-6">
+    <div className="flex min-h-dvh justify-center bg-background">
+      <main className="relative flex min-h-dvh w-full max-w-md flex-col bg-hero px-6 pb-8 pt-6">
         <header className="flex items-center justify-between">
           <Link
             to="/"
@@ -127,18 +126,6 @@ function Recovery() {
           >
             {revealed ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             {revealed ? "Hide" : "Show"}
-          </button>
-          <button
-            onClick={() => {
-              const p = makePhrase();
-              setPhrase(p);
-              savePhrase(p);
-              setRevealed(false);
-            }}
-            aria-label="New phrase"
-            className="glass grid h-11 w-11 place-items-center rounded-xl border"
-          >
-            <RefreshCw className="h-4 w-4" />
           </button>
         </div>
 

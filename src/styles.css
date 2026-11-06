@@ -144,7 +144,8 @@
 
 /* Keep the background visible independently of each screen's content height. */
 .trellis-screen {
-  min-height: 100svh;
+  min-height: 100vh;
+  min-height: 100dvh;
   background-color: var(--background);
 }
 .trellis-screen > div > main {

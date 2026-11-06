@@ -12,17 +12,15 @@ import type { ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { CommentLayer } from "@/components/comment";
-import { ThemeProvider, ThemeToggle } from "@/components/theme-provider";
-import { Button } from "@/components/ui/button";
+import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
-import { Grid2X2 } from "lucide-react";
 import { QDayPreviewProvider } from "@/components/qday-preview-provider";
 import { WalletPreviewProvider } from "@/components/wallet-preview-provider";
 import { AppSplash } from "@/components/splash-screen";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-dvh items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
@@ -47,7 +45,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   const router = useRouter();
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-dvh items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           This page didn't load
@@ -133,17 +131,6 @@ function RootComponent() {
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <ThemeProvider>
         <AppSplash />
-        <div className="border-b border-divider bg-background">
-          <div className="mx-auto flex w-full max-w-md items-center justify-between px-6 py-1">
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/design-kit">
-                <Grid2X2 />
-                Design kit
-              </Link>
-            </Button>
-            <ThemeToggle />
-          </div>
-        </div>
         <QDayPreviewProvider>
           <WalletPreviewProvider>
             <div className="trellis-screen">

@@ -23,7 +23,7 @@ export function SplashScreen({
       aria-live="polite"
       style={{ backgroundImage: "var(--gradient-mesh)" }}
       className={cn(
-        "flex min-h-screen flex-col items-center justify-between bg-background px-8 pb-12 pt-24",
+        "flex min-h-dvh flex-col items-center justify-between bg-background px-8 pb-12 pt-24",
         className,
       )}
     >

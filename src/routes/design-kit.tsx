@@ -155,7 +155,7 @@ function DesignKit() {
   ].filter((asset) => asset.name.toLowerCase().includes(query.toLowerCase()));
 
   return (
-    <div className="flex min-h-screen justify-center bg-background">
+    <div className="flex min-h-dvh justify-center bg-background">
       <main className="w-full max-w-md px-6 pb-10 pt-6">
         <header className="flex items-center justify-between gap-3">
           <TrellisLockup />

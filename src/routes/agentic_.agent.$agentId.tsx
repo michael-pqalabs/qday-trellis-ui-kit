@@ -68,12 +68,12 @@ function AgentDetail() {
   }, []);
 
   useRevocationWatcher(state, setState);
-  if (!state) return <main className="mx-auto min-h-screen max-w-md px-5 pt-6" />;
+  if (!state) return <main className="mx-auto min-h-dvh max-w-md px-5 pt-6" />;
   const agent = state.agents.find((a) => a.id === agentId);
   const pass = state.passes.find((p) => p.id === agent?.passId);
   if (!agent)
     return (
-      <main className="mx-auto min-h-screen max-w-md px-5 pt-6">
+      <main className="mx-auto min-h-dvh max-w-md px-5 pt-6">
         <BackLink />
         <p className="mt-10 text-center text-sm text-muted-foreground">
           This agent no longer exists.
@@ -118,7 +118,7 @@ function AgentDetail() {
     : [];
 
   return (
-    <main className="mx-auto min-h-screen max-w-md px-5 pb-12 pt-6">
+    <main className="mx-auto min-h-dvh max-w-md px-5 pb-12 pt-6">
       <BackLink />
       <section className="mt-5 flex items-center gap-3">
         <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary">

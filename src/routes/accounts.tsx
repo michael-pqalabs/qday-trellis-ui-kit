@@ -32,8 +32,8 @@ function AccountsPage() {
   const { wallets, addWallet, networkId } = useWalletPreview();
   const [renaming, setRenaming] = useState<PreviewWallet | null>(null);
   return (
-    <div className="flex min-h-screen justify-center bg-background">
-      <main className="flex min-h-screen w-full max-w-md flex-col px-5 pb-8 pt-6">
+    <div className="flex min-h-dvh justify-center bg-background">
+      <main className="flex min-h-dvh w-full max-w-md flex-col px-5 pb-8 pt-6">
         <header className="flex items-center gap-3">
           <Button asChild variant="ghost" size="icon" aria-label="Back to settings">
             <Link to="/settings">

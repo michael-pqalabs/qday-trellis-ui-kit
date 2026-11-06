@@ -1,14 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import {
-  ArrowLeft,
-  Check,
-  ShieldCheck,
-  Sparkles,
-  RotateCcw,
-  ChevronRight,
-  PartyPopper,
-} from "lucide-react";
+import { ArrowLeft, Check, ShieldCheck, Sparkles, ChevronRight, PartyPopper } from "lucide-react";
 import { loadPhrase, shuffle, distractors, pickSpots, clearPhrase } from "@/lib/phrase";
 import { Button } from "@/components/ui/button";
 import { useQDayPreview } from "@/components/qday-preview-provider";
@@ -100,16 +92,10 @@ function ConfirmPhrase() {
     setUsed((u) => u.filter((w) => w !== word));
   };
 
-  const reset = () => {
-    setAnswers([null, null, null]);
-    setUsed([]);
-    setWrong([]);
-  };
-
   if (done) {
     return (
-      <div className="flex min-h-screen justify-center bg-background">
-        <main className="relative flex min-h-screen w-full max-w-md flex-col bg-hero px-6 pb-8 pt-6">
+      <div className="flex min-h-dvh justify-center bg-background">
+        <main className="relative flex min-h-dvh w-full max-w-md flex-col bg-hero px-6 pb-8 pt-6">
           <header className="flex items-center justify-between">
             <span className="grid h-10 w-10 place-items-center rounded-xl border text-accent">
               <ShieldCheck className="h-5 w-5" />
@@ -163,8 +149,8 @@ function ConfirmPhrase() {
   }
 
   return (
-    <div className="flex min-h-screen justify-center bg-background">
-      <main className="relative flex min-h-screen w-full max-w-md flex-col bg-hero px-6 pb-8 pt-6">
+    <div className="flex min-h-dvh justify-center bg-background">
+      <main className="relative flex min-h-dvh w-full max-w-md flex-col bg-hero px-6 pb-8 pt-6">
         <header className="flex items-center justify-between">
           <Link
             to="/recovery"
@@ -245,7 +231,7 @@ function ConfirmPhrase() {
           </div>
         </section>
 
-        <div className="mt-6 flex items-center gap-3 rounded-2xl border border-accent/20 bg-accent/5 p-4 text-xs text-muted-foreground">
+        <div className="mt-auto flex items-center gap-3 rounded-2xl border border-accent/20 bg-accent/5 p-4 text-xs text-muted-foreground">
           <ShieldCheck className="h-4 w-4 shrink-0 text-accent" />
           <span>
             {wrong.length
@@ -256,21 +242,7 @@ function ConfirmPhrase() {
           </span>
         </div>
 
-        <div className="mt-auto pt-8">
-          <div className="mb-4 flex items-center justify-between text-xs">
-            <Link
-              to="/recovery"
-              className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
-            >
-              Not sure? See the phrase again
-            </Link>
-            <button
-              onClick={reset}
-              className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
-            >
-              <RotateCcw className="h-3.5 w-3.5" /> Start over
-            </button>
-          </div>
+        <div className="pt-6">
           <button
             onClick={confirm}
             disabled={!complete}

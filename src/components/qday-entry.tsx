@@ -40,7 +40,7 @@ export function QDayEntry({ children }: { children: ReactNode }) {
   const { state, ready } = useQDayPreview();
   if (!ready)
     return (
-      <div className="flex min-h-screen justify-center bg-background">
+      <div className="flex min-h-dvh justify-center bg-background">
         <main className="w-full max-w-md px-6 pt-10">
           <Skeleton className="h-12 w-2/3" />
           <Skeleton className="mt-8 h-64 w-full" />
@@ -98,8 +98,8 @@ function QDayOnboarding() {
     setError("");
   };
   return (
-    <div className="flex min-h-screen justify-center bg-background">
-      <main className="flex min-h-screen w-full max-w-md flex-col px-5 pt-6">
+    <div className="flex min-h-dvh justify-center bg-background">
+      <main className="flex min-h-dvh w-full max-w-md flex-col px-5 pt-6">
         <header className="flex items-center justify-between">
           <TrellisLockup />
           {state.email && (
