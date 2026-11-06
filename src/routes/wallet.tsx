@@ -129,7 +129,6 @@ function WalletOverview() {
         />
 
         <ScreenTitle
-          eyebrow="QDay Wallet"
           title="My Wallets"
           action={
             <AddWalletMenu

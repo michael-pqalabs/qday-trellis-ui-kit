@@ -219,7 +219,6 @@ function AgenticPayment() {
           }
         />
         <ScreenTitle
-          eyebrow="Agentic Payments"
           title="My SignetPasses"
           action={
             <Button

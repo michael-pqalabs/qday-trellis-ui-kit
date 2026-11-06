@@ -22,14 +22,12 @@ export function ScreenHeader({ action }: { action: ReactNode }) {
   );
 }
 
-/** Title row below the header: small section label, big title, and one round action. */
+/** Title row below the header: big title and one round action. */
 export function ScreenTitle({
-  eyebrow,
   title,
   action,
   className,
 }: {
-  eyebrow: string;
   title: string;
   action: ReactNode;
   className?: string;
@@ -37,7 +35,6 @@ export function ScreenTitle({
   return (
     <div className={cn("mb-4 mt-6 flex items-center justify-between gap-3", className)}>
       <div className="min-w-0">
-        <p className="mb-1 text-xs font-medium uppercase text-muted-foreground">{eyebrow}</p>
         <h1 className="truncate font-display text-3xl font-semibold">{title}</h1>
       </div>
       {action}
