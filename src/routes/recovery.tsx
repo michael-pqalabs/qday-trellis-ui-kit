@@ -2,8 +2,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
   ArrowLeft,
-  Copy,
-  Check,
   Eye,
   EyeOff,
   ShieldAlert,
@@ -12,7 +10,7 @@ import {
   WifiOff,
   UserX,
 } from "lucide-react";
-import { makePhrase, PHRASE_LENGTH, savePhrase } from "@/lib/phrase";
+import { loadPhrase, PHRASE_LENGTH } from "@/lib/phrase";
 
 export const Route = createFileRoute("/recovery")({
   head: () => ({
@@ -37,21 +35,11 @@ export const Route = createFileRoute("/recovery")({
 function Recovery() {
   const [phrase, setPhrase] = useState<string[]>([]);
   const [revealed, setRevealed] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [saved, setSaved] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const p = makePhrase();
-    setPhrase(p);
-    savePhrase(p);
-  }, []);
-
-  const copy = async () => {
-    await navigator.clipboard.writeText(phrase.join(" "));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1800);
-  };
+  // Reuse the phrase saved for this session so going back from Confirm, or reloading, never swaps
+  // the words the user may already have written down. Welcome clears it to start a new wallet.
+  useEffect(() => setPhrase(loadPhrase()), []);
 
   return (
     <div className="flex min-h-dvh justify-center bg-background">
@@ -66,10 +54,10 @@ function Recovery() {
           </Link>
           <div className="flex items-center gap-1.5">
             <span className="h-1.5 w-6 rounded-full bg-primary" />
-            <span className="h-1.5 w-6 rounded-full bg-primary" />
+            <span className="h-1.5 w-6 rounded-full bg-secondary" />
             <span className="h-1.5 w-6 rounded-full bg-secondary" />
           </div>
-          <span className="w-10 text-right text-xs text-muted-foreground">2/3</span>
+          <span className="w-10 text-right text-xs text-muted-foreground">1/3</span>
         </header>
 
         <section className="mt-8">
@@ -77,21 +65,24 @@ function Recovery() {
             Your secret <span className="text-accent">recovery phrase</span>
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Write these 24 words down in order. They're the only way to restore your Trellis Wallet.
+            Why 24 words? 256 bits of randomness keeps your wallet secure even against quantum
+            computers.
           </p>
         </section>
 
         <section className="relative mt-6">
           <div
-            className={`glass grid grid-cols-2 gap-2.5 rounded-3xl border p-4 transition-all duration-500 ${revealed ? "" : "select-none blur-md"}`}
+            className={`glass grid grid-cols-2 gap-2 rounded-3xl border p-3 min-[360px]:grid-cols-3 transition-all duration-500 ${revealed ? "" : "select-none blur-md"}`}
           >
             {(phrase.length ? phrase : Array(PHRASE_LENGTH).fill("•••••")).map((w, i) => (
               <div
                 key={i}
-                className="flex items-center gap-3 rounded-xl border bg-secondary/60 px-3 py-2.5"
+                className="flex items-center gap-2 rounded-xl border bg-secondary/60 px-2.5 py-2.5"
               >
-                <span className="w-5 text-xs tabular-nums text-muted-foreground">{i + 1}</span>
-                <span className="font-display font-medium">{w}</span>
+                <span className="w-4 shrink-0 text-[11px] tabular-nums text-muted-foreground">
+                  {i + 1}
+                </span>
+                <span className="font-display text-sm font-medium">{w}</span>
               </div>
             ))}
           </div>
@@ -111,18 +102,10 @@ function Recovery() {
           )}
         </section>
 
-        <div className="mt-3 flex gap-2">
-          <button
-            onClick={copy}
-            disabled={!revealed}
-            className="glass flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border text-sm disabled:opacity-40"
-          >
-            {copied ? <Check className="h-4 w-4 text-accent" /> : <Copy className="h-4 w-4" />}
-            {copied ? "Copied" : "Copy"}
-          </button>
+        <div className="mt-3">
           <button
             onClick={() => setRevealed((r) => !r)}
-            className="glass flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border text-sm"
+            className="glass flex h-11 w-full items-center justify-center gap-2 rounded-xl border text-sm"
           >
             {revealed ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             {revealed ? "Hide" : "Show"}
@@ -145,24 +128,16 @@ function Recovery() {
         </ul>
 
         <div className="mt-auto pt-8">
-          <label className="mb-4 flex cursor-pointer items-start gap-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-xs text-muted-foreground">
-            <input
-              type="checkbox"
-              checked={saved}
-              onChange={(e) => setSaved(e.target.checked)}
-              className="mt-0.5 h-4 w-4 accent-[var(--primary)]"
-            />
-            <span className="flex gap-2">
-              <ShieldAlert className="h-4 w-4 shrink-0 text-destructive" />I understand that if I
-              lose this phrase, I lose access to my funds forever.
-            </span>
-          </label>
+          <p className="mb-4 flex items-start gap-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-xs text-muted-foreground">
+            <ShieldAlert className="h-4 w-4 shrink-0 text-destructive" />
+            <span>If you lose this phrase, you lose access to your funds forever.</span>
+          </p>
           <button
             onClick={() => navigate({ to: "/confirm" })}
-            disabled={!saved || !revealed}
+            disabled={!revealed}
             className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-primary font-display text-base font-semibold text-primary-foreground shadow-glow transition-all active:scale-[0.98] disabled:opacity-40 disabled:shadow-none"
           >
-            I've saved it <ChevronRight className="h-5 w-5" />
+            I've written it down <ChevronRight className="h-5 w-5" />
           </button>
         </div>
       </main>

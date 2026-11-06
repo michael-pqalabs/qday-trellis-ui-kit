@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { useQDayPreview } from "@/components/qday-preview-provider";
 import { isPhraseLengthValid, phraseWordCount } from "@/lib/wallet-preview";
+import { clearPhrase } from "@/lib/phrase";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -154,7 +155,10 @@ function CreateWallet() {
           </label>
           <Button
             disabled={!agreed}
-            onClick={() => navigate({ to: "/recovery" })}
+            onClick={() => {
+              clearPhrase(); // a new wallet always gets a new phrase
+              navigate({ to: "/recovery" });
+            }}
             className="h-14 w-full font-display text-base font-semibold"
           >
             <Plus />

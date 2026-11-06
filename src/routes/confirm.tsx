@@ -162,9 +162,9 @@ function ConfirmPhrase() {
           <div className="flex items-center gap-1.5">
             <span className="h-1.5 w-6 rounded-full bg-primary" />
             <span className="h-1.5 w-6 rounded-full bg-primary" />
-            <span className="h-1.5 w-6 rounded-full bg-primary" />
+            <span className="h-1.5 w-6 rounded-full bg-secondary" />
           </div>
-          <span className="w-10 text-right text-xs text-muted-foreground">3/3</span>
+          <span className="w-10 text-right text-xs text-muted-foreground">2/3</span>
         </header>
 
         <section className="mt-8">
