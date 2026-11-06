@@ -22,7 +22,8 @@ const buttonVariants = cva(
         default: "h-11 px-4 py-2",
         sm: "h-8 rounded-full px-3 text-xs",
         lg: "h-10 rounded-full px-8",
-        icon: "h-9 w-9",
+        // 36px visible; the ::after grows the tap area to 44px (LY-10) without changing the look.
+        icon: "relative h-9 w-9 after:absolute after:-inset-1 after:content-['']",
       },
     },
     defaultVariants: {

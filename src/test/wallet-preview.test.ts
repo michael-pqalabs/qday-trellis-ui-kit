@@ -6,6 +6,9 @@ import {
   previewChains,
   getChain,
   chainForNetwork,
+  isMainnet,
+  totalUsdValue,
+  formatUsd,
   defaultNetworkId,
   describeNetwork,
   nextWalletName,
@@ -148,5 +151,24 @@ describe("SignetPass deployment fee", () => {
   it("is 3 USD8 on QDay and 3 USDC on Base", () => {
     expect(signetPassFee("qday")).toEqual({ amount: 3, token: "USD8" });
     expect(signetPassFee("base")).toEqual({ amount: 3, token: "USDC" });
+  });
+});
+
+describe("isMainnet", () => {
+  it("shows USD values on mainnets only", () => {
+    expect(isMainnet("qday-mainnet")).toBe(true);
+    expect(isMainnet("base-mainnet")).toBe(true);
+    expect(isMainnet("testnet")).toBe(false);
+    expect(isMainnet("base-testnet")).toBe(false);
+    expect(isMainnet(undefined)).toBe(false);
+  });
+});
+
+describe("wallet total in USD", () => {
+  it("adds each token times its price, with USD8 at one dollar", () => {
+    expect(totalUsdValue({ QDAY: 100, USD8: 5 })).toBeCloseTo(17);
+    expect(totalUsdValue({})).toBe(0);
+    expect(formatUsd(0)).toBe("$0.00");
+    expect(formatUsd(1234.5)).toBe("$1,234.50");
   });
 });

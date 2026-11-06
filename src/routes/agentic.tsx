@@ -316,7 +316,7 @@ function AgenticPayment() {
                       variant="ghost"
                       size="icon"
                       aria-label={visible ? "Hide SignetPass balance" : "Show SignetPass balance"}
-                      className="h-7 w-7"
+                      className="h-7 w-7 after:-inset-2"
                       onClick={() => setVisible((v) => !v)}
                     >
                       {visible ? <Eye /> : <EyeOff />}
@@ -335,7 +335,7 @@ function AgenticPayment() {
                       size="icon"
                       aria-label="Copy SignetPass address"
                       title="Copy address"
-                      className="h-7 w-7 shrink-0"
+                      className="h-7 w-7 shrink-0 after:-inset-2"
                       onClick={copy}
                     >
                       <Copy />

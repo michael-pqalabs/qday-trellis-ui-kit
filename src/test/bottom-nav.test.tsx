@@ -24,7 +24,7 @@ describe("Bottom navigation", () => {
     await router.load();
     render(<RouterProvider router={router} />);
 
-    const wallet = await screen.findByRole("link", { name: /QDay Wallet/ });
+    const wallet = await screen.findByRole("link", { name: /Trellis Wallet/ });
     expect(wallet.getAttribute("href")).toBe("/wallet");
     expect(screen.queryByTitle("Sign in to Signet first")).toBeNull();
   });

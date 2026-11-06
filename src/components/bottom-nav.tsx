@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Bot, Wallet } from "lucide-react";
 
 const items = [
-  { to: "/wallet", label: "QDay Wallet", icon: Wallet },
+  { to: "/wallet", label: "Trellis Wallet", icon: Wallet },
   { to: "/agentic", label: "Agentic Payments", icon: Bot },
 ] as const;
 

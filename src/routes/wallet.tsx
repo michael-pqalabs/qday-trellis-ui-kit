@@ -11,8 +11,6 @@ import {
   ChevronRight,
   History,
   Settings,
-  ArrowUpRight,
-  ArrowDownLeft,
 } from "lucide-react";
 import { ScreenHeader, headerActionClass } from "@/components/screen-header";
 import { Button } from "@/components/ui/button";
@@ -24,6 +22,9 @@ import {
   transactionsFor,
   getPreviewHolding,
   chainForNetwork,
+  isMainnet,
+  totalUsdValue,
+  formatUsd,
   describeNetwork,
   walletTokens,
 } from "@/lib/wallet-preview";
@@ -84,12 +85,17 @@ function WalletOverview() {
   useEffect(() => {
     if (search.network) setNetworkId(search.network);
   }, [search.network, setNetworkId]);
-  const [tokenId, setTokenId] = useState("qday");
+  // Rows open their own asset page, so the balance card and Send/Receive always start from QDAY.
+  const tokenId = "qday";
   const [visible, setVisible] = useState(true);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
+  const showUsd = isMainnet(networkId);
   const importedTokens = allImportedTokens.filter((token) => token.networkId === networkId);
   const holding = getPreviewHolding(walletId, networkId, tokenId, wallets);
-  const { wallet, network, token, balance } = holding;
+  const { wallet } = holding;
+  // The card shows the wallet total in USD (QDAY at its oracle price plus USD8). Preview balances
+  // are all zero, so the total is too.
+  const totalUsd = totalUsdValue({ QDAY: 0, USD8: 0 });
   const { network: chainNetwork, label: where } = describeNetwork(networkId);
   const changeNetwork = (_chainId: string, nextNetworkId: string) => {
     setNetworkId(nextNetworkId);
@@ -230,7 +236,9 @@ function WalletOverview() {
             )}
           </div>
           <div className="mt-4 flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">{token.name} balance</span>
+            <span className="text-xs text-muted-foreground">
+              {showUsd ? "Total balance" : "QDAY balance"}
+            </span>
             <Button
               variant="ghost"
               size="icon"
@@ -238,17 +246,23 @@ function WalletOverview() {
               aria-label={visible ? "Hide balance" : "Show balance"}
               title={visible ? "Hide balance" : "Show balance"}
               aria-pressed={!visible}
-              className="h-8 w-8 text-muted-foreground hover:bg-secondary hover:text-foreground"
+              className="relative h-8 w-8 text-muted-foreground after:absolute after:-inset-1.5 after:content-[''] hover:bg-secondary hover:text-foreground"
             >
               {visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
             </Button>
           </div>
           <div className="mt-1 flex min-h-10 flex-wrap items-baseline gap-2" aria-live="polite">
             <span className="font-display text-4xl font-semibold tabular-nums">
-              {visible ? balance : "••••"}
+              {visible ? (showUsd ? formatUsd(totalUsd) : "0.00") : "••••"}
             </span>
-            <span className="font-display text-sm font-medium text-primary">{token.symbol}</span>
+            {/* Test tokens have no USD value, so testnet shows the native QDAY amount instead. */}
+            {!showUsd && (
+              <span className="font-display text-sm font-medium text-primary">QDAY</span>
+            )}
           </div>
+          {!showUsd && (
+            <p className="mt-1 text-xs text-muted-foreground">Test tokens · no USD value</p>
+          )}
           {chainNetwork?.previewNote && (
             <p
               role="note"
@@ -273,7 +287,7 @@ function WalletOverview() {
                 onClick={copyAddress}
                 aria-label="Copy wallet address"
                 title="Copy wallet address"
-                className="h-7 w-7 shrink-0 rounded-full text-primary hover:bg-card hover:text-primary"
+                className="relative h-7 w-7 shrink-0 rounded-full text-primary after:absolute after:-inset-2 after:content-[''] hover:bg-card hover:text-primary"
               >
                 {copyState === "copied" ? (
                   <Check className="h-3.5 w-3.5" />
@@ -283,6 +297,12 @@ function WalletOverview() {
               </Button>
             </div>
           </div>
+          <WalletActions
+            key={`${walletId}-${networkId}-${tokenId}`}
+            networkId={networkId}
+            walletId={walletId}
+            tokenId={tokenId}
+          />
           <div className="mt-4 flex items-center justify-between gap-2 text-xs">
             <span className="min-w-0 truncate text-muted-foreground">{where}</span>
             {/* Status, not an action: the Enable protection button above is the way to change it. */}
@@ -307,35 +327,15 @@ function WalletOverview() {
               : "Couldn't copy. Select the address to copy it manually."}
           </p>
         )}
-        <WalletActions
-          key={`${walletId}-${networkId}-${tokenId}`}
-          networkId={networkId}
-          walletId={walletId}
-          tokenId={tokenId}
-        />
-
-        <section aria-labelledby="tokens-title">
+        <section aria-labelledby="tokens-title" className="mt-6">
           <div className="mb-3 flex items-center justify-between">
             <h2 id="tokens-title" className="font-display text-lg font-semibold">
               Tokens
             </h2>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">
-                {walletTokens.length + importedTokens.length} assets
-              </span>
-              <Link
-                to="/asset/$tokenId"
-                params={{ tokenId }}
-                className="text-xs font-medium text-primary hover:underline"
-              >
-                {walletTokens.find((x) => x.id === tokenId)?.symbol ?? "Token"} details
-              </Link>
-              <AddTokenButton networkId={networkId} where={where} />
-            </div>
+            <AddTokenButton networkId={networkId} where={where} />
           </div>
           <div className="space-y-1">
             {walletTokens.map((item, index) => {
-              const selected = item.id === tokenId;
               const tone =
                 item.tone === "primary"
                   ? "bg-primary/15 text-primary"
@@ -343,35 +343,39 @@ function WalletOverview() {
               return (
                 <Button
                   key={item.id}
+                  asChild
                   variant="ghost"
                   style={{ "--i": index } as React.CSSProperties}
-                  aria-pressed={selected}
-                  aria-label={`Select ${item.name}`}
-                  onClick={() => setTokenId(item.id)}
-                  className={`animate-stagger h-16 w-full justify-start gap-3 rounded-lg border px-3 text-left hover:bg-card hover:text-foreground hover:shadow-card ${selected ? "border-primary/30 bg-primary/5" : "border-transparent"}`}
+                  className="animate-stagger h-16 w-full justify-start gap-3 rounded-lg border border-transparent px-3 text-left hover:bg-card hover:text-foreground hover:shadow-card"
                 >
-                  <span
-                    className={`grid h-9 w-9 shrink-0 place-items-center rounded-full font-display text-base font-semibold ${tone}`}
+                  <Link
+                    to="/asset/$tokenId"
+                    params={{ tokenId: item.id }}
+                    aria-label={`${item.name} details`}
                   >
-                    {item.mark}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-semibold">{item.name}</span>
-                    <span className="mt-1 block text-xs font-normal text-muted-foreground">
-                      {item.detail}
+                    <span
+                      className={`grid h-9 w-9 shrink-0 place-items-center rounded-full font-display text-base font-semibold ${tone}`}
+                    >
+                      {item.mark}
                     </span>
-                  </span>
-                  <span className="text-right">
-                    <span className="block font-display text-base tabular-nums">
-                      {visible ? "0.00" : "••••"}
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-semibold">{item.name}</span>
+                      <span className="mt-1 block text-xs font-normal text-muted-foreground">
+                        {item.detail}
+                      </span>
                     </span>
-                    <span className="mt-1 block text-[10px] text-muted-foreground">
-                      {item.symbol}
+                    <span className="text-right">
+                      <span className="block font-display text-base tabular-nums">
+                        {visible ? "0.00" : "••••"}
+                      </span>
+                      {showUsd && (
+                        <span className="mt-1 block text-[10px] text-muted-foreground">
+                          {visible ? "≈ $0.00" : "••••"}
+                        </span>
+                      )}
                     </span>
-                  </span>
-                  <ChevronRight
-                    className={selected ? "text-primary" : "text-muted-foreground/40"}
-                  />
+                    <ChevronRight className="text-muted-foreground/40" />
+                  </Link>
                 </Button>
               );
             })}
@@ -399,9 +403,11 @@ function WalletOverview() {
                   <span className="block font-display text-base tabular-nums">
                     {visible ? zeroBalance(item.decimals) : "••••"}
                   </span>
-                  <span className="mt-1 block text-[10px] text-muted-foreground">
-                    {item.symbol}
-                  </span>
+                  {showUsd && (
+                    <span className="mt-1 block text-[10px] text-muted-foreground">
+                      {visible ? "≈ $0.00" : "••••"}
+                    </span>
+                  )}
                 </span>
               </div>
             ))}

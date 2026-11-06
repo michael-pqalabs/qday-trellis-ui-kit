@@ -134,7 +134,7 @@ export function AddTokenButton({ networkId, where }: { networkId: string; where:
         aria-label="Import token"
         title="Import token"
         onClick={() => setOpen(true)}
-        className="h-8 w-8 shrink-0 rounded-full border-primary/30 bg-card text-primary shadow-sm hover:bg-primary/10 hover:text-primary"
+        className="h-8 w-8 shrink-0 rounded-full after:-inset-1.5 border-primary/30 bg-card text-primary shadow-sm hover:bg-primary/10 hover:text-primary"
       >
         <Plus className="!h-4 !w-4" />
       </Button>

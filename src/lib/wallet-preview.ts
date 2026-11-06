@@ -67,6 +67,11 @@ export function getChain(chainId: string) {
   return previewChains.find((chain) => chain.id === chainId) ?? (previewChains[0] as PreviewChain);
 }
 
+/** USD values are shown on mainnets only: testnet tokens have no market value. */
+export function isMainnet(networkId: string | undefined) {
+  return /mainnet/.test(networkId ?? "");
+}
+
 export function chainForNetwork(networkId: string | undefined) {
   return (
     previewChains.find((chain) => chain.networks.some((item) => item.id === networkId)) ??
@@ -389,3 +394,18 @@ export const txStatusTone = (status: TxStatus) =>
     : status === "failed"
       ? "text-destructive"
       : "text-muted-foreground";
+
+/** Illustrative oracle prices in USD. Real prices would come from an oracle; these only shape the preview. */
+export const previewPrices = { QDAY: 0.12, USD8: 1 } as const;
+
+/** Wallet total in USD: each token amount times its price (USD8 is the 1 USD stablecoin). */
+export function totalUsdValue(amounts: Partial<Record<keyof typeof previewPrices, number>>) {
+  return (Object.keys(previewPrices) as (keyof typeof previewPrices)[]).reduce(
+    (sum, symbol) => sum + (amounts[symbol] ?? 0) * previewPrices[symbol],
+    0,
+  );
+}
+
+export function formatUsd(value: number) {
+  return `$${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}

@@ -2,6 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+/** Send and Receive as two side-by-side buttons inside the balance card, above its footer. */
 export function WalletActions({
   networkId,
   walletId,
@@ -14,27 +15,25 @@ export function WalletActions({
   const navigate = useNavigate();
 
   return (
-    <div className="my-5 grid grid-cols-2 gap-3" aria-label="Wallet actions">
+    <div className="mt-4 grid grid-cols-2 gap-3" aria-label="Wallet actions">
       {(
         [
-          { id: "send", label: "Send", icon: ArrowUpRight },
-          { id: "receive", label: "Receive", icon: ArrowDownLeft },
+          { id: "send", label: "Send", icon: ArrowUpRight, variant: "default" },
+          { id: "receive", label: "Receive", icon: ArrowDownLeft, variant: "outline" },
         ] as const
-      ).map(({ id, label, icon: Icon }) => (
+      ).map(({ id, label, icon: Icon, variant }) => (
         <Button
           key={id}
-          variant="ghost"
+          variant={variant}
           onClick={() => {
             navigate({
               to: id === "send" ? "/send" : "/receive",
               search: { wallet: walletId, token: tokenId, network: networkId },
             });
           }}
-          className="h-auto flex-col gap-2 rounded-lg py-2 text-xs hover:bg-secondary hover:text-foreground"
+          className="h-10 gap-1.5 rounded-full text-xs font-semibold"
         >
-          <span className="grid h-11 w-11 place-items-center rounded-full bg-primary/15 text-primary">
-            <Icon className="!h-5 !w-5" />
-          </span>
+          <Icon className="!h-3.5 !w-3.5" />
           {label}
         </Button>
       ))}

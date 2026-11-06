@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { loadPhrase, shuffle, distractors, pickSpots, clearPhrase, ordinal } from "@/lib/phrase";
 import { Button } from "@/components/ui/button";
 import { useQDayPreview } from "@/components/qday-preview-provider";
+import { useWalletPreview } from "@/components/wallet-preview-provider";
 
 export const Route = createFileRoute("/confirm")({
   head: () => ({
@@ -30,6 +31,7 @@ export const Route = createFileRoute("/confirm")({
 
 function ConfirmPhrase() {
   const { update } = useQDayPreview();
+  const { quantumMode } = useWalletPreview();
   const navigate = useNavigate();
   const [phrase, setPhrase] = useState<string[]>([]);
   const [spots, setSpots] = useState<number[]>([]);
@@ -120,7 +122,16 @@ function ConfirmPhrase() {
               </span>
             </div>
             <h1 className="mt-7 font-display text-4xl font-semibold leading-tight tracking-tight">
-              Your <span className="text-accent">post-quantum</span> wallet is ready
+              {/* New wallets start in Classic; only Hybrid earns the "post-quantum" headline. */}
+              {quantumMode === "hybrid" ? (
+                <>
+                  Your <span className="text-accent">post-quantum</span> wallet is ready
+                </>
+              ) : (
+                <>
+                  Your wallet is <span className="text-accent">ready</span>
+                </>
+              )}
             </h1>
             <p className="mx-auto mt-3 max-w-xs text-sm text-muted-foreground">
               Phrase confirmed and backed up. Trellis never stores a copy of it.
@@ -128,9 +139,13 @@ function ConfirmPhrase() {
 
             <div className="mt-7 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
               <ShieldCheck className="h-4 w-4 shrink-0 text-accent" />
-              <span>Quantum protection on · ECDSA + ML-DSA-65</span>
+              <span>
+                {quantumMode === "hybrid"
+                  ? "Quantum protection on · ECDSA + ML-DSA-65"
+                  : "Classic protection · ECDSA"}
+              </span>
               <Link to="/pq" className="text-foreground underline underline-offset-2">
-                Learn more
+                {quantumMode === "hybrid" ? "Learn more" : "Enable protection"}
               </Link>
             </div>
           </section>
