@@ -3,7 +3,7 @@ import { ArrowDownLeft, ArrowLeft, ArrowUpRight, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TransactionRow } from "@/components/transaction-row";
 import { useWalletPreview } from "@/components/wallet-preview-provider";
-import { describeNetwork, transactionsFor, walletTokens } from "@/lib/wallet-preview";
+import { transactionsFor, walletTokens } from "@/lib/wallet-preview";
 
 export const Route = createFileRoute("/asset/$tokenId")({
   head: () => ({
@@ -21,7 +21,7 @@ export const Route = createFileRoute("/asset/$tokenId")({
 
 function AssetPage() {
   const { tokenId } = Route.useParams();
-  const { wallets, networkId } = useWalletPreview();
+  const { wallets } = useWalletPreview();
   const token = walletTokens.find((t) => t.id === tokenId);
   const wallet = wallets[0];
   const recent = wallet
@@ -39,9 +39,6 @@ function AssetPage() {
             </Link>
           </Button>
           <h1 className="font-display text-xl font-semibold">{token?.symbol ?? "Asset"}</h1>
-          <span className="ml-auto rounded-full bg-secondary/70 px-3 py-1 text-[11px] text-muted-foreground">
-            {describeNetwork(networkId).label}
-          </span>
         </header>
         {!token ? (
           <div role="status" className="py-16 text-center">
@@ -56,13 +53,8 @@ function AssetPage() {
               <span className="grid h-12 w-12 place-items-center rounded-full bg-primary/15 font-display text-xl font-semibold text-primary">
                 {token.mark}
               </span>
-              <p className="mt-3 text-xs text-muted-foreground">
-                {token.name} · {token.detail}
-              </p>
+              <p className="mt-3 text-xs text-muted-foreground">{token.detail}</p>
               <p className="mt-1 font-display text-4xl font-semibold tabular-nums">0.00</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {token.symbol} in {wallet?.name}
-              </p>
               <div className="mt-5 grid w-full grid-cols-2 gap-3">
                 <Button asChild>
                   <Link to="/send" search={{ token: token.id, wallet: wallet?.id }}>
