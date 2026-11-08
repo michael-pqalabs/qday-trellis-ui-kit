@@ -5,7 +5,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { ArrowLeft, Check, Copy, Share2, Info } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { getPreviewHolding, walletTokens } from "@/lib/wallet-preview";
+import { getPreviewHolding } from "@/lib/wallet-preview";
 
 type Search = {
   wallet?: string | undefined;
@@ -41,14 +41,15 @@ export const Route = createFileRoute("/receive")({
 function ReceivePage() {
   const search = Route.useSearch();
   const { wallets } = useWalletPreview();
-  const [tokenId, setTokenId] = useState(search.token ?? "qday");
   const [copied, setCopied] = useState(false);
-  const { wallet, network, token } = getPreviewHolding(
+  // Every token on this blockchain uses the same address, so there is nothing to pick here.
+  const { wallet, network } = getPreviewHolding(
     search.wallet ?? "main",
     search.network ?? "testnet",
-    tokenId,
+    "qday",
     wallets,
   );
+  const groups = wallet.address.slice(2).match(/.{1,4}/g) ?? [];
 
   const copy = async () => {
     try {
@@ -84,28 +85,9 @@ function ReceivePage() {
           </span>
         </header>
 
-        <div
-          className="mt-6 grid grid-cols-2 gap-1 rounded-full bg-secondary/70 p-[3px]"
-          role="radiogroup"
-          aria-label="Token"
-        >
-          {walletTokens.map((t) => (
-            <Button
-              variant="ghost"
-              key={t.id}
-              role="radio"
-              aria-checked={t.id === tokenId}
-              onClick={() => setTokenId(t.id)}
-              className={`h-9 rounded-full text-xs font-semibold transition ${t.id === tokenId ? "bg-primary text-primary-foreground shadow-md shadow-primary/25" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              {t.symbol}
-            </Button>
-          ))}
-        </div>
-
         <section className="mt-6 flex flex-col items-center rounded-3xl border border-primary/15 bg-card bg-card-hero p-6 shadow-card">
           <span className="rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold text-primary">
-            Main Wallet · {wallet.name}
+            {wallet.name}
           </span>
           <div className="mt-5 rounded-2xl bg-white p-4 shadow-sm">
             <QRCodeSVG
@@ -117,12 +99,21 @@ function ReceivePage() {
               aria-label="Wallet address QR code"
             />
           </div>
-          <p className="mt-5 text-xs text-muted-foreground">Your {token.symbol} address</p>
-          <p
-            className="mt-1 break-all text-center font-mono text-xs leading-5"
-            data-testid="receive-address"
-          >
-            {wallet.address}
+          <p className="mt-5 text-xs text-muted-foreground">Your address</p>
+          <p className="mt-1 text-center font-mono text-xs leading-6" data-testid="receive-address">
+            <span className="sr-only">{wallet.address}</span>
+            {/* Groups of four, five per line, with the first and last group bold. */}
+            <span aria-hidden="true" className="grid grid-cols-5 gap-x-2">
+              {groups.map((group, index) => {
+                const edge = index === 0 || index === groups.length - 1;
+                return (
+                  <span key={index} className={edge ? "font-bold text-foreground" : ""}>
+                    {index === 0 && <span className="font-normal text-muted-foreground">0x</span>}
+                    {group}
+                  </span>
+                );
+              })}
+            </span>
           </p>
           <div className="mt-5 grid w-full grid-cols-2 gap-3">
             <Button onClick={copy}>
@@ -136,11 +127,9 @@ function ReceivePage() {
           </div>
         </section>
 
-        <p className="mt-5 flex gap-2 rounded-2xl bg-secondary/60 p-3 text-xs text-muted-foreground">
+        <p className="mt-5 flex items-center gap-2 rounded-2xl bg-secondary/60 p-3 text-xs text-muted-foreground">
           <Info className="h-4 w-4 shrink-0" />
-          Only send {token.symbol} on {network.name} to this address. This is your Main Wallet —
-          SignetPass accounts have their own separate addresses. Preview address: don't send real
-          funds.
+          Only send QDay assets on {network.name}.
         </p>
       </main>
     </div>
