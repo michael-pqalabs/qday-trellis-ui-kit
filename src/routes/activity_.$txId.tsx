@@ -5,8 +5,11 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useWalletPreview } from "@/components/wallet-preview-provider";
 import {
+  PREVIEW_FEE_TOKEN,
+  PREVIEW_NETWORK_FEE,
   describeNetwork,
   sampleTransactions,
+  shortAddress,
   txDetail,
   txStatusLabel,
   txStatusTone,
@@ -33,8 +36,9 @@ export const Route = createFileRoute("/activity_/$txId")({
 function ActivityDetailPage() {
   const { txId } = Route.useParams();
   const router = useRouter();
-  const { wallets, networkId } = useWalletPreview();
+  const { wallets, networkId, quantumMode } = useWalletPreview();
   const [copied, setCopied] = useState("");
+  const [expanded, setExpanded] = useState<string[]>([]);
   const tx = sampleTransactions.find((t) => t.id === txId);
   const token = tx ? walletTokens.find((t) => t.id === tx.tokenId) : undefined;
   const back = (
@@ -73,19 +77,51 @@ function ActivityDetailPage() {
       toast.error("Couldn't copy. Select the value manually.");
     }
   };
-  const rows: { label: string; value: string; copy?: boolean }[] = [
+  // Stored as a UTC instant; shown in local time with its offset, plus a UTC line.
+  const when = new Date(detail.at);
+  const offsetMin = -when.getTimezoneOffset();
+  const offset = `UTC${offsetMin < 0 ? "−" : "+"}${Math.floor(Math.abs(offsetMin) / 60)}${
+    Math.abs(offsetMin) % 60 ? `:${String(Math.abs(offsetMin) % 60).padStart(2, "0")}` : ""
+  }`;
+  const dateText = (d: Date, timeZone?: string) =>
+    d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone });
+  const timeText = (d: Date, timeZone?: string) =>
+    d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone });
+  const utcDate = dateText(when, "UTC");
+  const utcLine = `${utcDate === dateText(when) ? "" : `${utcDate}, `}${timeText(when, "UTC")} UTC`;
+  const rows: {
+    label: string;
+    value: string;
+    /** Second, quieter line under the value. */
+    note?: string;
+    /** Long values show in short form with a copy button; tapping the value expands it. */
+    copy?: boolean;
+    explorer?: boolean;
+  }[] = [
     { label: "From", value: sent ? (wallet?.address ?? "") : tx.counterparty, copy: true },
     { label: "To", value: sent ? tx.counterparty : (wallet?.address ?? ""), copy: true },
     {
       label: "Time",
-      value: new Date(detail.at).toLocaleString(undefined, {
-        dateStyle: "medium",
-        timeStyle: "short",
-      }),
+      value: `${dateText(when)}, ${timeText(when)} (${offset})`,
+      note: utcLine,
     },
     { label: "Network", value: describeNetwork(networkId).label },
     { label: "Transaction ID", value: detail.hash, copy: true },
-    { label: "Block", value: tx.status === "pending" ? "—" : String(detail.block) },
+    {
+      label: "Block",
+      value: tx.status === "pending" ? "—" : String(detail.block),
+      explorer: tx.status !== "pending",
+    },
+    // Only the sender pays the fee and signs, so these show on sent transfers.
+    ...(sent
+      ? [
+          { label: `Network fee (${PREVIEW_FEE_TOKEN})`, value: String(PREVIEW_NETWORK_FEE) },
+          {
+            label: "Signature",
+            value: quantumMode === "hybrid" ? "ECDSA + ML-DSA-65" : "ECDSA",
+          },
+        ]
+      : []),
   ];
   return (
     <div className="flex min-h-dvh justify-center bg-background">
@@ -140,7 +176,40 @@ function ActivityDetailPage() {
             >
               <dt className="shrink-0 text-xs text-muted-foreground">{row.label}</dt>
               <dd className="flex min-w-0 items-start gap-1.5 text-right text-sm">
-                <span className="min-w-0 break-all">{row.value}</span>
+                <span className="min-w-0">
+                  {row.copy ? (
+                    <button
+                      type="button"
+                      aria-expanded={expanded.includes(row.label)}
+                      aria-label={`${row.label}: ${row.value}. Tap to ${expanded.includes(row.label) ? "shorten" : "show all"}`}
+                      onClick={() =>
+                        setExpanded((list) =>
+                          list.includes(row.label)
+                            ? list.filter((item) => item !== row.label)
+                            : [...list, row.label],
+                        )
+                      }
+                      className={`font-mono text-[13px] ${expanded.includes(row.label) ? "break-all" : ""}`}
+                    >
+                      {expanded.includes(row.label) ? row.value : shortAddress(row.value)}
+                    </button>
+                  ) : row.explorer ? (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        toast.info("Preview only", { description: "No block explorer is opened." })
+                      }
+                      className="font-medium text-primary underline underline-offset-2"
+                    >
+                      {row.value}
+                    </button>
+                  ) : (
+                    <span className="break-words">{row.value}</span>
+                  )}
+                  {row.note && (
+                    <span className="block text-xs text-muted-foreground">{row.note}</span>
+                  )}
+                </span>
                 {row.copy && (
                   <Button
                     variant="ghost"
