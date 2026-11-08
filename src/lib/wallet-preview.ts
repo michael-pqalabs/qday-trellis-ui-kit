@@ -1,4 +1,6 @@
 // UI preview only: no addresses or balances are derived from the demo phrase.
+import { checkRecipient } from "@/lib/eth-address";
+
 export const previewWallets = [
   { id: "main", name: "Wallet 1 (Main)", address: "0x7A39fC621B84D09a36e570F8cE214D6b95aC8021" },
 ] as const;
@@ -204,17 +206,27 @@ export function agoLabel(minutes: number) {
   return `${Math.floor(minutes / 1440)}d ago`;
 }
 
-export const PREVIEW_NETWORK_FEE = "0.0021";
+/** Illustrative network fee for a transfer. It is paid in the stablecoin (USD8 on QDay), never in QDAY. */
+export const PREVIEW_NETWORK_FEE = 0.05;
+export const PREVIEW_FEE_TOKEN = "USD8";
+/** Balances used only when the Send preview switch is on, so the review step can be reached. */
+export const previewSampleBalances: Record<string, number> = { qday: 25, usd8: 120 };
 
 export type SendErrors = { recipient?: string; amount?: string };
 export function validateSend(recipient: string, amount: string): SendErrors {
   const errors: SendErrors = {};
-  if (!/^0x[0-9a-fA-F]{40}$/.test(recipient.trim()))
-    errors.recipient = "Enter a valid 0x address (42 characters).";
+  const check = checkRecipient(recipient);
+  if (check.state !== "valid")
+    errors.recipient = check.state === "empty" ? "Enter the recipient address." : check.message;
   const value = Number(amount);
   if (!amount.trim() || !Number.isFinite(value) || value <= 0)
     errors.amount = "Enter an amount greater than 0.";
   return errors;
+}
+
+/** Amount text with up to two decimals, as shown in balances. */
+export function formatAmount(value: number) {
+  return value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 /** "Wallet 3", "Wallet 4", … : the number keeps increasing and never repeats an existing name. */

@@ -8,6 +8,7 @@ import {
   describeNetwork,
   sampleTransactions,
   txDetail,
+  txStatusLabel,
   txStatusTone,
   walletTokens,
 } from "@/lib/wallet-preview";
@@ -117,13 +118,7 @@ function ActivityDetailPage() {
             {tx.amount} <span className="text-base text-muted-foreground">{token.symbol}</span>
           </p>
           <p className={`mt-1 text-xs font-medium ${txStatusTone(tx.status)}`}>
-            {failed
-              ? "Failed"
-              : tx.status === "pending"
-                ? sent
-                  ? "Sending"
-                  : "Receiving"
-                : "Completed"}
+            {txStatusLabel(tx)}
           </p>
         </section>
         {failed && (
