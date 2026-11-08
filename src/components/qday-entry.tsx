@@ -33,6 +33,7 @@ import {
   setupSteps,
   validPreviewOTP,
 } from "@/lib/qday-preview";
+import { hasSavedPhrase } from "@/lib/phrase";
 import { signetPassFee } from "@/lib/wallet-preview";
 import { DeploymentFeeNotice, TransactionConfirm } from "@/components/signet-fee";
 
@@ -64,6 +65,9 @@ function QDayOnboarding() {
   const [feeAccepted, setFeeAccepted] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const fee = signetPassFee("qday");
+  // Read after hydration: a saved phrase means wallet setup was started but not confirmed yet.
+  const [setupStarted, setSetupStarted] = useState(false);
+  useEffect(() => setSetupStarted(hasSavedPhrase()), []);
   useEffect(() => {
     if (!cooldown) return;
     const timer = setTimeout(() => setCooldown((c) => Math.max(0, c - 1)), 1000);
@@ -122,17 +126,25 @@ function QDayOnboarding() {
           </span>
         </div>
         {!state.walletReady ? (
-          <section className="my-auto py-12">
+          <section className="mt-8">
             <span className="mb-6 grid h-16 w-16 place-items-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
               <Wallet className="h-7 w-7" />
             </span>
-            <h1 className="font-display text-3xl font-semibold">Your wallet comes first</h1>
+            <h1 className="font-display text-3xl font-semibold">
+              {setupStarted ? "Finish your wallet setup" : "Create your wallet first"}
+            </h1>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              Create your Trellis wallet before setting up your Signet account.
+              {setupStarted
+                ? "You started creating your Main Wallet, but its recovery phrase isn't confirmed yet. Finish that before setting up your Signet account."
+                : "You need a Main Wallet before you can set up your Signet account."}
+            </p>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              Your Main Wallet holds your funds. The SignetPass spending wallet is a separate
+              account that agents pay from, and you top it up from the Main Wallet.
             </p>
             <Button asChild className="mt-7 h-12 w-full">
-              <Link to="/">
-                Create wallet
+              <Link to={setupStarted ? "/recovery" : "/"}>
+                {setupStarted ? "Back up recovery phrase" : "Create wallet"}
                 <ArrowRight />
               </Link>
             </Button>

@@ -65,6 +65,15 @@ export function savePhrase(phrase: string[]) {
   }
 }
 
+/** True once a phrase exists in this session (setup was started). Unlike loadPhrase, never creates one. */
+export function hasSavedPhrase(): boolean {
+  try {
+    return !!sessionStorage.getItem(KEY);
+  } catch {
+    return false;
+  }
+}
+
 export function loadPhrase(): string[] {
   try {
     const raw = sessionStorage.getItem(KEY);
