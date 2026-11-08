@@ -112,13 +112,10 @@ function PqPage() {
             Every transaction needs two signatures, so a break in one scheme alone is not enough to
             move your funds. Your account address stays the same.
           </p>
-          <ol className="mt-3 space-y-2">
+          <ol className="mt-3 space-y-2 text-sm">
             {STEPS.map((label, i) => (
-              <li
-                key={label}
-                className="flex items-center gap-3 rounded-xl border bg-card px-3 py-2.5 text-sm"
-              >
-                <span className="grid h-6 w-6 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+              <li key={label} className="flex items-center gap-3">
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
                   {hybrid ? <Check className="h-3.5 w-3.5" /> : i + 1}
                 </span>
                 {label}
@@ -131,12 +128,7 @@ function PqPage() {
               verifier integration. No upgrade transaction is available yet.
             </p>
           )}
-          {hybrid ? (
-            <p role="status" className="mt-4 text-xs text-muted-foreground">
-              Hybrid cannot be turned off in this version. Agent spending sessions are not supported
-              in Hybrid mode yet, so each payment asks you to confirm.
-            </p>
-          ) : (
+          {!hybrid && (
             <>
               <Button className="mt-4 w-full" disabled>
                 Enable Hybrid · Not available yet
@@ -161,12 +153,17 @@ function PqPage() {
           <DialogContent className="max-w-sm">
             <DialogHeader>
               <DialogTitle>Enable Hybrid protection?</DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-xs">
                 Transactions will need two signatures. Your address stays the same, and existing
                 agent sessions stop working until you approve new ones. You confirm with your
                 device.
               </DialogDescription>
             </DialogHeader>
+            {/* Where the user first learns this is permanent, so it sits next to the confirmation. */}
+            <ul className="list-disc space-y-1 pl-5 text-sm font-medium">
+              <li>Can&apos;t be turned off in this version.</li>
+              <li>Each agent payment will need your confirmation.</li>
+            </ul>
             {running && (
               <ol className="space-y-2" aria-live="polite">
                 {STEPS.map((label, i) => (
@@ -186,17 +183,12 @@ function PqPage() {
             <p className="text-center text-[11px] text-muted-foreground">
               Preview only: nothing is sent and no key is created.
             </p>
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                className="flex-1"
-                disabled={running}
-                onClick={() => setOpen(false)}
-              >
-                Cancel
+            <div className="grid gap-2">
+              <Button disabled={running} onClick={start}>
+                Enable Hybrid (can&apos;t be undone)
               </Button>
-              <Button className="flex-1" disabled={running} onClick={start}>
-                Confirm
+              <Button variant="outline" disabled={running} onClick={() => setOpen(false)}>
+                Cancel
               </Button>
             </div>
           </DialogContent>

@@ -224,13 +224,16 @@ function WalletOverview() {
               <Wallet className="mr-1 h-4 w-4 shrink-0 text-primary" />
               <span className="truncate">{chainForNetwork(networkId).name} Personal Wallet</span>
             </span>
-            <Button
-              asChild
-              size="sm"
-              className="relative h-7 shrink-0 gap-1 px-3 text-[11px] shadow-sm shadow-primary/25 after:absolute after:-inset-2 after:content-['']"
-            >
-              <Link to="/pq">Enable protection</Link>
-            </Button>
+            {/* Like "Add funds" on a SignetPass: an action that only shows while it applies. */}
+            {quantumMode === "classic" && (
+              <Button
+                asChild
+                size="sm"
+                className="relative h-7 shrink-0 gap-1 px-3 text-[11px] shadow-sm shadow-primary/25 after:absolute after:-inset-2 after:content-['']"
+              >
+                <Link to="/pq">Enable protection</Link>
+              </Button>
+            )}
           </div>
           <div className="mt-4 flex items-center justify-between">
             <span className="text-xs text-muted-foreground">
