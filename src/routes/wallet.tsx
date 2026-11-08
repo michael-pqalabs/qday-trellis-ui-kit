@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import {
   Check,
   Copy,
+  Droplets,
   Eye,
   Info,
   Pencil,
@@ -262,6 +263,15 @@ function WalletOverview() {
           </div>
           {!showUsd && (
             <p className="mt-1 text-xs text-muted-foreground">Test tokens · no USD value</p>
+          )}
+          {/* Empty testnet balance: one tap to the faucet instead of going through Settings. */}
+          {!showUsd && chainId === "qday" && (
+            <Button asChild variant="outline" size="sm" className="mt-3 gap-1.5">
+              <Link to="/faucet">
+                <Droplets />
+                Get test tokens
+              </Link>
+            </Button>
           )}
           {chainNetwork?.previewNote && (
             <p

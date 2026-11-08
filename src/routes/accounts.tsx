@@ -72,9 +72,6 @@ function AccountsPage() {
               <p className="mt-3 break-all font-mono text-[11px] text-muted-foreground">
                 {w.address}
               </p>
-              <Button asChild variant="outline" size="sm" className="mt-3">
-                <Link to="/account-activation">Check account activation</Link>
-              </Button>
             </li>
           ))}
         </ul>

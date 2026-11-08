@@ -18,7 +18,6 @@ import {
   LogOut,
   Moon,
   Plug,
-  Rocket,
   Search,
   Shield,
   ShieldCheck,
@@ -172,12 +171,6 @@ function Settings() {
             label="Accounts"
             detail="Details, nickname and add account"
             to="/accounts"
-          />
-          <Row
-            icon={Rocket}
-            label="Account activation"
-            detail="Smart account deployment status"
-            to="/account-activation"
           />
         </Section>
 

@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AccountActivationRouteImport } from './routes/account-activation'
 import { Route as AccountsRouteImport } from './routes/accounts'
 import { Route as ActivityRouteImport } from './routes/activity'
 import { Route as AgenticRouteImport } from './routes/agentic'
@@ -38,11 +37,6 @@ import { Route as AgenticAgentAgentIdRouteImport } from './routes/agentic_.agent
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AccountActivationRoute = AccountActivationRouteImport.update({
-  id: '/account-activation',
-  path: '/account-activation',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AccountsRoute = AccountsRouteImport.update({
@@ -163,7 +157,6 @@ const AgenticAgentAgentIdRoute = AgenticAgentAgentIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/account-activation': typeof AccountActivationRoute
   '/accounts': typeof AccountsRoute
   '/activity': typeof ActivityRoute
   '/agentic': typeof AgenticRoute
@@ -190,7 +183,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/account-activation': typeof AccountActivationRoute
   '/accounts': typeof AccountsRoute
   '/activity': typeof ActivityRoute
   '/agentic': typeof AgenticRoute
@@ -218,7 +210,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/account-activation': typeof AccountActivationRoute
   '/accounts': typeof AccountsRoute
   '/activity': typeof ActivityRoute
   '/agentic': typeof AgenticRoute
@@ -247,7 +238,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/account-activation'
     | '/accounts'
     | '/activity'
     | '/agentic'
@@ -274,7 +264,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/account-activation'
     | '/accounts'
     | '/activity'
     | '/agentic'
@@ -301,7 +290,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/account-activation'
     | '/accounts'
     | '/activity'
     | '/agentic'
@@ -329,7 +317,6 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AccountActivationRoute: typeof AccountActivationRoute
   AccountsRoute: typeof AccountsRoute
   ActivityRoute: typeof ActivityRoute
   AgenticRoute: typeof AgenticRoute
@@ -362,13 +349,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/account-activation': {
-      id: '/account-activation'
-      path: '/account-activation'
-      fullPath: '/account-activation'
-      preLoaderRoute: typeof AccountActivationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/accounts': {
@@ -537,7 +517,6 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AccountActivationRoute: AccountActivationRoute,
   AccountsRoute: AccountsRoute,
   ActivityRoute: ActivityRoute,
   AgenticRoute: AgenticRoute,

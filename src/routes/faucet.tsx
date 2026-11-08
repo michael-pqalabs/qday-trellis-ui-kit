@@ -4,7 +4,6 @@ import { ArrowLeft, Droplets, ExternalLink, Loader2, RefreshCw } from "lucide-re
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useWalletPreview } from "@/components/wallet-preview-provider";
-import { shortAddress } from "@/lib/wallet-preview";
 import { cn } from "@/lib/utils";
 
 const DAY = 86400000;
@@ -85,10 +84,8 @@ function FaucetPage() {
           </div>
           <dl className="mt-4 space-y-2 text-sm">
             <div className="flex justify-between gap-4 border-b border-divider pb-2">
-              <dt className="text-muted-foreground">Main Wallet</dt>
-              <dd className="font-medium">
-                {main ? `${main.name} · ${shortAddress(main.address)}` : "—"}
-              </dd>
+              <dt className="text-muted-foreground">To</dt>
+              <dd className="font-medium">{main?.name ?? "—"}</dd>
             </div>
             <div className="flex justify-between gap-4 border-b border-divider pb-2">
               <dt className="text-muted-foreground">Next claim</dt>
