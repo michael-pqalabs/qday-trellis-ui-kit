@@ -3,13 +3,13 @@ import { Link } from "@tanstack/react-router";
 import { ArrowLeft, ChevronDown, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import { chainForNetwork, defaultNetworkId, getChain, previewChains } from "@/lib/wallet-preview";
@@ -36,6 +36,7 @@ function OptionGroup({
   name: string;
   value: string;
   options: Option[];
+  /** Called on every tap on an available option, including the one already selected. */
   onChange: (id: string) => void;
 }) {
   return (
@@ -43,7 +44,9 @@ function OptionGroup({
       <legend className="mb-2 text-xs font-medium uppercase text-muted-foreground">{legend}</legend>
       <RadioGroup
         value={value}
-        onValueChange={onChange}
+        onValueChange={(id) => {
+          if (options.find((item) => item.id === id)?.available) onChange(id);
+        }}
         aria-label={legend}
         className="grid gap-2"
         name={name}
@@ -55,6 +58,9 @@ function OptionGroup({
             <label
               key={option.id}
               htmlFor={inputId}
+              onClick={() => {
+                if (option.available) onChange(option.id);
+              }}
               className={cn(
                 "flex items-start gap-3 rounded-lg border px-3 py-3 transition-colors",
                 option.available ? "cursor-pointer hover:bg-secondary/60" : "cursor-not-allowed",
@@ -132,12 +138,12 @@ function BaseSetupPreview({ onBack }: { onBack: () => void }) {
   ];
   return (
     <>
-      <DialogHeader>
-        <DialogTitle>Set up Base</DialogTitle>
-        <DialogDescription>
+      <SheetHeader className="text-left">
+        <SheetTitle>Set up Base</SheetTitle>
+        <SheetDescription>
           Base is available soon. This preview shows what choosing it will involve.
-        </DialogDescription>
-      </DialogHeader>
+        </SheetDescription>
+      </SheetHeader>
       <ol className="space-y-2" aria-label="Base setup steps">
         {steps.map((step, index) => (
           <li key={step.title} className="flex gap-3 rounded-lg border px-3 py-3">
@@ -166,7 +172,7 @@ function BaseSetupPreview({ onBack }: { onBack: () => void }) {
         QDay and Base are not available at the same time. You choose which blockchain manages your
         wallets.
       </p>
-      <DialogFooter className="flex-col gap-2 sm:flex-col">
+      <SheetFooter className="flex-col gap-2 sm:flex-col sm:space-x-0">
         <Button type="button" className="w-full" disabled>
           Switch to Base · available soon
         </Button>
@@ -174,7 +180,7 @@ function BaseSetupPreview({ onBack }: { onBack: () => void }) {
           <ArrowLeft />
           Back
         </Button>
-      </DialogFooter>
+      </SheetFooter>
     </>
   );
 }
@@ -227,24 +233,31 @@ export function NetworkPicker({
         </Button>
       </div>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="w-[calc(100%-2rem)] max-w-sm gap-5">
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent
+          side="bottom"
+          className="mx-auto flex max-h-[90dvh] w-full max-w-md flex-col gap-5 overflow-y-auto rounded-t-3xl px-5 pb-8 pt-6"
+        >
           {view === "base" ? (
             <BaseSetupPreview onBack={() => setView("choose")} />
           ) : (
             <>
-              <DialogHeader>
-                <DialogTitle>Blockchain and network</DialogTitle>
-                <DialogDescription>
+              <SheetHeader className="text-left">
+                <SheetTitle>Blockchain and network</SheetTitle>
+                <SheetDescription>
                   One blockchain is active at a time. Your wallets follow the choice you make here.
-                </DialogDescription>
-              </DialogHeader>
+                </SheetDescription>
+              </SheetHeader>
 
               <OptionGroup
                 legend="Blockchain"
                 name="chain"
                 value={chain.id}
-                onChange={(id) => onChange(id, defaultNetworkId(id))}
+                onChange={(id) => {
+                  // The same blockchain again just closes; a different one switches and stays open to pick its network.
+                  if (id === chain.id) return setOpen(false);
+                  onChange(id, defaultNetworkId(id));
+                }}
                 options={previewChains.map((item) => ({
                   id: item.id,
                   label: item.name,
@@ -254,7 +267,6 @@ export function NetworkPicker({
                       ? "Default"
                       : undefined
                     : "Available soon",
-                  note: item.available ? undefined : item.switchNote,
                   action: item.available
                     ? undefined
                     : { label: "See what Base needs", onClick: () => setView("base") },
@@ -265,25 +277,22 @@ export function NetworkPicker({
                 legend="Network"
                 name="network"
                 value={network?.id ?? ""}
-                onChange={(id) => onChange(chain.id, id)}
+                onChange={(id) => {
+                  onChange(chain.id, id);
+                  setOpen(false);
+                }}
                 options={chain.networks.map((item) => ({
                   id: item.id,
-                  label: item.name,
+                  label: item.name === "Mainnet" ? `${chain.name} Mainnet` : item.name,
                   available: item.available,
                   tag: item.available ? (item.previewNote ? "Preview" : undefined) : "Coming soon",
                   note: item.previewNote,
                 }))}
               />
-
-              <DialogFooter>
-                <Button type="button" className="w-full" onClick={() => setOpen(false)}>
-                  Done
-                </Button>
-              </DialogFooter>
             </>
           )}
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </>
   );
 }

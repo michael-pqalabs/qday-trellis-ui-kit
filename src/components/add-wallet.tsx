@@ -11,11 +11,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useWalletPreview } from "@/components/wallet-preview-provider";
@@ -317,72 +318,97 @@ export function AddWalletMenu({
   onAdded: (wallet: PreviewWallet) => void;
 }) {
   const navigate = useNavigate();
-  const [creating, setCreating] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [view, setView] = useState<"choose" | "create">("choose");
 
   return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            aria-label="Add wallet"
-            title="Add wallet"
-            className={rowActionClass}
-          >
-            <Plus />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-72 p-1.5">
-          <DropdownMenuItem onSelect={() => setCreating(true)} className="gap-3 rounded-md p-2.5">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
-              <Plus className="!h-4 !w-4" />
-            </span>
-            <span className="min-w-0">
-              <span className="block text-sm font-medium">Create a new wallet</span>
-              <span className="block text-xs text-muted-foreground">
-                Start with a fresh account
-              </span>
-            </span>
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onSelect={() => navigate({ to: "/wallet/import", search: { network: networkId } })}
-            className="gap-3 rounded-md p-2.5"
-          >
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-foreground/10 text-foreground">
-              <Download className="!h-4 !w-4" />
-            </span>
-            <span className="min-w-0">
-              <span className="block text-sm font-medium">Import a new wallet</span>
-              <span className="block text-xs text-muted-foreground">Use a recovery phrase</span>
-            </span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      <Dialog open={creating} onOpenChange={setCreating}>
-        <DialogContent className="w-[calc(100%-2rem)] max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Create a new wallet</DialogTitle>
-            <DialogDescription>
-              Smart account preview. No on-chain account will be created.
-            </DialogDescription>
-          </DialogHeader>
-          <CreateWalletForm
-            where={where}
-            networkId={networkId}
-            onDone={(wallet) => {
-              setCreating(false);
-              onAdded(wallet);
-              toast.success("Wallet created", {
-                description: `${wallet.name} added as a preview. Nothing was created on-chain.`,
-              });
-            }}
-          />
-        </DialogContent>
-      </Dialog>
-    </>
+    <Sheet
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (next) setView("choose");
+      }}
+    >
+      <Button
+        type="button"
+        variant="outline"
+        size="icon"
+        aria-label="Add wallet"
+        title="Add wallet"
+        className={rowActionClass}
+        onClick={() => setOpen(true)}
+      >
+        <Plus />
+      </Button>
+      <SheetContent
+        side="bottom"
+        className="mx-auto flex max-h-[90dvh] w-full max-w-md flex-col gap-4 overflow-y-auto rounded-t-3xl px-5 pb-8 pt-6"
+      >
+        {view === "choose" ? (
+          <>
+            <SheetHeader className="text-left">
+              <SheetTitle>Add wallet</SheetTitle>
+              <SheetDescription>
+                Create a new wallet or import one you already have.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="grid gap-2">
+              <button
+                type="button"
+                onClick={() => setView("create")}
+                className="flex items-center gap-3 rounded-xl border p-3 text-left transition-colors hover:bg-secondary/60"
+              >
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
+                  <Plus className="!h-4 !w-4" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-medium">Create a new wallet</span>
+                  <span className="block text-xs text-muted-foreground">
+                    Start with a fresh account
+                  </span>
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  navigate({ to: "/wallet/import", search: { network: networkId } });
+                }}
+                className="flex items-center gap-3 rounded-xl border p-3 text-left transition-colors hover:bg-secondary/60"
+              >
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-foreground/10 text-foreground">
+                  <Download className="!h-4 !w-4" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-medium">Import a new wallet</span>
+                  <span className="block text-xs text-muted-foreground">Use a recovery phrase</span>
+                </span>
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <SheetHeader className="text-left">
+              <SheetTitle>Create a new wallet</SheetTitle>
+              <SheetDescription>
+                Smart account preview. No on-chain account will be created.
+              </SheetDescription>
+            </SheetHeader>
+            <CreateWalletForm
+              where={where}
+              networkId={networkId}
+              onDone={(wallet) => {
+                setOpen(false);
+                onAdded(wallet);
+                toast.success("Wallet created", {
+                  description: `${wallet.name} added as a preview. Nothing was created on-chain.`,
+                });
+              }}
+            />
+          </>
+        )}
+      </SheetContent>
+    </Sheet>
   );
 }
 
