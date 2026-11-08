@@ -7,17 +7,14 @@ import {
   ChevronRight,
   Droplets,
   ExternalLink,
-  Eye,
   FileCheck,
   Fingerprint,
   Globe,
-  History,
   Info,
   KeyRound,
   Lock,
   LogOut,
   Moon,
-  Plug,
   Search,
   Shield,
   ShieldCheck,
@@ -28,6 +25,13 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
   Dialog,
   DialogContent,
@@ -135,6 +139,7 @@ function Settings() {
   const [biometric, setBiometric] = useState(true);
   const [autoLock, setAutoLock] = useState(true);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [resourcesOpen, setResourcesOpen] = useState(false);
 
   const soon = (name: string) =>
     toast(name, { description: "This option is a preview and isn't available yet." });
@@ -151,21 +156,15 @@ function Settings() {
           <h1 className="font-display text-2xl font-semibold">Settings</h1>
         </header>
 
-        <div className="mt-5 flex items-center gap-3 rounded-2xl border border-primary/20 bg-card p-4 shadow-card">
-          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground font-display font-semibold">
-            {(state.email ?? "T").charAt(0).toUpperCase()}
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold">
-              {state.email ?? "Not signed in to Signet"}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {state.email ? "Signet account" : "Sign in from Agentic Payments"}
-            </p>
-          </div>
-        </div>
-
         <Section title="Account">
+          <Row
+            icon={ShieldCheck}
+            label={state.email ?? "Signet account"}
+            detail={
+              state.email ? "Signed in to Signet" : "Not signed in · sign in from Agentic Payments"
+            }
+            to="/agentic"
+          />
           <Row
             icon={WalletCards}
             label="Accounts"
@@ -175,31 +174,7 @@ function Settings() {
         </Section>
 
         <Section title="Wallet">
-          <Row
-            icon={History}
-            label="Activity"
-            detail="Sent and received transfers"
-            to="/activity"
-          />
           <Row icon={BookUser} label="Address book" detail="Saved recipients" to="/contacts" />
-          <Row
-            icon={Eye}
-            label="Watch address"
-            detail="Read-only balances of a public address"
-            to="/watch-address"
-          />
-          <Row
-            icon={Plug}
-            label="Connections"
-            detail="dApps and session permissions"
-            to="/connections"
-          />
-          <Row
-            icon={ShieldCheck}
-            label="Quantum protection"
-            detail="Classic or Hybrid signatures"
-            to="/pq"
-          />
           <Row
             icon={FileCheck}
             label="Token approvals"
@@ -209,6 +184,12 @@ function Settings() {
         </Section>
 
         <Section title="Security">
+          <Row
+            icon={ShieldCheck}
+            label="Quantum protection"
+            detail="Classic or Hybrid signatures"
+            to="/pq"
+          />
           <Row
             icon={Fingerprint}
             label="Biometric unlock"
@@ -259,10 +240,12 @@ function Settings() {
             detail="Aevum Testnet · Get tUSD8 for testing"
             to="/faucet"
           />
-          <Row icon={BookOpen} label="Wiki" href="https://example.com" />
-          <Row icon={TrendingUp} label="Price Oracle" href="https://example.com" />
-          <Row icon={Globe} label="Website" href="https://example.com" />
-          <Row icon={Search} label="Explorer" href="https://example.com" />
+          <Row
+            icon={BookOpen}
+            label="Resources"
+            detail="Wiki, Price Oracle, Website, Explorer"
+            onClick={() => setResourcesOpen(true)}
+          />
         </Section>
 
         <Section title="Data">
@@ -301,6 +284,26 @@ function Settings() {
             Sign out of Signet
           </Button>
         )}
+
+        <Sheet open={resourcesOpen} onOpenChange={setResourcesOpen}>
+          <SheetContent
+            side="bottom"
+            className="mx-auto flex max-h-[90dvh] w-full max-w-md flex-col gap-4 overflow-y-auto rounded-t-3xl px-5 pb-8 pt-6"
+          >
+            <SheetHeader className="text-left">
+              <SheetTitle>Resources</SheetTitle>
+              <SheetDescription>
+                Opens in a new tab. Placeholder links in this preview.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="divide-y divide-divider overflow-hidden rounded-2xl border border-border/60 bg-card">
+              <Row icon={BookOpen} label="Wiki" href="https://example.com" />
+              <Row icon={TrendingUp} label="Price Oracle" href="https://example.com" />
+              <Row icon={Globe} label="Website" href="https://example.com" />
+              <Row icon={Search} label="Explorer" href="https://example.com" />
+            </div>
+          </SheetContent>
+        </Sheet>
 
         <Dialog open={aboutOpen} onOpenChange={setAboutOpen}>
           <DialogContent className="w-[calc(100%-2rem)] max-w-sm rounded-3xl">
