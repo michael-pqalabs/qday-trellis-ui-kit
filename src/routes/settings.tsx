@@ -7,7 +7,6 @@ import {
   ChevronRight,
   Droplets,
   ExternalLink,
-  FileCheck,
   Fingerprint,
   Globe,
   Info,
@@ -17,10 +16,8 @@ import {
   Moon,
   Search,
   Shield,
-  ShieldCheck,
   TrendingUp,
   Trash2,
-  WalletCards,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -32,13 +29,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { useTheme } from "@/components/theme-provider";
 import { useQDayPreview } from "@/components/qday-preview-provider";
 import { emptyQDayPreview } from "@/lib/qday-preview";
@@ -138,7 +128,6 @@ function Settings() {
   const { state, update } = useQDayPreview();
   const [biometric, setBiometric] = useState(true);
   const [autoLock, setAutoLock] = useState(true);
-  const [aboutOpen, setAboutOpen] = useState(false);
   const [resourcesOpen, setResourcesOpen] = useState(false);
 
   const soon = (name: string) =>
@@ -156,40 +145,11 @@ function Settings() {
           <h1 className="font-display text-2xl font-semibold">Settings</h1>
         </header>
 
-        <Section title="Account">
-          <Row
-            icon={ShieldCheck}
-            label={state.email ?? "Signet account"}
-            detail={
-              state.email ? "Signed in to Signet" : "Not signed in · sign in from Agentic Payments"
-            }
-            to="/agentic"
-          />
-          <Row
-            icon={WalletCards}
-            label="Accounts"
-            detail="Details, nickname and add account"
-            to="/accounts"
-          />
-        </Section>
-
         <Section title="Wallet">
           <Row icon={BookUser} label="Address book" detail="Saved recipients" to="/contacts" />
-          <Row
-            icon={FileCheck}
-            label="Token approvals"
-            detail="Check or revoke an allowance"
-            to="/token-approvals"
-          />
         </Section>
 
         <Section title="Security">
-          <Row
-            icon={ShieldCheck}
-            label="Quantum protection"
-            detail="Classic or Hybrid signatures"
-            to="/pq"
-          />
           <Row
             icon={Fingerprint}
             label="Biometric unlock"
@@ -260,12 +220,6 @@ function Settings() {
         <Section title="About">
           <Row
             icon={Info}
-            label="About this demo"
-            detail="What is real and what isn't"
-            onClick={() => setAboutOpen(true)}
-          />
-          <Row
-            icon={Info}
             label="Version"
             right={<span className="text-xs text-muted-foreground">v0.1.0 (26)</span>}
           />
@@ -304,22 +258,6 @@ function Settings() {
             </div>
           </SheetContent>
         </Sheet>
-
-        <Dialog open={aboutOpen} onOpenChange={setAboutOpen}>
-          <DialogContent className="w-[calc(100%-2rem)] max-w-sm rounded-3xl">
-            <DialogHeader>
-              <DialogTitle className="font-display tracking-normal">About this demo</DialogTitle>
-              <DialogDescription>Trellis Wallet · interface preview</DialogDescription>
-            </DialogHeader>
-            <p className="text-sm text-muted-foreground">
-              Balances are zero and every address shown is illustrative. Nothing here is derived
-              from your recovery phrase, and no real funds can be sent.
-            </p>
-            <Button onClick={() => setAboutOpen(false)} className="mt-1">
-              Got it
-            </Button>
-          </DialogContent>
-        </Dialog>
       </main>
     </div>
   );
