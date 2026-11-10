@@ -311,16 +311,12 @@ function SendPage() {
             </section>
 
             <fieldset className="mt-5">
-              <legend className="mb-2 text-sm font-medium">Signature</legend>
-              <div
-                role="radiogroup"
-                aria-label="Signature scheme"
-                className="grid grid-cols-2 gap-2"
-              >
+              <legend className="mb-2 text-sm font-medium">Send method</legend>
+              <div role="radiogroup" aria-label="Send method" className="grid grid-cols-2 gap-3">
                 {(
                   [
-                    ["classic", "Classic", "ECDSA", true],
-                    ["pqc", "PQC", "Coming soon", false],
+                    ["classic", "Classic", "Standard signature (ECDSA)", true],
+                    ["pqc", "PQC", "Post-quantum signature", false],
                   ] as const
                 ).map(([id, label, detail, available]) => (
                   <button
@@ -328,17 +324,29 @@ function SendPage() {
                     type="button"
                     role="radio"
                     aria-checked={id === "classic"}
-                    aria-disabled={!available}
                     disabled={!available}
                     className={cn(
-                      "rounded-xl border px-3 py-2.5 text-left transition-colors",
+                      "flex flex-col gap-0.5 h-fit rounded-xl border px-3 py-2 text-left transition-colors",
                       available
-                        ? "border-primary/50 bg-primary/5"
-                        : "cursor-not-allowed border-border bg-muted/40 text-muted-foreground",
+                        ? "border-primary bg-primary/10"
+                        : "cursor-not-allowed border-border bg-muted/40",
                     )}
                   >
-                    <span className="block text-sm font-medium">{label}</span>
-                    <span className="block text-[11px] text-muted-foreground">{detail}</span>
+                    <span className="flex items-center justify-between gap-1">
+                      <span
+                        className={cn("text-sm font-medium", !available && "text-muted-foreground")}
+                      >
+                        {label}
+                      </span>
+                      {available ? (
+                        <Check className="h-4 w-4 text-primary" aria-hidden="true" />
+                      ) : (
+                        <span className="whitespace-nowrap rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                          Coming soon
+                        </span>
+                      )}
+                    </span>
+                    <span className="text-xs leading-snug text-muted-foreground">{detail}</span>
                   </button>
                 ))}
               </div>
