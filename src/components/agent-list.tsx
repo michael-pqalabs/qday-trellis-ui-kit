@@ -1,3 +1,4 @@
+import { useStableToken } from "@/components/wallet-preview-provider";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +24,7 @@ export function AgentCard({
   onRevoke: (id: string) => void;
   index?: number;
 }) {
+  const { stable } = useStableToken();
   const { session } = agent;
   const revoking = agent.status === "revoking";
   return (
@@ -53,7 +55,7 @@ export function AgentCard({
         <div className="mt-3">
           <div className="flex justify-between text-[11px] text-muted-foreground">
             <span>
-              Spent {session.spent} / {session.totalBudget} USD8
+              Spent {session.spent} / {session.totalBudget} {stable}
             </span>
             <span className="capitalize">
               {session.status === "active" && session.expiresAt <= now ? "Expired" : session.status}

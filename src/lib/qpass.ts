@@ -83,7 +83,12 @@ export interface QPassState {
   cliSessions: CliSession[];
   activity: AgenticActivity[];
 }
-const KEY = "trellis-qpass-v15";
+/** Stored labels name the stablecoin with this placeholder, filled in at display for the active blockchain. */
+export const STABLE_PLACEHOLDER = "{stable}";
+export const fillStable = (text: string, stable: string) =>
+  text.replaceAll(STABLE_PLACEHOLDER, stable);
+
+const KEY = "trellis-qpass-v16";
 const SAMPLE_AGENTS = [
   "Price watcher",
   "Invoice payer",
@@ -313,14 +318,14 @@ export function seedQPassState(now: number): QPassState {
       {
         id: "act-1",
         passId: "qp-shopping",
-        label: "Received 50.00 USD8 from Main wallet",
+        label: "Received 50.00 {stable} from Main wallet",
         kind: "fund",
         at: now - 10 * 60000,
       },
       {
         id: "act-2",
         passId: "qp-shopping",
-        label: "Granted 100 USD8 budget to Research assistant",
+        label: "Granted 100 {stable} budget to Research assistant",
         kind: "approve",
         at: now - 2 * 3600000,
       },
@@ -470,6 +475,7 @@ const WHOLE = /^\d{1,5}$/;
 export function validateApprovalLimits(
   request: ApprovalLimits,
   input: { perPaymentLimit: string; totalBudget: string; durationDays: string },
+  stable = "USD8",
 ): { values: ApprovalLimits | null; errors: Partial<Record<LimitField, string>> } {
   const errors: Partial<Record<LimitField, string>> = {};
   const amount = (raw: string, max: number, field: "perPaymentLimit" | "totalBudget") => {
@@ -478,7 +484,7 @@ export function validateApprovalLimits(
       errors[field] = "Enter an amount above 0, with up to 6 decimals.";
       return max;
     }
-    if (Number(text) > max) errors[field] = `Can't be higher than the current ${max} USD8.`;
+    if (Number(text) > max) errors[field] = `Can't be higher than the current ${max} ${stable}.`;
     return Number(text);
   };
   const per = amount(input.perPaymentLimit, request.perPaymentLimit, "perPaymentLimit");
@@ -578,7 +584,7 @@ export function resolveApproval(
       state,
       request.passId,
       decision === "approved"
-        ? `Granted ${request.totalBudget} USD8 budget to ${request.agentName}`
+        ? `Granted ${request.totalBudget} ${STABLE_PLACEHOLDER} budget to ${request.agentName}`
         : `Rejected request from ${request.agentName}`,
       "approve",
       now,

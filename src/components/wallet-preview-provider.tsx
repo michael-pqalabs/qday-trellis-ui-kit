@@ -1,7 +1,10 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 import {
   DEFAULT_CHAIN_ID,
+  chainForNetwork,
   defaultNetworkId,
+  feeTokenFor,
+  getChain,
   previewWallets,
   type ImportedToken,
   type PreviewWallet,
@@ -85,4 +88,15 @@ export function useWalletPreview() {
   const value = useContext(WalletPreviewContext);
   if (!value) throw new Error("WalletPreviewProvider is required");
   return value;
+}
+
+/** Stablecoin, native token and name of the active blockchain, for copy that names them. */
+export function useStableToken() {
+  const { networkId } = useWalletPreview();
+  const chain = chainForNetwork(networkId);
+  return {
+    stable: feeTokenFor(chain.id),
+    native: getChain(chain.id).defaultTokens[0] ?? "",
+    chainName: chain.name,
+  };
 }

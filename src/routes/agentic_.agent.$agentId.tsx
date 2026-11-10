@@ -1,3 +1,4 @@
+import { useStableToken } from "@/components/wallet-preview-provider";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Ban, Bot, Clock, Copy, KeyRound, Terminal, Wallet } from "lucide-react";
@@ -56,6 +57,7 @@ type Confirm = "session" | null;
 
 function AgentDetail() {
   const { agentId } = Route.useParams();
+  const { stable } = useStableToken();
   const [state, setState] = useState<QPassState | null>(null);
   const [now, setNow] = useState(0);
   const [confirm, setConfirm] = useState<Confirm>(null);
@@ -155,7 +157,7 @@ function AgentDetail() {
             <p className="mt-3 font-display text-3xl font-semibold tabular-nums">
               {s.spent.toFixed(2)}{" "}
               <span className="text-base font-medium text-muted-foreground">
-                / {s.totalBudget} USD8
+                / {s.totalBudget} {stable}
               </span>
             </p>
             <div className="mt-3 h-2 overflow-hidden rounded-full bg-secondary">
@@ -167,7 +169,7 @@ function AgentDetail() {
             <p className="mt-2 text-[11px] text-muted-foreground">
               {pct >= 100
                 ? "Budget fully used — new payments will be declined."
-                : `${(s.totalBudget - s.spent).toFixed(2)} USD8 remaining`}
+                : `${(s.totalBudget - s.spent).toFixed(2)} ${stable} remaining`}
             </p>
           </>
         ) : (
@@ -182,7 +184,7 @@ function AgentDetail() {
           className="mt-4 rounded-2xl bg-card px-5 py-1 shadow-card"
           aria-label="Permission scope"
         >
-          <Row label="Per-payment limit" value={`${s.perPaymentLimit} USD8`} />
+          <Row label="Per-payment limit" value={`${s.perPaymentLimit} ${stable}`} />
           <Row
             label="Session expiry"
             value={
@@ -246,7 +248,9 @@ function AgentDetail() {
                     minute: "2-digit",
                   })}
                 </span>
-                <span className="font-medium tabular-nums">−{x.amount.toFixed(2)} USD8</span>
+                <span className="font-medium tabular-nums">
+                  −{x.amount.toFixed(2)} {stable}
+                </span>
               </div>
             ))
           )}

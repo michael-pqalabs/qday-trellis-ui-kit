@@ -42,7 +42,7 @@ import { RevokeAgentDialog } from "@/components/revoke-agent-dialog";
 import { SpendingLimitsEditor } from "@/components/spending-limits-editor";
 import { useRevocationWatcher } from "@/hooks/use-revocation-watcher";
 import { NetworkSummary } from "@/components/network-picker";
-import { useWalletPreview } from "@/components/wallet-preview-provider";
+import { useStableToken, useWalletPreview } from "@/components/wallet-preview-provider";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,6 +53,7 @@ import { chainForNetwork, signetPassFee } from "@/lib/wallet-preview";
 import {
   activateQPass,
   endCliSession,
+  fillStable,
   loadQPassState,
   renameQPass,
   isAwaitingCli,
@@ -102,6 +103,7 @@ function AgenticPayment() {
   // A SignetPass that was just created arrives as ?pass=<id> and starts selected.
   const [selectedId, setSelectedId] = useState(search.pass ?? "");
   const { networkId } = useWalletPreview();
+  const { stable, native, chainName } = useStableToken();
   const chain = chainForNetwork(networkId);
   const [now, setNow] = useState(0);
   const [visible, setVisible] = useState(true);
@@ -324,7 +326,7 @@ function AgenticPayment() {
                   </div>
                   <p className="mt-1 truncate font-display text-3xl font-semibold tabular-nums">
                     {visible ? <CountUp value={pass.balance} /> : "••••"}{" "}
-                    <span className="text-base font-medium text-muted-foreground">USD8</span>
+                    <span className="text-base font-medium text-muted-foreground">{stable}</span>
                   </p>
                   <div className="mt-4 flex items-center justify-between gap-2 rounded-full bg-secondary/70 py-1.5 pl-3 pr-1.5">
                     <span className="min-w-0 truncate font-mono text-[11px] text-muted-foreground">
@@ -418,7 +420,7 @@ function AgenticPayment() {
                             <span className="text-muted-foreground">
                               Requested budget{" "}
                               <strong className="font-medium text-foreground">
-                                {r.totalBudget} USD8
+                                {r.totalBudget} {stable}
                               </strong>
                             </span>
                             <span className="flex items-center gap-1 text-primary">
@@ -496,7 +498,9 @@ function AgenticPayment() {
                             {kindIcon(a.kind)}
                           </span>
                           <div className="min-w-0">
-                            <p className="truncate text-xs font-medium">{a.label}</p>
+                            <p className="truncate text-xs font-medium">
+                              {fillStable(a.label, stable)}
+                            </p>
                             <p className="mt-1 text-[10px] text-muted-foreground">
                               {timeAgo(a.at, now)}
                             </p>
@@ -592,12 +596,12 @@ function AgenticPayment() {
               <>
                 <div className="space-y-3 text-sm">
                   <Detail label="Fee paid by" value="Main wallet" />
-                  <Detail label="Main wallet balance" value="0.00 QDAY" />
+                  <Detail label="Main wallet balance" value={`0.00 ${native}`} />
                   <Detail label="Network fee" value="Unavailable in demo" />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Activation deploys your SignetPass smart account on QDay. The network fee is paid
-                  by your main wallet.
+                  Activation deploys your SignetPass smart account on {chainName}. The network fee
+                  is paid by your main wallet.
                 </p>
                 <Button
                   onClick={() => {
@@ -630,14 +634,14 @@ function AgenticPayment() {
                 <div className="space-y-3 text-sm">
                   <Detail label="From" value="Main wallet" />
                   <Detail label="To" value={pass?.name ?? "SignetPass"} />
-                  <Detail label="Available balance" value="0.00 USD8" />
+                  <Detail label="Available balance" value={`0.00 ${stable}`} />
                 </div>
                 <label htmlFor="fund-amount" className="text-xs font-medium">
-                  Amount (USD8)
+                  Amount ({stable})
                 </label>
                 <Input id="fund-amount" placeholder="0.00" disabled className="h-11 rounded-full" />
                 <p className="text-xs text-muted-foreground">
-                  Funding transfers USD8 from your main wallet to this SignetPass.
+                  Funding transfers {stable} from your main wallet to this SignetPass.
                 </p>
                 <Button disabled>Transfer unavailable</Button>
               </>
@@ -655,7 +659,7 @@ function AgenticPayment() {
                 </div>
                 <p className="break-all text-center font-mono text-xs">{pass.address}</p>
                 <p className="text-center text-xs text-muted-foreground">
-                  Share this address to receive USD8 on QDay.
+                  Share this address to receive {stable} on {chainName}.
                 </p>
                 <Button variant="secondary" onClick={copy}>
                   <Copy />
@@ -775,6 +779,7 @@ function ReviewRequestDialog({
   onDecide: (d: "approved" | "rejected") => void;
   onSaveLimits: (values: ApprovalLimits) => void;
 }) {
+  const { stable } = useStableToken();
   const [verifying, setVerifying] = useState(false);
   const [editing, setEditing] = useState(false);
   useEffect(() => {
@@ -836,11 +841,12 @@ function ReviewRequestDialog({
             <div className="rounded-2xl bg-primary/5 p-4 text-center">
               <p className="text-xs text-muted-foreground">Requested total budget</p>
               <p className="font-display text-3xl font-semibold">
-                {request.totalBudget} <span className="text-base text-muted-foreground">USD8</span>
+                {request.totalBudget}{" "}
+                <span className="text-base text-muted-foreground">{stable}</span>
               </p>
               {terminal && terminal.totalBudget !== request.totalBudget && (
                 <p className="text-xs text-muted-foreground line-through">
-                  {terminal.totalBudget} USD8
+                  {terminal.totalBudget} {stable}
                 </p>
               )}
               <p className="mt-1 text-xs text-muted-foreground">from {passName}</p>
@@ -848,10 +854,10 @@ function ReviewRequestDialog({
             <div className="space-y-2.5 text-sm">
               <Detail
                 label="Per-payment limit"
-                value={`${request.perPaymentLimit} USD8`}
+                value={`${request.perPaymentLimit} ${stable}`}
                 was={
                   terminal && terminal.perPaymentLimit !== request.perPaymentLimit
-                    ? `${terminal.perPaymentLimit} USD8`
+                    ? `${terminal.perPaymentLimit} ${stable}`
                     : undefined
                 }
               />

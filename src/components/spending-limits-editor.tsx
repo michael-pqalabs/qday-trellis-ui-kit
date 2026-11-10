@@ -3,6 +3,7 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { useStableToken } from "@/components/wallet-preview-provider";
 import { validateApprovalLimits, type ApprovalLimits, type LimitField } from "@/lib/qpass";
 
 /** How long the illustrative server check takes. */
@@ -14,8 +15,8 @@ const FIELDS: {
   unit: string;
   inputMode: "decimal" | "numeric";
 }[] = [
-  { field: "perPaymentLimit", label: "Per payment", unit: "USD8", inputMode: "decimal" },
-  { field: "totalBudget", label: "Total budget", unit: "USD8", inputMode: "decimal" },
+  { field: "perPaymentLimit", label: "Per payment", unit: "stable", inputMode: "decimal" },
+  { field: "totalBudget", label: "Total budget", unit: "stable", inputMode: "decimal" },
   { field: "durationDays", label: "Duration", unit: "days", inputMode: "numeric" },
 ];
 /**
@@ -34,6 +35,7 @@ export function SpendingLimitsEditor({
   onSave: (values: ApprovalLimits) => void;
   onDiscard: () => void;
 }) {
+  const { stable } = useStableToken();
   const [input, setInput] = useState({
     perPaymentLimit: String(current.perPaymentLimit),
     totalBudget: String(current.totalBudget),
@@ -45,7 +47,7 @@ export function SpendingLimitsEditor({
   const [serverError, setServerError] = useState(false);
   const [outcome, setOutcome] = useState<Outcome>("accepts");
   const save = () => {
-    const { values, errors: found } = validateApprovalLimits(current, input);
+    const { values, errors: found } = validateApprovalLimits(current, input, stable);
     setErrors(found);
     setServerError(false);
     setUnchanged(false);
@@ -79,7 +81,7 @@ export function SpendingLimitsEditor({
           return (
             <div key={field} className={field === "durationDays" ? "col-span-2" : undefined}>
               <label htmlFor={id} className="mb-1 block text-xs text-muted-foreground">
-                {label} ({unit})
+                {label} ({unit === "stable" ? stable : unit})
               </label>
               <Input
                 id={id}

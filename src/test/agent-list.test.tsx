@@ -7,6 +7,7 @@ import {
   RouterProvider,
 } from "@tanstack/react-router";
 import { describe, expect, it, vi } from "vitest";
+import { WalletPreviewProvider } from "@/components/wallet-preview-provider";
 import { AgentCard, RevokedAgentCard } from "@/components/agent-list";
 import type { RegisteredAgent } from "@/lib/qpass";
 
@@ -29,7 +30,9 @@ const session = {
 };
 
 async function show(ui: () => React.ReactNode) {
-  const root = createRootRoute({ component: () => <>{ui()}</> });
+  const root = createRootRoute({
+    component: () => <WalletPreviewProvider>{ui()}</WalletPreviewProvider>,
+  });
   const router = createRouter({
     routeTree: root.addChildren([
       createRoute({ getParentRoute: () => root, path: "/agentic/agent/$agentId" }),
@@ -56,7 +59,7 @@ describe("Agents tab cards", () => {
     expect(links).toHaveLength(1);
     expect(links[0]!.getAttribute("href")).toBe("/agentic/agent/agent-checkout-01");
     expect(screen.getAllByRole("button", { name: /^Revoke/ })).toHaveLength(2);
-    expect(screen.getByText("Spent 45 / 150 USD8")).toBeTruthy();
+    expect(screen.getByText("Spent 45 / 150 USDC")).toBeTruthy();
   });
 
   it("calls onRevoke with the agent id", async () => {

@@ -132,7 +132,7 @@ describe("Registered agents", () => {
       status: "pending",
       expiresAt: NOW + 3600000,
     });
-    window.sessionStorage.setItem("trellis-qpass-v15", JSON.stringify(state));
+    window.sessionStorage.setItem("trellis-qpass-v16", JSON.stringify(state));
     resolveApproval("req-01", "approved", NOW);
     const next = resolveApproval("req-extra", "approved", NOW);
     const matches = next.agents.filter((a) => a.name === "Research assistant");
