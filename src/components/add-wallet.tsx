@@ -1,7 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-import { Check, ChevronRight, Download, Pencil, Plus, ShieldAlert, Wallet } from "lucide-react";
-import { toast } from "sonner";
-import { useNavigate } from "@tanstack/react-router";
+import { rowActionClass } from "@/components/screen-header";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
   Sheet,
   SheetContent,
@@ -17,19 +15,28 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useWalletPreview } from "@/components/wallet-preview-provider";
-import { rowActionClass } from "@/components/screen-header";
+import { cn } from "@/lib/utils";
 import {
+  DEFAULT_CHAIN_ID,
   WALLET_NAME_MAX,
+  chainForNetwork,
+  defaultNetworkId,
+  describeNetwork,
+  feeTokenFor,
+  getChain,
   isPhraseLengthValid,
   nextWalletName,
   phraseWordCount,
+  previewChains,
   validateWalletName,
   type PreviewWallet,
 } from "@/lib/wallet-preview";
-import { cn } from "@/lib/utils";
+import { useNavigate } from "@tanstack/react-router";
+import { Check, ChevronRight, Download, Pencil, Plus, ShieldAlert, Wallet } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 /** Wallet name with a small pen icon that turns it into an inline field. */
 function EditableWalletName({
@@ -150,18 +157,94 @@ function WalletNameCard({
   );
 }
 
+/**
+ * Pick the blockchain a new Main Wallet lives on. Each option reads "Chain Stablecoin" (Base USDC,
+ * QDay USD8) so the choice and the token it pays fees in are one thing.
+ */
+function ChainChoice({
+  value,
+  activeNetworkId,
+  onChange,
+}: {
+  value: string;
+  activeNetworkId: string;
+  onChange: (chainId: string) => void;
+}) {
+  return (
+    <fieldset>
+      <legend className="sr-only">Blockchain</legend>
+      <div role="radiogroup" aria-label="Blockchain" className="grid grid-cols-2 gap-3">
+        {previewChains
+          .filter((chain) => chain.available)
+          .map((chain) => {
+            const selected = chain.id === value;
+            const networkId =
+              chain.id === chainForNetwork(activeNetworkId).id
+                ? activeNetworkId
+                : defaultNetworkId(chain.id);
+            return (
+              <button
+                key={chain.id}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                onClick={() => onChange(chain.id)}
+                className={cn(
+                  "flex items-start gap-3 rounded-lg border px-3 py-3 text-left transition-colors",
+                  selected
+                    ? "border-primary/50 bg-primary/10"
+                    : "border-border bg-card hover:bg-secondary/60",
+                )}
+              >
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border-2",
+                    selected ? "border-primary" : "border-primary/70",
+                  )}
+                >
+                  {selected && <span className="h-2.5 w-2.5 rounded-full bg-primary" />}
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-semibold leading-tight">
+                    {chain.name} {feeTokenFor(chain.id)}
+                  </span>
+                  <span className="mt-1 block text-xs text-muted-foreground">
+                    {chain.id === DEFAULT_CHAIN_ID
+                      ? "Default"
+                      : chain.networks.find((item) => item.id === networkId)?.name}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+      </div>
+    </fieldset>
+  );
+}
+
 function CreateWalletForm({
-  where,
-  networkId,
+  networkId: activeNetworkId,
   onDone,
 }: {
-  where: string;
+  /** The network currently shown on the wallet screen: the default choice. */
   networkId: string;
   onDone: (wallet: PreviewWallet) => void;
 }) {
   const { wallets, addWallet } = useWalletPreview();
+  const [chainId, setChainId] = useState(() => chainForNetwork(activeNetworkId).id);
   const [name, setName] = useState(() => nextWalletName(wallets));
   const error = validateWalletName(name, wallets);
+  // Stay on the network already open when its blockchain is chosen again (for example Mainnet).
+  const networkId =
+    chainId === chainForNetwork(activeNetworkId).id ? activeNetworkId : defaultNetworkId(chainId);
+  const where = describeNetwork(networkId).label;
+  const firstOnChain = !wallets.some(
+    (wallet) =>
+      wallet.source === "created" &&
+      wallet.networkId &&
+      chainForNetwork(wallet.networkId).id === chainId,
+  );
 
   return (
     <form
@@ -172,40 +255,40 @@ function CreateWalletForm({
         onDone(addWallet(name, networkId, "created"));
       }}
     >
+      <ChainChoice value={chainId} activeNetworkId={activeNetworkId} onChange={setChainId} />
       <WalletNameCard name={name} onNameChange={setName} error={error} where={where} />
-      <p className="text-xs leading-relaxed text-muted-foreground">
-        Use the pen to rename it. Fee sponsorship is not verified, and no network fee is charged in
-        this preview.
-      </p>
       <Button type="submit" className="w-full" disabled={Boolean(error)}>
         <Plus />
-        Create wallet
+        Create on {getChain(chainId).name}
       </Button>
     </form>
   );
 }
 
 export function ImportWalletForm({
-  where,
-  networkId,
+  networkId: activeNetworkId,
   onDone,
 }: {
-  where: string;
+  /** The network open on the wallet screen: the default choice for the imported wallet. */
   networkId: string;
   onDone: (wallet: PreviewWallet) => void;
 }) {
   const { wallets, addWallet } = useWalletPreview();
   const [step, setStep] = useState<1 | 2>(1);
   const [phrase, setPhrase] = useState("");
+  const [chainId, setChainId] = useState(() => chainForNetwork(activeNetworkId).id);
   const [name, setName] = useState(() => nextWalletName(wallets));
   const words = phraseWordCount(phrase);
   const phraseOk = isPhraseLengthValid(phrase);
   const nameError = validateWalletName(name, wallets);
+  const networkId =
+    chainId === chainForNetwork(activeNetworkId).id ? activeNetworkId : defaultNetworkId(chainId);
+  const where = describeNetwork(networkId).label;
 
   return (
     <div className="space-y-4">
       <ol className="flex items-center gap-2 text-xs" aria-label="Import progress">
-        {["Recovery phrase", "Name"].map((label, index) => {
+        {["Recovery phrase", "Blockchain & name"].map((label, index) => {
           const active = step === index + 1;
           const done = step > index + 1;
           return (
@@ -287,6 +370,7 @@ export function ImportWalletForm({
             onDone(addWallet(name, networkId, "imported"));
           }}
         >
+          <ChainChoice value={chainId} activeNetworkId={activeNetworkId} onChange={setChainId} />
           <WalletNameCard name={name} onNameChange={setName} error={nameError} where={where} />
           <div className="flex gap-2">
             <Button type="button" variant="outline" className="flex-1" onClick={() => setStep(1)}>
@@ -309,12 +393,10 @@ export function ImportWalletForm({
  */
 export function AddWalletMenu({
   networkId,
-  where,
   onAdded,
 }: {
+  /** Network open on the wallet screen. It is the default for a new wallet, which may pick another blockchain. */
   networkId: string;
-  /** Blockchain and network the new wallet is added to, e.g. "QDay · Aevum Testnet". */
-  where: string;
   onAdded: (wallet: PreviewWallet) => void;
 }) {
   const navigate = useNavigate();
@@ -336,7 +418,11 @@ export function AddWalletMenu({
         aria-label="Add wallet"
         title="Add wallet"
         className={rowActionClass}
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          // Always start from the Create / Import choice, even after a previous Create.
+          setView("choose");
+          setOpen(true);
+        }}
       >
         <Plus />
       </Button>
@@ -364,7 +450,7 @@ export function AddWalletMenu({
                 <span className="min-w-0">
                   <span className="block text-sm font-medium">Create a new wallet</span>
                   <span className="block text-xs text-muted-foreground">
-                    Start with a fresh account
+                    Base USDC or QDay USD8
                   </span>
                 </span>
               </button>
@@ -389,13 +475,10 @@ export function AddWalletMenu({
         ) : (
           <>
             <SheetHeader className="text-left">
-              <SheetTitle>Create a new wallet</SheetTitle>
-              <SheetDescription>
-                Smart account preview. No on-chain account will be created.
-              </SheetDescription>
+              <SheetTitle>Create a new Main Wallet</SheetTitle>
+              <SheetDescription>Choose the blockchain for your new smart account</SheetDescription>
             </SheetHeader>
             <CreateWalletForm
-              where={where}
               networkId={networkId}
               onDone={(wallet) => {
                 setOpen(false);

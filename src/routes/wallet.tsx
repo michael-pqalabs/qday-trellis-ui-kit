@@ -176,6 +176,11 @@ function WalletOverview() {
                     <span className="min-w-0 flex-1">
                       <span className="flex items-center gap-2">
                         <span className="truncate text-[13px] font-medium">{item.name}</span>
+                        {item.networkId && (
+                          <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                            {chainForNetwork(item.networkId).name}
+                          </span>
+                        )}
                         {item.source === "imported" && (
                           <span className="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground">
                             Imported
@@ -205,9 +210,9 @@ function WalletOverview() {
           </Button>
           <AddWalletMenu
             networkId={networkId}
-            where={where}
             onAdded={(added) => {
               setWalletId(added.id);
+              if (added.networkId) setNetworkId(added.networkId);
               setCopyState("idle");
             }}
           />

@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { ImportWalletForm } from "@/components/add-wallet";
 import { Button } from "@/components/ui/button";
-import { describeNetwork } from "@/lib/wallet-preview";
+import { DEFAULT_CHAIN_ID, defaultNetworkId, describeNetwork } from "@/lib/wallet-preview";
 
 type Search = { network?: string | undefined };
 
@@ -30,7 +30,7 @@ export const Route = createFileRoute("/wallet_/import")({
 function ImportWalletPage() {
   const search = Route.useSearch();
   const navigate = useNavigate();
-  const { network, label } = describeNetwork(search.network);
+  const { network } = describeNetwork(search.network);
 
   return (
     <div className="flex min-h-dvh justify-center bg-background">
@@ -49,8 +49,7 @@ function ImportWalletPage() {
         </p>
         <section className="mt-6 rounded-2xl border border-primary/15 bg-card bg-card-hero p-5 shadow-card">
           <ImportWalletForm
-            where={label}
-            networkId={network?.id ?? "testnet"}
+            networkId={network?.id ?? defaultNetworkId(DEFAULT_CHAIN_ID)}
             onDone={(wallet) => {
               toast.success("Wallet imported", {
                 description: `${wallet.name} added as a preview. Nothing was created on-chain.`,
