@@ -1,4 +1,4 @@
-import { useStableToken } from "@/components/wallet-preview-provider";
+import { feeTokenFor } from "@/lib/wallet-preview";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Ban, Bot, Clock, Copy, KeyRound, Terminal, Wallet } from "lucide-react";
@@ -57,7 +57,6 @@ type Confirm = "session" | null;
 
 function AgentDetail() {
   const { agentId } = Route.useParams();
-  const { stable } = useStableToken();
   const [state, setState] = useState<QPassState | null>(null);
   const [now, setNow] = useState(0);
   const [confirm, setConfirm] = useState<Confirm>(null);
@@ -73,6 +72,8 @@ function AgentDetail() {
   if (!state) return <main className="mx-auto min-h-dvh max-w-md px-5 pt-6" />;
   const agent = state.agents.find((a) => a.id === agentId);
   const pass = state.passes.find((p) => p.id === agent?.passId);
+  // Amounts use the stablecoin of the blockchain this agent's SignetPass lives on.
+  const stable = feeTokenFor(pass?.chainId ?? "base");
   if (!agent)
     return (
       <main className="mx-auto min-h-dvh max-w-md px-5 pt-6">

@@ -26,6 +26,10 @@ describe("SignetPass accounts demo", () => {
     expect(pass).not.toHaveProperty("perPaymentLimit");
     expect(pass).not.toHaveProperty("totalBudget");
   });
+  it("puts a new SignetPass on Base unless another blockchain is chosen", () => {
+    expect(createQPass({ name: "A" }, NOW).chainId).toBe("base");
+    expect(createQPass({ name: "B", chainId: "qday" }, NOW).chainId).toBe("qday");
+  });
   it("gives each SignetPass its own hex address and zero initial balance", () => {
     const a = createQPass({ name: "A" }, NOW);
     const b = createQPass({ name: "B" }, NOW);
@@ -132,7 +136,7 @@ describe("Registered agents", () => {
       status: "pending",
       expiresAt: NOW + 3600000,
     });
-    window.sessionStorage.setItem("trellis-qpass-v16", JSON.stringify(state));
+    window.sessionStorage.setItem("trellis-qpass-v17", JSON.stringify(state));
     resolveApproval("req-01", "approved", NOW);
     const next = resolveApproval("req-extra", "approved", NOW);
     const matches = next.agents.filter((a) => a.name === "Research assistant");

@@ -161,7 +161,7 @@ function WalletNameCard({
  * Pick the blockchain a new Main Wallet lives on. Each option reads "Chain Stablecoin" (Base USDC,
  * QDay USD8) so the choice and the token it pays fees in are one thing.
  */
-function ChainChoice({
+export function ChainChoice({
   value,
   activeNetworkId,
   onChange,

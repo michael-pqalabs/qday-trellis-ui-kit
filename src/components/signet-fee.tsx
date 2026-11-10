@@ -11,7 +11,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useWalletPreview } from "@/components/wallet-preview-provider";
-import { chainForNetwork, describeNetwork, signetPassFee } from "@/lib/wallet-preview";
+import {
+  chainForNetwork,
+  describeNetwork,
+  networkForChain,
+  signetPassFee,
+} from "@/lib/wallet-preview";
 import { cn } from "@/lib/utils";
 
 const PREVIEW_ENOUGH_BALANCE = 10;
@@ -24,13 +29,20 @@ const INTRO =
 function FeeBody({
   cancelTo,
   onAccept,
+  onCancel,
+  chainId,
 }: {
   cancelTo: "/wallet" | "/agentic";
   onAccept: () => void;
+  /** Cancel stays on the page instead of leaving for `cancelTo`. */
+  onCancel?: (() => void) | undefined;
+  /** Blockchain the fee is charged on; the active one when omitted. */
+  chainId?: string | undefined;
 }) {
   const [balance, setBalance] = useState<"enough" | "low">("enough");
   const { networkId } = useWalletPreview();
-  const { amount, token } = signetPassFee(chainForNetwork(networkId).id);
+  const feeChain = chainId ?? chainForNetwork(networkId).id;
+  const { amount, token } = signetPassFee(feeChain);
   const enough = balance === "enough";
   const available = enough ? PREVIEW_ENOUGH_BALANCE : 0;
 
@@ -82,9 +94,15 @@ function FeeBody({
       )}
 
       <div className="mt-5 grid grid-cols-2 gap-3">
-        <Button asChild variant="outline" className="h-11 text-sm">
-          <Link to={cancelTo}>Cancel</Link>
-        </Button>
+        {onCancel ? (
+          <Button variant="outline" className="h-11 text-sm" onClick={onCancel}>
+            Cancel
+          </Button>
+        ) : (
+          <Button asChild variant="outline" className="h-11 text-sm">
+            <Link to={cancelTo}>Cancel</Link>
+          </Button>
+        )}
         {enough ? (
           <Button className="h-11 text-sm" onClick={onAccept}>
             OK
@@ -93,7 +111,11 @@ function FeeBody({
           <Button asChild className="h-11 text-sm">
             <Link
               to="/receive"
-              search={{ wallet: "main", token: token.toLowerCase(), network: networkId }}
+              search={{
+                wallet: "main",
+                token: token.toLowerCase(),
+                network: networkForChain(feeChain, networkId),
+              }}
             >
               Top-Up {token}
             </Link>
@@ -185,18 +207,26 @@ export function DeploymentFeeDialog({
   title,
   cancelTo,
   onAccept,
+  onCancel,
+  chainId,
 }: {
   open: boolean;
   title: string;
   cancelTo: "/wallet" | "/agentic";
   onAccept: () => void;
+  /** Cancel and closing the dialog only close it, so a form behind it keeps what was typed. */
+  onCancel?: () => void;
+  /** Blockchain the fee is charged on; the active one when omitted. */
+  chainId?: string;
 }) {
   const navigate = useNavigate();
   return (
     <Dialog
       open={open}
       onOpenChange={(next) => {
-        if (!next && open) navigate({ to: cancelTo });
+        if (next || !open) return;
+        if (onCancel) onCancel();
+        else navigate({ to: cancelTo });
       }}
     >
       <DialogContent className="max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-sm gap-4 overflow-y-auto">
@@ -204,7 +234,7 @@ export function DeploymentFeeDialog({
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{INTRO}</DialogDescription>
         </DialogHeader>
-        <FeeBody cancelTo={cancelTo} onAccept={onAccept} />
+        <FeeBody cancelTo={cancelTo} onAccept={onAccept} onCancel={onCancel} chainId={chainId} />
       </DialogContent>
     </Dialog>
   );
@@ -217,6 +247,7 @@ export function TransactionConfirm({
   action,
   details = [],
   onConfirm,
+  chainId,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -225,13 +256,16 @@ export function TransactionConfirm({
   /** Extra rows shown after the action, e.g. the SignetPass name. */
   details?: readonly (readonly [string, string])[];
   onConfirm: () => void;
+  /** Blockchain of the transaction; the active one when omitted. */
+  chainId?: string;
 }) {
   const { networkId } = useWalletPreview();
-  const fee = signetPassFee(chainForNetwork(networkId).id);
+  const txChain = chainId ?? chainForNetwork(networkId).id;
+  const fee = signetPassFee(txChain);
   const rows: (readonly [string, string])[] = [
     ["Action", action],
     ...details,
-    ["Network", describeNetwork(networkId).label],
+    ["Network", describeNetwork(networkForChain(txChain, networkId)).label],
     ["Paid from", "Main Wallet"],
     ["Gas fee", `${fee.amount.toFixed(2)} ${fee.token}`],
   ];

@@ -91,9 +91,9 @@ export function useWalletPreview() {
 }
 
 /** Stablecoin, native token and name of the active blockchain, for copy that names them. */
-export function useStableToken() {
+export function useStableToken(chainId?: string) {
   const { networkId } = useWalletPreview();
-  const chain = chainForNetwork(networkId);
+  const chain = chainId ? getChain(chainId) : chainForNetwork(networkId);
   return {
     stable: feeTokenFor(chain.id),
     native: getChain(chain.id).defaultTokens[0] ?? "",

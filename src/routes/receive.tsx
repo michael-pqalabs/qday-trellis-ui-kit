@@ -129,7 +129,7 @@ function ReceivePage() {
 
         <p className="mt-5 flex items-center gap-2 rounded-2xl bg-secondary/60 p-3 text-xs text-muted-foreground">
           <Info className="h-4 w-4 shrink-0" />
-          Only send QDay assets on {network.name}.
+          Only send {chainForNetwork(network?.id).name} assets on {network?.name}.
         </p>
       </main>
     </div>

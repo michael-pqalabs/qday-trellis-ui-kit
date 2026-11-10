@@ -154,7 +154,7 @@ function QDayOnboarding() {
         ) : !state.email && !feeAccepted ? (
           <DeploymentFeeNotice
             title="Create your Signet account"
-            subtitle="Smart-contract account on QDay"
+            subtitle={`Smart-contract account on ${chainForNetwork(networkId).name}`}
             cancelTo="/wallet"
             onAccept={() => setFeeAccepted(true)}
           />

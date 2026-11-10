@@ -6,6 +6,8 @@ export interface QPass {
   balance: number;
   status: "inactive" | "active";
   createdAt: number;
+  /** Blockchain the SignetPass lives on; it decides the stablecoin its balance and limits use. */
+  chainId: string;
 }
 export interface SpendingSession {
   id: string;
@@ -88,7 +90,7 @@ export const STABLE_PLACEHOLDER = "{stable}";
 export const fillStable = (text: string, stable: string) =>
   text.replaceAll(STABLE_PLACEHOLDER, stable);
 
-const KEY = "trellis-qpass-v16";
+const KEY = "trellis-qpass-v17";
 const SAMPLE_AGENTS = [
   "Price watcher",
   "Invoice payer",
@@ -156,6 +158,7 @@ export function seedQPassState(now: number): QPassState {
         balance: 50,
         status: "active",
         createdAt: now - 86400000,
+        chainId: "base",
       },
       {
         id: "qp-research",
@@ -164,6 +167,7 @@ export function seedQPassState(now: number): QPassState {
         balance: 0,
         status: "inactive",
         createdAt: now,
+        chainId: "qday",
       },
     ],
     agents: [
@@ -410,6 +414,8 @@ export function saveQPassState(state: QPassState) {
 }
 export interface CreateQPassInput {
   name: string;
+  /** Blockchain for the new SignetPass. Base unless another is chosen. */
+  chainId?: string;
 }
 export function validateQPassInput(input: CreateQPassInput): string | null {
   return input.name.trim() ? null : "SignetPass name is required.";
@@ -434,6 +440,7 @@ export function createQPass(input: CreateQPassInput, now = Date.now()): QPass {
     balance: 0,
     status: "inactive",
     createdAt: now,
+    chainId: input.chainId ?? "base",
   };
   update((state) => {
     state.passes.unshift(pass);

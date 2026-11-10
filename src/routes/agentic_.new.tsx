@@ -8,7 +8,8 @@ import { activateQPass, createQPass, validateQPassInput } from "@/lib/qpass";
 import { DeploymentFeeDialog, TransactionConfirm } from "@/components/signet-fee";
 import { QDayEntry } from "@/components/qday-entry";
 import { useWalletPreview } from "@/components/wallet-preview-provider";
-import { chainForNetwork, signetPassFee } from "@/lib/wallet-preview";
+import { DEFAULT_CHAIN_ID, getChain, signetPassFee } from "@/lib/wallet-preview";
+import { ChainChoice } from "@/components/add-wallet";
 export const Route = createFileRoute("/agentic_/new")({
   head: () => ({
     meta: [
@@ -39,19 +40,21 @@ function CreateQPassPage() {
 function CreateQPass() {
   const navigate = useNavigate();
   const { networkId } = useWalletPreview();
-  const chain = chainForNetwork(networkId);
-  const feeToken = signetPassFee(chain.id).token;
+  // A new SignetPass starts on Base; QDay is the other choice. The fee depends on the choice.
+  const [chainId, setChainId] = useState(DEFAULT_CHAIN_ID);
+  const chain = getChain(chainId);
+  const feeToken = signetPassFee(chainId).token;
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [feeAccepted, setFeeAccepted] = useState(false);
+  const [feeOpen, setFeeOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  // Same flow as the first setup: accept the deployment fee, name the SignetPass, review, then activate.
+  // Same steps as the first setup: name it and pick the blockchain, accept the deployment fee, review, then activate.
   const create = () => {
-    const pass = createQPass({ name });
+    const pass = createQPass({ name, chainId });
     activateQPass(pass.id);
     setConfirmOpen(false);
     toast.success("SignetPass created", {
-      description: `${pass.name} is active. Preview only: nothing was deployed or charged.`,
+      description: `${pass.name} is active on ${chain.name}. Preview only: nothing was deployed or charged.`,
     });
     navigate({ to: "/agentic", search: { pass: pass.id } });
   };
@@ -87,10 +90,12 @@ function CreateQPass() {
               setError(invalid);
               return;
             }
-            setConfirmOpen(true);
+            setFeeOpen(true);
           }}
         >
-          <label htmlFor="qpass-name" className="mb-2 block text-sm font-medium">
+          <p className="mb-2 text-sm font-medium">Blockchain</p>
+          <ChainChoice value={chainId} activeNetworkId={networkId} onChange={setChainId} />
+          <label htmlFor="qpass-name" className="mb-2 mt-5 block text-sm font-medium">
             SignetPass name
           </label>
           <Input
@@ -120,16 +125,25 @@ function CreateQPass() {
           </Button>
         </form>
         <DeploymentFeeDialog
-          open={!feeAccepted}
+          open={feeOpen}
           title="Create SignetPass"
           cancelTo="/agentic"
-          onAccept={() => setFeeAccepted(true)}
+          chainId={chainId}
+          onCancel={() => setFeeOpen(false)}
+          onAccept={() => {
+            setFeeOpen(false);
+            setConfirmOpen(true);
+          }}
         />
         <TransactionConfirm
           open={confirmOpen}
           onOpenChange={setConfirmOpen}
           action="Deploy SignetPass smart contract"
-          details={[["SignetPass", name.trim()]]}
+          details={[
+            ["SignetPass", name.trim()],
+            ["Blockchain", `${chain.name} · ${feeToken}`],
+          ]}
+          chainId={chainId}
           onConfirm={create}
         />
         <p className="mt-4 flex items-center justify-center gap-2 text-center text-[11px] text-muted-foreground">

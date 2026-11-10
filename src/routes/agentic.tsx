@@ -49,7 +49,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { chainForNetwork, signetPassFee } from "@/lib/wallet-preview";
+import { chainForNetwork, getChain, networkForChain, signetPassFee } from "@/lib/wallet-preview";
 import {
   activateQPass,
   endCliSession,
@@ -103,8 +103,7 @@ function AgenticPayment() {
   // A SignetPass that was just created arrives as ?pass=<id> and starts selected.
   const [selectedId, setSelectedId] = useState(search.pass ?? "");
   const { networkId } = useWalletPreview();
-  const { stable, native, chainName } = useStableToken();
-  const chain = chainForNetwork(networkId);
+  const activeChain = chainForNetwork(networkId);
   const [now, setNow] = useState(0);
   const [visible, setVisible] = useState(true);
   const [action, setAction] = useState<Action | null>(null);
@@ -122,6 +121,10 @@ function AgenticPayment() {
     return () => clearInterval(timer);
   }, [search.pass]);
   const pass = state?.passes.find((p) => p.id === selectedId) ?? state?.passes[0];
+  // Everything on this screen follows the selected SignetPass: its own blockchain and stablecoin.
+  const chain = getChain(pass?.chainId ?? activeChain.id);
+  const passNetworkId = networkForChain(chain.id, networkId);
+  const { stable, native, chainName } = useStableToken(chain.id);
   const approvals = state?.approvals.filter((r) => r.passId === pass?.id) ?? [];
   const pending = approvals.filter((r) => r.status === "pending" && r.expiresAt > now);
   const passAgents = state?.agents.filter((a) => a.passId === pass?.id) ?? [];
@@ -200,7 +203,7 @@ function AgenticPayment() {
   return (
     <div className="flex min-h-dvh justify-center bg-background">
       <main className="flex min-h-dvh w-full max-w-md flex-col px-5 pb-0 pt-3">
-        <NetworkSummary networkId={networkId} />
+        <NetworkSummary networkId={passNetworkId} />
         <ScreenHeader
           action={
             <Button
@@ -254,7 +257,8 @@ function AgenticPayment() {
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-[13px] font-medium">{p.name}</span>
                           <span className="mt-px block truncate font-mono text-[11px] text-muted-foreground">
-                            {p.address.slice(0, 6)}…{p.address.slice(-4)}
+                            {getChain(p.chainId).name} · {p.address.slice(0, 6)}…
+                            {p.address.slice(-4)}
                             {p.status === "inactive" ? " · Not activated" : ""}
                           </span>
                         </span>
@@ -470,6 +474,7 @@ function AgenticPayment() {
                           key={a.id}
                           index={index}
                           agent={a}
+                          chainId={chain.id}
                           now={now}
                           onRevoke={(id) => setRevokeId(id)}
                         />
@@ -701,6 +706,7 @@ function AgenticPayment() {
           now={now}
           passName={pass?.name ?? "SignetPass"}
           passActive={pass?.status === "active"}
+          chainId={chain.id}
           onClose={() => setRequest(null)}
           onDecide={decide}
           onSaveLimits={saveLimits}
@@ -766,6 +772,7 @@ function ReviewRequestDialog({
   now,
   passName,
   passActive,
+  chainId,
   onClose,
   onDecide,
   onSaveLimits,
@@ -775,11 +782,12 @@ function ReviewRequestDialog({
   now: number;
   passName: string;
   passActive: boolean;
+  chainId: string;
   onClose: () => void;
   onDecide: (d: "approved" | "rejected") => void;
   onSaveLimits: (values: ApprovalLimits) => void;
 }) {
-  const { stable } = useStableToken();
+  const { stable } = useStableToken(chainId);
   const [verifying, setVerifying] = useState(false);
   const [editing, setEditing] = useState(false);
   useEffect(() => {
@@ -823,6 +831,7 @@ function ReviewRequestDialog({
         </DialogHeader>
         {request && editing && (
           <SpendingLimitsEditor
+            chainId={chainId}
             key={`${request.perPaymentLimit}-${request.totalBudget}-${request.durationDays}`}
             current={{
               perPaymentLimit: request.perPaymentLimit,

@@ -18,13 +18,16 @@ export function AgentCard({
   now,
   onRevoke,
   index = 0,
+  chainId,
 }: {
   agent: RegisteredAgent;
   now: number;
   onRevoke: (id: string) => void;
   index?: number;
+  /** Blockchain of the agent's SignetPass; the active one when omitted. */
+  chainId?: string;
 }) {
-  const { stable } = useStableToken();
+  const { stable } = useStableToken(chainId);
   const { session } = agent;
   const revoking = agent.status === "revoking";
   return (

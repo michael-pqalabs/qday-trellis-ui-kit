@@ -29,13 +29,16 @@ export function SpendingLimitsEditor({
   current,
   onSave,
   onDiscard,
+  chainId,
 }: {
   current: ApprovalLimits;
   /** Called only after the previewed server check accepted the values. */
   onSave: (values: ApprovalLimits) => void;
   onDiscard: () => void;
+  /** Blockchain of the SignetPass; the active one when omitted. */
+  chainId?: string;
 }) {
-  const { stable } = useStableToken();
+  const { stable } = useStableToken(chainId);
   const [input, setInput] = useState({
     perPaymentLimit: String(current.perPaymentLimit),
     totalBudget: String(current.totalBudget),

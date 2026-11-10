@@ -91,6 +91,13 @@ export function describeNetwork(networkId: string | undefined) {
   return { chain, network, label: `${chain.name} · ${network?.name ?? ""}` };
 }
 
+/** Network to show for a blockchain: the one already open when it is that blockchain, else its default. */
+export function networkForChain(chainId: string, activeNetworkId: string) {
+  return chainForNetwork(activeNetworkId).id === chainId
+    ? activeNetworkId
+    : defaultNetworkId(chainId);
+}
+
 export function defaultNetworkId(chainId: string) {
   const chain = getChain(chainId);
   return (chain.networks.find((item) => item.available) ?? chain.networks[0])?.id ?? "testnet";
