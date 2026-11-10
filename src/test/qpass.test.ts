@@ -1,16 +1,24 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   activateQPass,
+  canRequestSession,
+  createSpendingSession,
+  MAX_SESSION_DAYS,
+  pendingRequestFor,
   CLI_SIGN_MS,
   createQPass,
   endCliSession,
   isAwaitingCli,
   loadQPassState,
   renameQPass,
+  resetQPassState,
   resolveApproval,
   REVOKE_CONFIRM_MS,
+  simulateAgentRegistration,
+  simulateSessionRequest,
   startRevokeAgent,
   updateApprovalLimits,
+  validateNewSession,
   validateApprovalLimits,
   validateQPassInput,
 } from "@/lib/qpass";
@@ -136,7 +144,7 @@ describe("Registered agents", () => {
       status: "pending",
       expiresAt: NOW + 3600000,
     });
-    window.sessionStorage.setItem("trellis-qpass-v17", JSON.stringify(state));
+    window.sessionStorage.setItem("trellis-qpass-v19", JSON.stringify(state));
     resolveApproval("req-01", "approved", NOW);
     const next = resolveApproval("req-extra", "approved", NOW);
     const matches = next.agents.filter((a) => a.name === "Research assistant");
@@ -269,5 +277,266 @@ describe("Editing spending limits before approval", () => {
     loadQPassState(NOW);
     const next = updateApprovalLimits("req-01", current, NOW);
     expect(next.approvals.find((a) => a.id === "req-01")?.terminal).toBeUndefined();
+  });
+});
+
+describe("Agent flow follows the CLI", () => {
+  const find = (s: ReturnType<typeof loadQPassState>, id: string) =>
+    s.agents.find((a) => a.id === id);
+  const newest = (s: ReturnType<typeof loadQPassState>) => s.agents[s.agents.length - 1]!;
+
+  it("gives every sample request a session-key address", () => {
+    const pending = loadQPassState(NOW).approvals.filter((r) => r.status === "pending");
+    expect(pending.length).toBeGreaterThan(0);
+    for (const r of pending) expect(r.sessionKey).toMatch(/^0x[0-9a-f]{40}$/);
+  });
+  it("has no registration approval: a registered agent just appears as Linked, with no session", () => {
+    const before = loadQPassState(NOW).agents.length;
+    const next = simulateAgentRegistration("qp-shopping", NOW);
+    expect(next).not.toHaveProperty("registrations");
+    expect(next.agents).toHaveLength(before + 1);
+    const agent = newest(next);
+    expect(agent.status).toBe("linked");
+    expect(agent.passId).toBe("qp-shopping");
+    expect(agent.session).toBeUndefined();
+    expect(agent.vendor).toBeTruthy();
+  });
+  it("registers into a SignetPass that was just created, even before it is activated", () => {
+    const pass = createQPass({ name: "Fresh" }, NOW);
+    const next = simulateAgentRegistration(pass.id, NOW);
+    expect(newest(next).passId).toBe(pass.id);
+  });
+  it("ignores an unknown SignetPass", () => {
+    const before = loadQPassState(NOW).agents.length;
+    expect(simulateAgentRegistration("nope", NOW).agents).toHaveLength(before);
+  });
+  it("the agent, not Trellis, asks for a session, with a task summary", () => {
+    loadQPassState(NOW);
+    const agent = find(loadQPassState(NOW), "agent-newsletter-05")!;
+    const next = simulateSessionRequest(agent.id, NOW);
+    expect(find(next, agent.id)?.session).toBeUndefined();
+    const request = pendingRequestFor(next, agent, NOW);
+    expect(request?.agentId).toBe(agent.id);
+    expect(request?.taskSummary).toBeTruthy();
+    expect(request?.sessionKey).toMatch(/^0x[0-9a-f]{40}$/);
+    expect(request?.durationDays).toBeLessThanOrEqual(MAX_SESSION_DAYS);
+  });
+  it("asks only once while a request is waiting", () => {
+    loadQPassState(NOW);
+    simulateSessionRequest("agent-newsletter-05", NOW);
+    const count = loadQPassState(NOW).approvals.length;
+    expect(simulateSessionRequest("agent-newsletter-05", NOW).approvals).toHaveLength(count);
+  });
+  it("cannot ask while the agent still has a usable session, or once revoked", () => {
+    const state = loadQPassState(NOW);
+    const active = find(state, "agent-checkout-01")!;
+    expect(canRequestSession(active, NOW)).toBe(false);
+    expect(canRequestSession(active, active.session!.expiresAt)).toBe(true);
+    expect(
+      canRequestSession({ ...active, session: { ...active.session!, status: "revoked" } }, NOW),
+    ).toBe(true);
+    expect(canRequestSession({ ...active, status: "revoked" }, active.session!.expiresAt)).toBe(
+      false,
+    );
+    const count = state.approvals.length;
+    expect(simulateSessionRequest("agent-checkout-01", NOW).approvals).toHaveLength(count);
+    expect(simulateSessionRequest("agent-scraper-04", NOW).approvals).toHaveLength(count);
+  });
+  it("approving the request gives that agent its session, copying the task summary", () => {
+    loadQPassState(NOW);
+    const asked = simulateSessionRequest("agent-newsletter-05", NOW);
+    const request = asked.approvals[0]!;
+    const next = resolveApproval(request.id, "approved", NOW);
+    const agent = find(next, "agent-newsletter-05")!;
+    expect(agent.session?.status).toBe("active");
+    expect(agent.session?.totalBudget).toBe(request.totalBudget);
+    expect(agent.session?.taskSummary).toBe(request.taskSummary);
+    expect(next.agents.filter((a) => a.name === "Newsletter writer")).toHaveLength(1);
+    expect(canRequestSession(agent, NOW)).toBe(false);
+  });
+  it("lets the owner lower the limits of a requested session before approving", () => {
+    loadQPassState(NOW);
+    const request = simulateSessionRequest("agent-newsletter-05", NOW).approvals[0]!;
+    updateApprovalLimits(request.id, { perPaymentLimit: 2, totalBudget: 20, durationDays: 3 }, NOW);
+    const next = resolveApproval(request.id, "approved", NOW + CLI_SIGN_MS);
+    expect(find(next, "agent-newsletter-05")?.session?.totalBudget).toBe(20);
+  });
+  it("a rejected request leaves the agent linked without a session", () => {
+    loadQPassState(NOW);
+    const request = simulateSessionRequest("agent-newsletter-05", NOW).approvals[0]!;
+    const next = resolveApproval(request.id, "rejected", NOW);
+    expect(find(next, "agent-newsletter-05")?.status).toBe("linked");
+    expect(find(next, "agent-newsletter-05")?.session).toBeUndefined();
+  });
+  it("works end to end on a brand-new SignetPass: register, ask, approve", () => {
+    const pass = createQPass({ name: "Fresh" }, NOW);
+    activateQPass(pass.id, NOW);
+    const agent = newest(simulateAgentRegistration(pass.id, NOW));
+    const request = simulateSessionRequest(agent.id, NOW).approvals[0]!;
+    const next = resolveApproval(request.id, "approved", NOW);
+    expect(find(next, agent.id)?.session?.status).toBe("active");
+  });
+});
+
+describe("Create spending session in Trellis", () => {
+  const limits = { perPaymentLimit: 5, totalBudget: 50, durationDays: 7 };
+  const find = (s: ReturnType<typeof loadQPassState>, id: string) =>
+    s.agents.find((a) => a.id === id);
+  it("validates limits, with a 30-day ceiling", () => {
+    expect(
+      validateNewSession({ perPaymentLimit: "5", totalBudget: "50", durationDays: "7" }).values,
+    ).toEqual(limits);
+    expect(
+      validateNewSession({ perPaymentLimit: "5", totalBudget: "50", durationDays: "30" }).values,
+    ).not.toBeNull();
+    const long = validateNewSession({
+      perPaymentLimit: "5",
+      totalBudget: "50",
+      durationDays: "31",
+    });
+    expect(long.values).toBeNull();
+    expect(long.errors.durationDays).toMatch(/1 to 30/);
+    const bad = validateNewSession({ perPaymentLimit: "60", totalBudget: "50", durationDays: "0" });
+    expect(bad.values).toBeNull();
+    expect(bad.errors.perPaymentLimit).toMatch(/exceed/);
+    expect(
+      validateNewSession({ perPaymentLimit: "x", totalBudget: "", durationDays: "1.5" }).values,
+    ).toBeNull();
+  });
+  it("gives a linked agent without a session its session, with no terminal request", () => {
+    loadQPassState(NOW);
+    const before = loadQPassState(NOW).approvals.length;
+    const next = createSpendingSession("agent-newsletter-05", limits, NOW);
+    const session = find(next, "agent-newsletter-05")?.session;
+    expect(session?.status).toBe("active");
+    expect(session?.totalBudget).toBe(50);
+    expect(session?.spent).toBe(0);
+    expect(session?.expiresAt).toBe(NOW + 7 * 86400000);
+    // It needed no terminal request, but it is recorded as an approved entry so History lists it.
+    expect(next.approvals).toHaveLength(before + 1);
+    expect(next.approvals[0]).toMatchObject({
+      agentId: "agent-newsletter-05",
+      status: "approved",
+      source: "trellis",
+      totalBudget: 50,
+    });
+    expect(session?.id).toBe(`sess-${next.approvals[0]!.id}`);
+    expect(pendingRequestFor(next, find(next, "agent-newsletter-05")!, NOW)).toBeUndefined();
+  });
+  it("keeps an optional task summary, trimmed, and refuses an over-long one", () => {
+    loadQPassState(NOW);
+    const next = createSpendingSession("agent-newsletter-05", limits, NOW, "  Buy a cable  ");
+    expect(find(next, "agent-newsletter-05")?.session?.taskSummary).toBe("Buy a cable");
+    expect(next.approvals[0]?.taskSummary).toBe("Buy a cable");
+    window.sessionStorage.clear();
+    loadQPassState(NOW);
+    const count = loadQPassState(NOW).approvals.length;
+    const long = createSpendingSession("agent-newsletter-05", limits, NOW, "x".repeat(141));
+    expect(find(long, "agent-newsletter-05")?.session).toBeUndefined();
+    expect(long.approvals).toHaveLength(count);
+    window.sessionStorage.clear();
+    loadQPassState(NOW);
+    expect(
+      find(createSpendingSession("agent-newsletter-05", limits, NOW), "agent-newsletter-05")
+        ?.session,
+    ).not.toHaveProperty("taskSummary");
+  });
+  it("does not replace a session that is still active, or touch a revoked agent", () => {
+    const state = loadQPassState(NOW);
+    const active = find(state, "agent-checkout-01")?.session;
+    expect(
+      find(createSpendingSession("agent-checkout-01", limits, NOW), "agent-checkout-01")?.session,
+    ).toEqual(active);
+    const scraper = find(
+      createSpendingSession("agent-scraper-04", limits, NOW),
+      "agent-scraper-04",
+    );
+    expect(scraper?.session?.totalBudget).toBe(20);
+  });
+  it("allows a new session once the old one expired", () => {
+    const state = loadQPassState(NOW);
+    const expiry = find(state, "agent-checkout-01")!.session!.expiresAt;
+    const next = createSpendingSession("agent-checkout-01", limits, expiry);
+    expect(find(next, "agent-checkout-01")?.session?.totalBudget).toBe(50);
+  });
+  it("refuses invalid limits and an inactive SignetPass", () => {
+    loadQPassState(NOW);
+    const bad = createSpendingSession(
+      "agent-newsletter-05",
+      { ...limits, perPaymentLimit: 99 },
+      NOW,
+    );
+    expect(find(bad, "agent-newsletter-05")?.session).toBeUndefined();
+    const pass = createQPass({ name: "Fresh" }, NOW);
+    const agent = simulateAgentRegistration(pass.id, NOW).agents.at(-1)!;
+    expect(find(createSpendingSession(agent.id, limits, NOW), agent.id)?.session).toBeUndefined();
+    activateQPass(pass.id, NOW);
+    expect(find(createSpendingSession(agent.id, limits, NOW), agent.id)?.session?.status).toBe(
+      "active",
+    );
+  });
+  it("leaves it to the owner to approve a request the agent already made", () => {
+    loadQPassState(NOW);
+    simulateSessionRequest("agent-newsletter-05", NOW);
+    const next = createSpendingSession("agent-newsletter-05", limits, NOW);
+    expect(find(next, "agent-newsletter-05")?.session).toBeUndefined();
+  });
+});
+
+describe("Reset sample data", () => {
+  it("drops every change and restores the sample SignetPasses, agents and requests", () => {
+    const seeded = loadQPassState(NOW);
+    createQPass({ name: "Extra" }, NOW);
+    createSpendingSession(
+      "agent-newsletter-05",
+      { perPaymentLimit: 5, totalBudget: 50, durationDays: 7 },
+      NOW,
+    );
+    simulateAgentRegistration("qp-shopping", NOW);
+    startRevokeAgent("agent-checkout-01", "confirmed", NOW);
+    const reset = resetQPassState(NOW);
+    expect(reset.passes.map((p) => p.id)).toEqual(seeded.passes.map((p) => p.id));
+    expect(reset.agents).toHaveLength(seeded.agents.length);
+    expect(reset.approvals).toHaveLength(seeded.approvals.length);
+    expect(reset.agents.find((a) => a.id === "agent-newsletter-05")?.session).toBeUndefined();
+    expect(reset.agents.find((a) => a.id === "agent-checkout-01")?.status).toBe("linked");
+    // Persisted too, so a reload keeps the restored data.
+    expect(loadQPassState(NOW).passes).toHaveLength(seeded.passes.length);
+  });
+});
+
+describe("Summary in Edit spending limits", () => {
+  const lowered = { perPaymentLimit: 10, totalBudget: 100, durationDays: 7 };
+  const req = (s: ReturnType<typeof loadQPassState>) => s.approvals.find((r) => r.id === "req-01")!;
+  it("lets the owner edit the summary alone, which the terminal must then re-sign", () => {
+    loadQPassState(NOW);
+    const next = updateApprovalLimits("req-01", lowered, NOW, "  Compare prices for a trip  ");
+    expect(req(next).taskSummary).toBe("Compare prices for a trip");
+    expect(req(next).signAt).toBe(NOW + CLI_SIGN_MS);
+    expect(req(next).totalBudget).toBe(100);
+  });
+  it("does nothing when neither the limits nor the summary changed", () => {
+    const state = loadQPassState(NOW);
+    const same = req(state).taskSummary;
+    const next = updateApprovalLimits("req-01", lowered, NOW, same);
+    expect(req(next).signAt).toBeUndefined();
+    expect(req(next).terminal).toBeUndefined();
+  });
+  it("lets the owner clear the summary, and refuses an over-long one", () => {
+    loadQPassState(NOW);
+    expect(req(updateApprovalLimits("req-01", lowered, NOW, "   ")).taskSummary).toBeUndefined();
+    window.sessionStorage.clear();
+    loadQPassState(NOW);
+    const long = updateApprovalLimits("req-01", lowered, NOW, "x".repeat(141));
+    expect(req(long).taskSummary).toBeTruthy();
+    expect(req(long).signAt).toBeUndefined();
+  });
+  it("keeps the summary when only limits are lowered, and carries it onto the session", () => {
+    loadQPassState(NOW);
+    const before = req(loadQPassState(NOW)).taskSummary;
+    updateApprovalLimits("req-01", { ...lowered, totalBudget: 60 }, NOW);
+    const next = resolveApproval("req-01", "approved", NOW + CLI_SIGN_MS);
+    expect(req(next).taskSummary).toBe(before);
+    expect(next.agents.find((a) => a.id === "agent-req-01")?.session?.taskSummary).toBe(before);
   });
 });

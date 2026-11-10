@@ -1,28 +1,41 @@
 import { useStableToken } from "@/components/wallet-preview-provider";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Clock, Plus, Terminal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RevocationNotice } from "@/components/revoke-agent-dialog";
-import type { RegisteredAgent } from "@/lib/qpass";
+import { canRequestSession, type RegisteredAgent } from "@/lib/qpass";
 
 const formatDate = (at: number) =>
   new Date(at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 
 /**
  * A registered (linked) agent. It has at most one spending session, and may have none yet: only an
- * agent with a session offers View Spending Session. Revoke unregisters the agent.
+ * agent with a session offers View Spending Session. Revoke unregisters the agent. An agent with no
+ * usable session gets a session in one of two ways: the owner creates it here (`onCreateSession`),
+ * or the agent asks from its terminal and the owner approves it in the Spending Sessions tab
+ * (`requested` says such a request is waiting). `onSimulateSession` (preview only) stands in for the
+ * terminal.
  */
 export function AgentCard({
   agent,
   now,
   onRevoke,
+  onCreateSession,
+  onSimulateSession,
+  requested = false,
   index = 0,
   chainId,
 }: {
   agent: RegisteredAgent;
   now: number;
   onRevoke: (id: string) => void;
+  /** Create a session for this agent here, without waiting for a terminal request. */
+  onCreateSession?: (id: string) => void;
+  /** Preview only: pretend the agent's terminal asks for a session. */
+  onSimulateSession?: (id: string) => void;
+  /** A session request from this agent is waiting for approval. */
+  requested?: boolean;
   index?: number;
   /** Blockchain of the agent's SignetPass; the active one when omitted. */
   chainId?: string;
@@ -54,6 +67,9 @@ export function AgentCard({
         Agent ID · {agent.id}
       </p>
       <p className="mt-1 truncate text-xs text-muted-foreground">{agent.client}</p>
+      {agent.vendor && (
+        <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{agent.vendor}</p>
+      )}
       {session && (
         <div className="mt-3">
           <div className="flex justify-between text-[11px] text-muted-foreground">
@@ -73,6 +89,41 @@ export function AgentCard({
         </div>
       )}
       <RevocationNotice agent={agent} />
+      {canRequestSession(agent, now) &&
+        (requested ? (
+          <p
+            role="status"
+            className="mt-3 flex items-center gap-1.5 rounded-xl bg-primary/5 px-3 py-2 text-[11px] text-primary"
+          >
+            <Clock className="h-3.5 w-3.5 shrink-0" />
+            Session requested. Review it in the Spending Sessions tab.
+          </p>
+        ) : (
+          <>
+            {!session && (
+              <p className="mt-3 text-[11px] text-muted-foreground">
+                No spending session yet. Create one here, or the agent can ask for one from its
+                terminal.
+              </p>
+            )}
+            {onCreateSession && (
+              <Button className="mt-2 h-10 w-full" onClick={() => onCreateSession(agent.id)}>
+                <Plus />
+                Create spending session
+              </Button>
+            )}
+            {onSimulateSession && (
+              <Button
+                variant="outline"
+                className="mt-2 h-9 w-full border-dashed text-xs"
+                onClick={() => onSimulateSession(agent.id)}
+              >
+                <Terminal />
+                Preview: agent requests a session
+              </Button>
+            )}
+          </>
+        ))}
       <div className="mt-3 flex items-center gap-2 rounded-full bg-secondary/70 p-1">
         {session && (
           <Button

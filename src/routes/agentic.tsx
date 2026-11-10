@@ -17,6 +17,7 @@ import {
   LogOut,
   ArrowRight,
   ChevronDown,
+  RotateCcw,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
@@ -39,6 +40,7 @@ import { BottomNav } from "@/components/bottom-nav";
 import { AgentCard, RevokedAgentCard } from "@/components/agent-list";
 import { CountUp } from "@/components/count-up";
 import { RevokeAgentDialog } from "@/components/revoke-agent-dialog";
+import { CreateSessionDialog } from "@/components/create-session-dialog";
 import { SpendingLimitsEditor } from "@/components/spending-limits-editor";
 import { useRevocationWatcher } from "@/hooks/use-revocation-watcher";
 import { NetworkSummary } from "@/components/network-picker";
@@ -52,12 +54,17 @@ import {
 import { chainForNetwork, getChain, networkForChain, signetPassFee } from "@/lib/wallet-preview";
 import {
   activateQPass,
+  createSpendingSession,
   endCliSession,
   fillStable,
   loadQPassState,
   renameQPass,
+  resetQPassState,
   isAwaitingCli,
   resolveApproval,
+  pendingRequestFor,
+  simulateAgentRegistration,
+  simulateSessionRequest,
   updateApprovalLimits,
   type ApprovalLimits,
   type QPassState,
@@ -112,6 +119,8 @@ function AgenticPayment() {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [request, setRequest] = useState<ApprovalRequest | null>(null);
+  const [tab, setTab] = useState("approvals");
+  const [sessionAgentId, setSessionAgentId] = useState("");
   useEffect(() => {
     const loaded = loadQPassState();
     setState(loaded);
@@ -135,6 +144,7 @@ function AgenticPayment() {
   useRevocationWatcher(state, setState);
   const activity = state?.activity.filter((a) => a.passId === pass?.id) ?? [];
   const currentRequest = state?.approvals.find((r) => r.id === request?.id);
+  const sessionAgent = state?.agents.find((a) => a.id === sessionAgentId);
   const openAction = (value: Action, id = "") => {
     setError("");
     setTargetId(id);
@@ -150,9 +160,9 @@ function AgenticPayment() {
       toast.error("Unable to copy. Select the identifier manually.");
     }
   };
-  const saveLimits = (values: ApprovalLimits) => {
+  const saveLimits = (values: ApprovalLimits, taskSummary: string) => {
     if (!currentRequest) return;
-    setState(updateApprovalLimits(currentRequest.id, values));
+    setState(updateApprovalLimits(currentRequest.id, values, Date.now(), taskSummary));
     toast.success("Limits saved", {
       description: "Waiting for the terminal to sign the updated request.",
     });
@@ -162,6 +172,47 @@ function AgenticPayment() {
     setState(resolveApproval(currentRequest.id, decision));
     setRequest(null);
     toast.success(decision === "approved" ? "Request approved" : "Request rejected");
+  };
+  const createSession = (limits: ApprovalLimits, taskSummary: string) => {
+    if (!sessionAgent) return;
+    setState(createSpendingSession(sessionAgent.id, limits, Date.now(), taskSummary));
+    setSessionAgentId("");
+    toast.success("Spending session created", {
+      description: `${sessionAgent.name} can now pay up to ${limits.totalBudget} ${stable}. It is listed in Spending Sessions History. Preview only: nothing was sent.`,
+    });
+  };
+  // Preview only: back to the sample SignetPasses, agents and requests, for repeating a test.
+  const resetPreview = () => {
+    const fresh = resetQPassState();
+    setState(fresh);
+    setSelectedId(fresh.passes[0]?.id ?? "");
+    setRequest(null);
+    setSessionAgentId("");
+    setRevokeId("");
+    toast.success("Sample data restored", {
+      description: "SignetPasses, agents and requests are back to how they started.",
+    });
+  };
+  // Preview only. In the real flow the agent registers and asks for sessions from its terminal.
+  const simulateRegister = () => {
+    if (!pass) return;
+    const before = state?.agents.length ?? 0;
+    const next = simulateAgentRegistration(pass.id);
+    setState(next);
+    const added = next.agents.length > before ? next.agents[next.agents.length - 1] : undefined;
+    toast.success(added ? `${added.name} linked` : "Nothing changed", {
+      description: added
+        ? "It has no spending session yet. The agent asks for one from its terminal."
+        : undefined,
+    });
+  };
+  const simulateSession = (agentId: string) => {
+    const agent = state?.agents.find((a) => a.id === agentId);
+    setState(simulateSessionRequest(agentId));
+    setTab("approvals");
+    toast.success("Session requested", {
+      description: `${agent?.name ?? "The agent"} is waiting for your approval.`,
+    });
   };
   const cliLogins = state ? (
     <>
@@ -372,7 +423,7 @@ function AgenticPayment() {
                     Activate SignetPass
                   </Button>
                 )}
-                <Tabs defaultValue="approvals" className="mt-7">
+                <Tabs value={tab} onValueChange={setTab} className="mt-7">
                   <TabsList className="flex h-10 w-full justify-start gap-0.5 overflow-x-auto rounded-full bg-secondary/70 p-[3px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     <TabsTrigger
                       value="approvals"
@@ -420,6 +471,11 @@ function AgenticPayment() {
                               </p>
                             </div>
                           </div>
+                          <p
+                            className={`mt-3 line-clamp-2 text-xs ${r.taskSummary ? "text-muted-foreground" : "italic text-muted-foreground/70"}`}
+                          >
+                            {r.taskSummary ? `“${r.taskSummary}”` : "No summary provided"}
+                          </p>
                           <div className="my-3 flex flex-wrap items-center justify-between gap-2 text-xs">
                             <span className="text-muted-foreground">
                               Requested budget{" "}
@@ -453,11 +509,23 @@ function AgenticPayment() {
                           .map((r) => (
                             <div
                               key={r.id}
-                              className="flex items-center justify-between gap-2 py-2 text-xs"
+                              className="flex items-center justify-between gap-3 py-2 text-xs"
                             >
-                              <span className="truncate">{r.agentName}</span>
-                              <Badge variant="outline" className="capitalize">
-                                {r.status === "pending" ? "Expired" : r.status}
+                              <div className="min-w-0">
+                                <p className="truncate">{r.agentName}</p>
+                                <p className="mt-0.5 truncate text-[10px] text-muted-foreground">
+                                  {r.totalBudget} {stable} ·{" "}
+                                  {r.source === "trellis"
+                                    ? "Created in Trellis"
+                                    : "Terminal request"}
+                                </p>
+                              </div>
+                              <Badge variant="outline" className="shrink-0 capitalize">
+                                {r.source === "trellis"
+                                  ? "Created"
+                                  : r.status === "pending"
+                                    ? "Expired"
+                                    : r.status}
                               </Badge>
                             </div>
                           ))}
@@ -466,6 +534,32 @@ function AgenticPayment() {
                   </TabsContent>
                   <TabsContent value="agents" className="mt-4">
                     <h2 className="mb-3 text-sm font-semibold">Registered agents</h2>
+                    <div className="mb-3 rounded-xl border border-dashed border-border px-3 py-2.5">
+                      <p className="text-[11px] leading-snug text-muted-foreground">
+                        <span className="font-medium text-foreground">Preview only.</span> Agents
+                        register from their terminal with{" "}
+                        <code className="font-mono">signet register agent</code>. There is nothing
+                        to approve: the agent just appears here as Linked.
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-2 w-full border-dashed text-xs"
+                        onClick={simulateRegister}
+                      >
+                        <Terminal />
+                        Preview: agent registers
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="mt-1 w-full text-xs text-muted-foreground"
+                        onClick={resetPreview}
+                      >
+                        <RotateCcw />
+                        Preview: reset sample data
+                      </Button>
+                    </div>
                     {agents.length === 0 ? (
                       <Empty label="No registered agents" />
                     ) : (
@@ -477,6 +571,9 @@ function AgenticPayment() {
                           chainId={chain.id}
                           now={now}
                           onRevoke={(id) => setRevokeId(id)}
+                          onCreateSession={setSessionAgentId}
+                          onSimulateSession={simulateSession}
+                          requested={!!state && !!pendingRequestFor(state, a, now)}
                         />
                       ))
                     )}
@@ -700,6 +797,18 @@ function AgenticPayment() {
           }}
           onSubmitted={setState}
         />
+        <CreateSessionDialog
+          open={sessionAgentId !== ""}
+          onOpenChange={(open) => {
+            if (!open) setSessionAgentId("");
+          }}
+          agentName={sessionAgent?.name ?? "This agent"}
+          agentVendor={sessionAgent?.vendor}
+          passName={pass?.name ?? "this SignetPass"}
+          chainId={chain.id}
+          passActive={pass?.status === "active"}
+          onCreate={createSession}
+        />
         <ReviewRequestDialog
           request={currentRequest ?? null}
           open={request !== null}
@@ -707,6 +816,15 @@ function AgenticPayment() {
           passName={pass?.name ?? "SignetPass"}
           passActive={pass?.status === "active"}
           chainId={chain.id}
+          agentVendor={
+            state?.agents.find((a) =>
+              currentRequest?.agentId
+                ? a.id === currentRequest.agentId
+                : a.passId === currentRequest?.passId &&
+                  a.name === currentRequest?.agentName &&
+                  a.client === currentRequest?.client,
+            )?.vendor
+          }
           onClose={() => setRequest(null)}
           onDecide={decide}
           onSaveLimits={saveLimits}
@@ -718,7 +836,7 @@ function AgenticPayment() {
 function Detail({ label, value, was }: { label: string; value: string; was?: string | undefined }) {
   return (
     <div className="flex justify-between gap-4 border-b border-divider pb-2">
-      <span className="shrink-0 text-muted-foreground">{label}</span>
+      <span className="max-w-[55%] shrink-0 text-muted-foreground">{label}</span>
       <span className="min-w-0 break-words text-right font-medium">
         {was && (
           <span className="mr-1.5 text-xs font-normal text-muted-foreground line-through">
@@ -773,6 +891,7 @@ function ReviewRequestDialog({
   passName,
   passActive,
   chainId,
+  agentVendor,
   onClose,
   onDecide,
   onSaveLimits,
@@ -783,11 +902,13 @@ function ReviewRequestDialog({
   passName: string;
   passActive: boolean;
   chainId: string;
+  /** Who the agent says it is (vendor and model), when known. */
+  agentVendor?: string | undefined;
   onClose: () => void;
   onDecide: (d: "approved" | "rejected") => void;
-  onSaveLimits: (values: ApprovalLimits) => void;
+  onSaveLimits: (values: ApprovalLimits, taskSummary: string) => void;
 }) {
-  const { stable } = useStableToken(chainId);
+  const { stable, chainName } = useStableToken(chainId);
   const [verifying, setVerifying] = useState(false);
   const [editing, setEditing] = useState(false);
   useEffect(() => {
@@ -804,6 +925,14 @@ function ReviewRequestDialog({
   const ss = Math.floor((left % 60000) / 1000)
     .toString()
     .padStart(2, "0");
+  // The session ends this many days after it is approved, so the date moves with the edited limits.
+  const endsOn = request
+    ? new Date(now + request.durationDays * 86400000).toLocaleDateString(undefined, {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : "";
   const approve = () => {
     setVerifying(true);
     setTimeout(() => {
@@ -824,7 +953,7 @@ function ReviewRequestDialog({
             <Bot className="h-7 w-7" />
           </span>
           <DialogTitle>Spending Session Approval</DialogTitle>
-          <DialogDescription className="flex items-center justify-center gap-1.5">
+          <DialogDescription className="text-xs flex items-center justify-center gap-1.5">
             <Terminal className="h-3.5 w-3.5" />
             {request ? `${request.agentName} · ${request.client}` : null}
           </DialogDescription>
@@ -832,14 +961,15 @@ function ReviewRequestDialog({
         {request && editing && (
           <SpendingLimitsEditor
             chainId={chainId}
-            key={`${request.perPaymentLimit}-${request.totalBudget}-${request.durationDays}`}
+            key={`${request.perPaymentLimit}-${request.totalBudget}-${request.durationDays}-${request.taskSummary ?? ""}`}
             current={{
               perPaymentLimit: request.perPaymentLimit,
               totalBudget: request.totalBudget,
               durationDays: request.durationDays,
             }}
-            onSave={(values) => {
-              onSaveLimits(values);
+            currentSummary={request.taskSummary ?? ""}
+            onSave={(values, taskSummary) => {
+              onSaveLimits(values, taskSummary);
               setEditing(false);
             }}
             onDiscard={() => setEditing(false)}
@@ -849,7 +979,7 @@ function ReviewRequestDialog({
           <>
             <div className="rounded-2xl bg-primary/5 p-4 text-center">
               <p className="text-xs text-muted-foreground">Requested total budget</p>
-              <p className="font-display text-3xl font-semibold">
+              <p className="font-display text-2xl font-semibold">
                 {request.totalBudget}{" "}
                 <span className="text-base text-muted-foreground">{stable}</span>
               </p>
@@ -860,7 +990,7 @@ function ReviewRequestDialog({
               )}
               <p className="mt-1 text-xs text-muted-foreground">from {passName}</p>
             </div>
-            <div className="space-y-2.5 text-sm">
+            <div className="space-y-2.5 text-xs">
               <Detail
                 label="Per-payment limit"
                 value={`${request.perPaymentLimit} ${stable}`}
@@ -878,6 +1008,19 @@ function ReviewRequestDialog({
                     ? `${terminal.durationDays} days`
                     : undefined
                 }
+              />
+              <Detail label="Session ends" value={`${endsOn} if approved now`} />
+              {agentVendor && <Detail label="Agent" value={agentVendor} />}
+              <Detail label="Blockchain" value={chainName} />
+              {request.sessionKey && (
+                <Detail
+                  label="Session key"
+                  value={`${request.sessionKey.slice(0, 8)}…${request.sessionKey.slice(-4)}`}
+                />
+              )}
+              <Detail
+                label="What the agent says this is for"
+                value={request.taskSummary || "No summary provided"}
               />
             </div>
             {terminal && (
@@ -918,7 +1061,9 @@ function ReviewRequestDialog({
             )}
             <p className="text-center text-[11px] text-muted-foreground">
               Limits start from the terminal request and can only be lowered here. The server checks
-              any change before you can approve. This preview cannot move funds.
+              any change before you can approve. One approval registers this session's on-chain
+              identity and installs the session. The agent keeps the session key; Trellis never sees
+              it. This preview cannot move funds.
             </p>
             <div className="flex gap-3">
               <Button

@@ -4,7 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useStableToken } from "@/components/wallet-preview-provider";
-import { validateApprovalLimits, type ApprovalLimits, type LimitField } from "@/lib/qpass";
+import {
+  MAX_TASK_SUMMARY,
+  validateApprovalLimits,
+  type ApprovalLimits,
+  type LimitField,
+} from "@/lib/qpass";
 
 /** How long the illustrative server check takes. */
 export const SERVER_CHECK_MS = 900;
@@ -27,13 +32,16 @@ const FIELDS: {
  */
 export function SpendingLimitsEditor({
   current,
+  currentSummary = "",
   onSave,
   onDiscard,
   chainId,
 }: {
   current: ApprovalLimits;
+  /** The summary the request came with (what the session is for); empty when it had none. */
+  currentSummary?: string;
   /** Called only after the previewed server check accepted the values. */
-  onSave: (values: ApprovalLimits) => void;
+  onSave: (values: ApprovalLimits, taskSummary: string) => void;
   onDiscard: () => void;
   /** Blockchain of the SignetPass; the active one when omitted. */
   chainId?: string;
@@ -44,6 +52,7 @@ export function SpendingLimitsEditor({
     totalBudget: String(current.totalBudget),
     durationDays: String(current.durationDays),
   });
+  const [summary, setSummary] = useState(currentSummary);
   const [errors, setErrors] = useState<Partial<Record<LimitField, string>>>({});
   const [unchanged, setUnchanged] = useState(false);
   const [checking, setChecking] = useState(false);
@@ -58,7 +67,8 @@ export function SpendingLimitsEditor({
     if (
       values.perPaymentLimit === current.perPaymentLimit &&
       values.totalBudget === current.totalBudget &&
-      values.durationDays === current.durationDays
+      values.durationDays === current.durationDays &&
+      summary.trim() === currentSummary.trim()
     ) {
       setUnchanged(true);
       return;
@@ -67,7 +77,7 @@ export function SpendingLimitsEditor({
     setTimeout(() => {
       setChecking(false);
       if (outcome === "fails") setServerError(true);
-      else onSave(values);
+      else onSave(values, summary.trim());
     }, SERVER_CHECK_MS);
   };
   return (
@@ -75,7 +85,7 @@ export function SpendingLimitsEditor({
       <div className="text-center">
         <p className="text-sm font-semibold">Edit spending limits</p>
         <p className="mt-0.5 text-[11px] text-muted-foreground">
-          You can only lower these. The server checks them before you can approve.
+          You can only lower the limits. The server checks them before you can approve.
         </p>
       </div>
       <div className="grid grid-cols-2 gap-3">
@@ -112,9 +122,26 @@ export function SpendingLimitsEditor({
           );
         })}
       </div>
+      <div>
+        <label htmlFor="limit-taskSummary" className="mb-1 block text-xs text-muted-foreground">
+          What is it for? (optional)
+        </label>
+        <Input
+          id="limit-taskSummary"
+          value={summary}
+          maxLength={MAX_TASK_SUMMARY}
+          disabled={checking}
+          placeholder="e.g. Buy a USB-C cable"
+          onChange={(e) => {
+            setSummary(e.target.value);
+            setUnchanged(false);
+            setServerError(false);
+          }}
+        />
+      </div>
       {unchanged && (
         <p role="status" className="text-[11px] text-muted-foreground">
-          No changes to save. Lower a limit, or choose Discard edits to go back.
+          No changes to save. Lower a limit or edit the summary, or choose Discard edits to go back.
         </p>
       )}
       {serverError && (

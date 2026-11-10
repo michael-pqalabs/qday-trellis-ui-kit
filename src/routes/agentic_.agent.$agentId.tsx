@@ -1,7 +1,7 @@
 import { feeTokenFor } from "@/lib/wallet-preview";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Ban, Bot, Clock, Copy, KeyRound, Terminal, Wallet } from "lucide-react";
+import { ArrowLeft, Ban, Bot, Clock, Copy, KeyRound, Plus, Terminal, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +18,16 @@ import {
 import { QDayEntry } from "@/components/qday-entry";
 import { RevocationNotice, RevokeAgentDialog } from "@/components/revoke-agent-dialog";
 import { useRevocationWatcher } from "@/hooks/use-revocation-watcher";
-import { loadQPassState, revokeSession, type QPassState } from "@/lib/qpass";
+import {
+  canRequestSession,
+  createSpendingSession,
+  loadQPassState,
+  pendingRequestFor,
+  revokeSession,
+  type ApprovalLimits,
+  type QPassState,
+} from "@/lib/qpass";
+import { CreateSessionDialog } from "@/components/create-session-dialog";
 
 export const Route = createFileRoute("/agentic_/agent/$agentId")({
   head: () => ({
@@ -61,6 +70,7 @@ function AgentDetail() {
   const [now, setNow] = useState(0);
   const [confirm, setConfirm] = useState<Confirm>(null);
   const [revokeOpen, setRevokeOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
   useEffect(() => {
     setState(loadQPassState());
     setNow(Date.now());
@@ -99,6 +109,14 @@ function AgentDetail() {
     void navigator.clipboard?.writeText(v);
     toast.success("Copied");
   };
+  const createSession = (limits: ApprovalLimits, taskSummary: string) => {
+    setState(createSpendingSession(agent.id, limits, Date.now(), taskSummary));
+    setCreateOpen(false);
+    toast.success("Spending session created", {
+      description: `${agent.name} can now pay up to ${limits.totalBudget} ${stable}. It is listed in Spending Sessions History. Preview only: nothing was sent.`,
+    });
+  };
+  const requested = !!pendingRequestFor(state, agent, now);
   const doConfirm = () => {
     if (confirm === "session") {
       setState(revokeSession(agent.id));
@@ -178,6 +196,17 @@ function AgentDetail() {
             No spending session has been granted.
           </p>
         )}
+        {canRequestSession(agent, now) &&
+          (requested ? (
+            <p className="mt-4 rounded-xl bg-primary/5 px-3 py-2 text-xs text-primary">
+              Session requested. Review it in the Spending Sessions tab.
+            </p>
+          ) : (
+            <Button className="mt-4 h-11 w-full" onClick={() => setCreateOpen(true)}>
+              <Plus />
+              Create spending session
+            </Button>
+          ))}
       </section>
 
       {s && (
@@ -195,11 +224,13 @@ function AgentDetail() {
               </span>
             }
           />
+          <Row label="Task" value={s.taskSummary ?? "No summary provided"} />
           <Row label="Started" value={new Date(s.startedAt).toLocaleDateString()} />
           <Row
             label="Session key"
             value={<CopyVal v={s.id} onCopy={copy} icon={<KeyRound className="h-3 w-3" />} />}
           />
+          {agent.vendor && <Row label="Agent" value={agent.vendor} />}
           <Row label="Agent ID" value={<CopyVal v={agent.id} onCopy={copy} />} />
           <Row
             label="Paid from"
@@ -285,7 +316,7 @@ function AgentDetail() {
           <AlertDialogHeader>
             <AlertDialogTitle>End spending session?</AlertDialogTitle>
             <AlertDialogDescription>
-              {`${agent.name} stays linked but can't pay until a new session is approved from the terminal.`}
+              {`${agent.name} stays linked but can't pay until a new session is created here or approved from the terminal.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -299,6 +330,16 @@ function AgentDetail() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <CreateSessionDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        agentName={agent.name}
+        agentVendor={agent.vendor}
+        passName={pass?.name ?? "this SignetPass"}
+        chainId={pass?.chainId}
+        passActive={pass?.status === "active"}
+        onCreate={createSession}
+      />
       <RevokeAgentDialog
         agent={agent}
         passName={pass?.name ?? "this SignetPass"}

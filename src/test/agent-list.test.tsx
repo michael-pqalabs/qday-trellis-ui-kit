@@ -62,6 +62,57 @@ describe("Agents tab cards", () => {
     expect(screen.getByText("Spent 45 / 150 USDC")).toBeTruthy();
   });
 
+  it("offers Create spending session and the preview request only for agents without a usable session", async () => {
+    const onCreate = vi.fn();
+    const onSimulate = vi.fn();
+    const props = {
+      now: NOW,
+      onRevoke: () => {},
+      onCreateSession: onCreate,
+      onSimulateSession: onSimulate,
+    };
+    await show(() => (
+      <>
+        <AgentCard agent={{ ...base, session }} {...props} />
+        <AgentCard agent={{ ...base, id: "agent-news-05", name: "Newsletter writer" }} {...props} />
+      </>
+    ));
+    const create = await screen.findAllByRole("button", { name: /Create spending session/ });
+    expect(create).toHaveLength(1);
+    fireEvent.click(create[0]!);
+    expect(onCreate).toHaveBeenCalledWith("agent-news-05");
+    const preview = screen.getAllByRole("button", { name: /agent requests a session/ });
+    expect(preview).toHaveLength(1);
+    fireEvent.click(preview[0]!);
+    expect(onSimulate).toHaveBeenCalledWith("agent-news-05");
+  });
+
+  it("points to Spending Sessions while a request is waiting", async () => {
+    await show(() => (
+      <AgentCard
+        agent={base}
+        now={NOW}
+        onRevoke={() => {}}
+        onSimulateSession={() => {}}
+        requested
+      />
+    ));
+    expect(await screen.findByText(/Review it in the Spending Sessions tab/)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /agent requests a session/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Create spending session/ })).toBeNull();
+  });
+
+  it("shows who the agent says it is", async () => {
+    await show(() => (
+      <AgentCard
+        agent={{ ...base, vendor: "Claude Code · claude-sonnet-5-5" }}
+        now={NOW}
+        onRevoke={() => {}}
+      />
+    ));
+    expect(await screen.findByText("Claude Code · claude-sonnet-5-5")).toBeTruthy();
+  });
+
   it("calls onRevoke with the agent id", async () => {
     const onRevoke = vi.fn();
     await show(() => <AgentCard agent={base} now={NOW} onRevoke={onRevoke} />);

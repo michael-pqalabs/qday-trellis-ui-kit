@@ -17,6 +17,8 @@ export interface SpendingSession {
   startedAt: number;
   expiresAt: number;
   status: "active" | "revoked";
+  /** What the agent said the session was for, copied from the approved request. */
+  taskSummary?: string;
 }
 /** How a previewed revocation ends: confirmed on-chain, or not confirmed. */
 export type RevokeOutcome = "confirmed" | "failed";
@@ -27,6 +29,8 @@ export interface RegisteredAgent {
   passId: string;
   name: string;
   client: string;
+  /** Who the agent says it is (vendor and model). Self-declared and display-only, as in the CLI. */
+  vendor?: string;
   /** `revoking` = revocation submitted, awaiting on-chain confirmation; access is still live. */
   status: "linked" | "revoking" | "revoked";
   linkedAt?: number;
@@ -42,8 +46,19 @@ export interface RegisteredAgent {
 export interface ApprovalRequest {
   id: string;
   passId: string;
+  /** The registered agent asking, when known. Older sample requests match by name and client. */
+  agentId?: string;
   agentName: string;
   client: string;
+  /** What the agent says the session is for (`--task-summary`); the owner reads it before approving. */
+  taskSummary?: string;
+  /** Address of the session key the agent generated and keeps; only the address is ever sent. */
+  sessionKey?: string;
+  /**
+   * `trellis` = the owner created this session in the app, so it is recorded here already approved
+   * (the history lists both ways in one place). Absent = the agent asked from its terminal.
+   */
+  source?: "trellis";
   perPaymentLimit: number;
   totalBudget: number;
   durationDays: number;
@@ -90,7 +105,7 @@ export const STABLE_PLACEHOLDER = "{stable}";
 export const fillStable = (text: string, stable: string) =>
   text.replaceAll(STABLE_PLACEHOLDER, stable);
 
-const KEY = "trellis-qpass-v17";
+const KEY = "trellis-qpass-v19";
 const SAMPLE_AGENTS = [
   "Price watcher",
   "Invoice payer",
@@ -125,6 +140,9 @@ const SAMPLE_STATUSES: ApprovalRequest["status"][] = [
   "pending",
   "expired",
 ];
+/** A stable illustrative session-key address for sample data; not a real key. */
+const sampleKey = (n: number) =>
+  `0x${(n * 7919 + 4099).toString(16).padStart(4, "0").repeat(10).slice(0, 40)}`;
 /** Sample terminal requests for layout testing; not real agent traffic. */
 function extraSampleRequests(now: number): ApprovalRequest[] {
   return SAMPLE_AGENTS.map((agentName, i) => {
@@ -134,6 +152,8 @@ function extraSampleRequests(now: number): ApprovalRequest[] {
       id: `req-s${i + 1}`,
       passId: i % 4 === 3 ? "qp-research" : "qp-shopping",
       agentName,
+      taskSummary: `${agentName}: sample task for layout review`,
+      sessionKey: sampleKey(i + 10),
       client: `signet-cli · ${SAMPLE_HOSTS[i % SAMPLE_HOSTS.length]!}`,
       perPaymentLimit: [1, 3, 5, 8, 12, 20, 25, 50][i % 8]!,
       totalBudget: [10, 25, 40, 75, 120, 200, 300, 500][i % 8]!,
@@ -175,6 +195,7 @@ export function seedQPassState(now: number): QPassState {
         id: "agent-checkout-01",
         passId: "qp-shopping",
         name: "Checkout assistant",
+        vendor: "Claude Code · claude-sonnet-5-5",
         client: "signet-cli",
         status: "linked",
         linkedAt: now - 5 * 3600000,
@@ -192,6 +213,7 @@ export function seedQPassState(now: number): QPassState {
         id: "agent-travel-02",
         passId: "qp-shopping",
         name: "Travel booker",
+        vendor: "Codex · gpt-5.1",
         client: "signet-cli · ubuntu-dev",
         status: "linked",
         linkedAt: now - 3 * 86400000,
@@ -209,6 +231,7 @@ export function seedQPassState(now: number): QPassState {
         id: "agent-grocery-03",
         passId: "qp-shopping",
         name: "Grocery bot",
+        vendor: "Claude Code · claude-sonnet-5-5",
         client: "signet-cli · macbook-pro.local",
         status: "linked",
         linkedAt: now - 6 * 86400000,
@@ -227,6 +250,7 @@ export function seedQPassState(now: number): QPassState {
         id: "agent-newsletter-05",
         passId: "qp-shopping",
         name: "Newsletter writer",
+        vendor: "Claude Code · claude-opus-5-5",
         client: "signet-cli · imac-studio",
         status: "linked",
         linkedAt: now - 3 * 3600000,
@@ -235,6 +259,7 @@ export function seedQPassState(now: number): QPassState {
         id: "agent-scraper-04",
         passId: "qp-shopping",
         name: "Data scraper",
+        vendor: "Codex · gpt-5.1",
         client: "signet-cli · vps-sg-1",
         status: "revoked",
         linkedAt: now - 9 * 86400000,
@@ -254,6 +279,8 @@ export function seedQPassState(now: number): QPassState {
       {
         id: "req-01",
         passId: "qp-shopping",
+        sessionKey: sampleKey(1),
+        taskSummary: "Research flight and hotel prices for a December trip",
         agentName: "Research assistant",
         client: "signet-cli · macbook-pro.local",
         perPaymentLimit: 10,
@@ -265,6 +292,8 @@ export function seedQPassState(now: number): QPassState {
       {
         id: "req-02",
         passId: "qp-shopping",
+        sessionKey: sampleKey(2),
+        taskSummary: "Book flights and a hotel for the Tokyo trip",
         agentName: "Travel booker",
         client: "signet-cli · ubuntu-dev",
         perPaymentLimit: 40,
@@ -276,6 +305,8 @@ export function seedQPassState(now: number): QPassState {
       {
         id: "req-03",
         passId: "qp-shopping",
+        sessionKey: sampleKey(3),
+        taskSummary: "Order this week's groceries from the usual shop",
         agentName: "Grocery bot",
         client: "signet-cli · macbook-pro.local",
         perPaymentLimit: 5,
@@ -287,6 +318,7 @@ export function seedQPassState(now: number): QPassState {
       {
         id: "req-04",
         passId: "qp-shopping",
+        taskSummary: "Scrape public product pages for price comparison",
         agentName: "Data scraper",
         client: "signet-cli · vps-sg-1",
         perPaymentLimit: 2,
@@ -298,6 +330,7 @@ export function seedQPassState(now: number): QPassState {
       {
         id: "req-05",
         passId: "qp-shopping",
+        taskSummary: "Check out the cart in the QDay shop",
         agentName: "Checkout assistant",
         client: "signet-cli",
         perPaymentLimit: 15,
@@ -400,6 +433,17 @@ export function loadQPassState(now = Date.now()): QPassState {
     }
   } catch {
     /* SSR or blocked storage */
+  }
+  const state = seedQPassState(now);
+  saveQPassState(state);
+  return state;
+}
+/** Preview helper: drops every change made in this session and goes back to the sample data. */
+export function resetQPassState(now = Date.now()): QPassState {
+  try {
+    window.sessionStorage.removeItem(KEY);
+  } catch {
+    /* Preview storage unavailable */
   }
   const state = seedQPassState(now);
   saveQPassState(state);
@@ -512,14 +556,19 @@ export function updateApprovalLimits(
   id: string,
   values: ApprovalLimits,
   now = Date.now(),
+  taskSummary?: string,
 ): QPassState {
   return update((state) => {
     const request = state.approvals.find((r) => r.id === id);
     if (!request || request.status !== "pending" || request.expiresAt <= now) return;
+    const summary = taskSummary?.trim();
+    if (summary !== undefined && summary.length > MAX_TASK_SUMMARY) return;
+    const summaryChanged = summary !== undefined && summary !== (request.taskSummary ?? "");
     const changed =
       values.perPaymentLimit !== request.perPaymentLimit ||
       values.totalBudget !== request.totalBudget ||
-      values.durationDays !== request.durationDays;
+      values.durationDays !== request.durationDays ||
+      summaryChanged;
     if (!changed) return;
     request.terminal ??= {
       perPaymentLimit: request.perPaymentLimit,
@@ -529,7 +578,198 @@ export function updateApprovalLimits(
     request.perPaymentLimit = values.perPaymentLimit;
     request.totalBudget = values.totalBudget;
     request.durationDays = values.durationDays;
+    if (summaryChanged) {
+      if (summary) request.taskSummary = summary;
+      else delete request.taskSummary;
+    }
     request.signAt = now + CLI_SIGN_MS;
+  }, now);
+}
+/** Longest task summary kept, so one line cannot swamp the approval screen. */
+export const MAX_TASK_SUMMARY = 140;
+/** The wallet service refuses a session that lasts longer than this (`MAX_EXPIRES_IN_SECONDS` in the CLI). */
+export const MAX_SESSION_DAYS = 30;
+/** True when the agent has a session that is still active and not expired. */
+export function hasUsableSession(agent: RegisteredAgent, now: number): boolean {
+  const session = agent.session;
+  return !!session && session.status === "active" && session.expiresAt > now;
+}
+/**
+ * A linked agent can open a new session only when it has none that is still usable: an agent has at
+ * most one active session, and ending or revoking one frees it to open another.
+ */
+export function canRequestSession(agent: RegisteredAgent, now: number): boolean {
+  return agent.status === "linked" && !hasUsableSession(agent, now);
+}
+const AMOUNT_RE = /^\d{1,9}(?:\.\d{1,6})?$/;
+const WHOLE_RE = /^\d{1,5}$/;
+/**
+ * Checks the limits typed into "Create spending session". Unlike a terminal request there is nothing
+ * to lower from: amounts must be positive with up to 6 decimals, the per-payment limit cannot exceed
+ * the total budget, and the duration is a whole number of days, at most `MAX_SESSION_DAYS` (the
+ * wallet service's ceiling). The real check runs on the server; this is a preview.
+ */
+export function validateNewSession(input: {
+  perPaymentLimit: string;
+  totalBudget: string;
+  durationDays: string;
+}): { values: ApprovalLimits | null; errors: Partial<Record<LimitField, string>> } {
+  const errors: Partial<Record<LimitField, string>> = {};
+  const amount = (raw: string, field: "perPaymentLimit" | "totalBudget") => {
+    const text = raw.trim();
+    if (!AMOUNT_RE.test(text) || Number(text) <= 0) {
+      errors[field] = "Enter an amount above 0, with up to 6 decimals.";
+      return 0;
+    }
+    return Number(text);
+  };
+  const per = amount(input.perPaymentLimit, "perPaymentLimit");
+  const total = amount(input.totalBudget, "totalBudget");
+  if (!errors.perPaymentLimit && !errors.totalBudget && per > total)
+    errors.perPaymentLimit = "Per-payment limit can't exceed the total budget.";
+  const daysText = input.durationDays.trim();
+  const days = Number(daysText);
+  if (!WHOLE_RE.test(daysText) || days < 1 || days > MAX_SESSION_DAYS)
+    errors.durationDays = `Enter a whole number of days, from 1 to ${MAX_SESSION_DAYS}.`;
+  if (Object.keys(errors).length) return { values: null, errors };
+  return { values: { perPaymentLimit: per, totalBudget: total, durationDays: days }, errors };
+}
+/** A request from the terminal for this agent that the user can still approve. */
+export function pendingRequestFor(
+  state: QPassState,
+  agent: RegisteredAgent,
+  now: number,
+): ApprovalRequest | undefined {
+  return state.approvals.find(
+    (r) =>
+      r.status === "pending" &&
+      r.expiresAt > now &&
+      r.passId === agent.passId &&
+      (r.agentId
+        ? r.agentId === agent.id
+        : r.agentName === agent.name && r.client === agent.client),
+  );
+}
+/**
+ * Creates a spending session for a registered agent from Trellis, as an alternative to approving one
+ * the agent asked for. The SignetPass must be active, the agent linked without a usable session
+ * (an agent has one at a time) and with no request of its own waiting: approve that one instead.
+ * Nothing is sent or charged.
+ */
+export function createSpendingSession(
+  agentId: string,
+  limits: ApprovalLimits,
+  now = Date.now(),
+  taskSummary?: string,
+): QPassState {
+  return update((state) => {
+    const agent = state.agents.find((a) => a.id === agentId);
+    if ((taskSummary?.trim().length ?? 0) > MAX_TASK_SUMMARY) return;
+    if (!agent || !canRequestSession(agent, now) || pendingRequestFor(state, agent, now)) return;
+    if (state.passes.find((p) => p.id === agent.passId)?.status !== "active") return;
+    const valid = validateNewSession({
+      perPaymentLimit: String(limits.perPaymentLimit),
+      totalBudget: String(limits.totalBudget),
+      durationDays: String(limits.durationDays),
+    });
+    if (!valid.values) return;
+    const requestId = `req-${crypto.randomUUID().slice(0, 8)}`;
+    const summary = taskSummary?.trim();
+    // Recorded as an already approved entry, so Spending Sessions History lists it with the rest.
+    state.approvals.unshift({
+      id: requestId,
+      passId: agent.passId,
+      agentId: agent.id,
+      agentName: agent.name,
+      client: agent.client,
+      perPaymentLimit: limits.perPaymentLimit,
+      totalBudget: limits.totalBudget,
+      durationDays: limits.durationDays,
+      expiresAt: now,
+      status: "approved",
+      source: "trellis",
+      ...(summary ? { taskSummary: summary } : {}),
+    });
+    agent.session = {
+      id: `sess-${requestId}`,
+      perPaymentLimit: limits.perPaymentLimit,
+      totalBudget: limits.totalBudget,
+      spent: 0,
+      startedAt: now,
+      expiresAt: now + limits.durationDays * 86400000,
+      status: "active",
+      ...(taskSummary?.trim() ? { taskSummary: taskSummary.trim() } : {}),
+    };
+    log(
+      state,
+      agent.passId,
+      `Created ${limits.totalBudget} ${STABLE_PLACEHOLDER} spending session for ${agent.name}`,
+      "approve",
+      now,
+    );
+  }, now);
+}
+/** Sample agents the terminal can register in the preview (`signet register agent`). */
+const SIMULATED_AGENTS = [
+  { name: "Meal planner", vendor: "Claude Code · claude-sonnet-5-5", host: "macbook-pro.local" },
+  { name: "Receipt scanner", vendor: "Codex · gpt-5.1", host: "thinkpad-x1" },
+  { name: "Support bot", vendor: "Claude Code · claude-opus-5-5", host: "ubuntu-dev" },
+  { name: "Price tracker", vendor: "Codex · gpt-5.1", host: "raspberry-pi" },
+];
+const SIMULATED_TASKS = [
+  "Buy a USB-C cable from a QDay shop",
+  "Pay for API calls while researching flights",
+  "Order groceries from the usual shop",
+  "Renew the project's domain name",
+];
+/**
+ * Preview stand-in for `signet register agent --signetpass <id>` run in a terminal. In the real
+ * flow the link is a plain record with nothing to approve: the agent simply shows up as Linked,
+ * with no spending session yet. Nothing is sent.
+ */
+export function simulateAgentRegistration(passId: string, now = Date.now()): QPassState {
+  return update((state) => {
+    if (!state.passes.some((p) => p.id === passId)) return;
+    const taken = state.agents.filter((a) => a.passId === passId).length;
+    const sample = SIMULATED_AGENTS[taken % SIMULATED_AGENTS.length]!;
+    const id = `agent-${crypto.randomUUID().slice(0, 8)}`;
+    state.agents.push({
+      id,
+      passId,
+      name: sample.name,
+      client: `signet-cli · ${sample.host}`,
+      vendor: sample.vendor,
+      status: "linked",
+      linkedAt: now,
+    });
+    log(state, passId, `${sample.name} linked`, "approve", now);
+  }, now);
+}
+/**
+ * Preview stand-in for `signet session --signetpass <id> --per-tx --total --expires-in --task-summary`.
+ * The agent (never Trellis) asks for a session, and the owner approves it, and may lower its caps,
+ * from the Spending Sessions tab. Only a linked agent without a usable session, and with no request
+ * waiting, can ask. Nothing is sent.
+ */
+export function simulateSessionRequest(agentId: string, now = Date.now()): QPassState {
+  return update((state) => {
+    const agent = state.agents.find((a) => a.id === agentId);
+    if (!agent || !canRequestSession(agent, now) || pendingRequestFor(state, agent, now)) return;
+    const n = state.approvals.length;
+    state.approvals.unshift({
+      id: `req-${crypto.randomUUID().slice(0, 8)}`,
+      passId: agent.passId,
+      agentId: agent.id,
+      agentName: agent.name,
+      client: agent.client,
+      perPaymentLimit: 5,
+      totalBudget: 50,
+      durationDays: 7,
+      taskSummary: SIMULATED_TASKS[n % SIMULATED_TASKS.length]!,
+      sessionKey: randomAddress(),
+      expiresAt: now + 15 * 60000,
+      status: "pending",
+    });
   }, now);
 }
 export function resolveApproval(
@@ -548,19 +788,8 @@ export function resolveApproval(
     if (decision === "approved" && pass?.status !== "active") return;
     if (decision === "approved" && isAwaitingCli(request, now)) return;
     request.status = decision;
-    // An agent has only one spending session: approving a new one replaces its current session.
-    const existing =
-      decision === "approved"
-        ? state.agents.find(
-            (a) =>
-              a.status !== "revoked" &&
-              a.passId === request.passId &&
-              a.name === request.agentName &&
-              a.client === request.client,
-          )
-        : undefined;
-    if (existing)
-      existing.session = {
+    if (decision === "approved") {
+      const session: SpendingSession = {
         id: `sess-${request.id}`,
         perPaymentLimit: request.perPaymentLimit,
         totalBudget: request.totalBudget,
@@ -568,25 +797,30 @@ export function resolveApproval(
         startedAt: now,
         expiresAt: now + request.durationDays * 86400000,
         status: "active",
+        ...(request.taskSummary ? { taskSummary: request.taskSummary } : {}),
       };
-    else if (decision === "approved")
-      state.agents.push({
-        id: `agent-${request.id}`,
-        passId: request.passId,
-        name: request.agentName,
-        client: request.client,
-        status: "linked",
-        linkedAt: now,
-        session: {
-          id: `sess-${request.id}`,
-          perPaymentLimit: request.perPaymentLimit,
-          totalBudget: request.totalBudget,
-          spent: 0,
-          startedAt: now,
-          expiresAt: now + request.durationDays * 86400000,
-          status: "active",
-        },
-      });
+      // An agent has only one spending session: approving a new one replaces its current session.
+      const existing = state.agents.find(
+        (a) =>
+          a.status !== "revoked" &&
+          a.passId === request.passId &&
+          (request.agentId
+            ? a.id === request.agentId
+            : a.name === request.agentName && a.client === request.client),
+      );
+      if (existing) existing.session = session;
+      else
+        // Older sample requests name an agent that was never registered: approving still links it.
+        state.agents.push({
+          id: `agent-${request.id}`,
+          passId: request.passId,
+          name: request.agentName,
+          client: request.client,
+          status: "linked",
+          linkedAt: now,
+          session,
+        });
+    }
     log(
       state,
       request.passId,
