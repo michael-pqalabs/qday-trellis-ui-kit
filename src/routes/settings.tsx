@@ -77,7 +77,7 @@ function Row({
 }: {
   icon: typeof Shield;
   label: string;
-  detail?: string;
+  detail?: ReactNode;
   right?: ReactNode;
   onClick?: () => void;
   href?: string;
@@ -127,6 +127,7 @@ function Settings() {
   const { theme, setTheme } = useTheme();
   const { state, update } = useQDayPreview();
   const [biometric, setBiometric] = useState(true);
+  const [biometricType, setBiometricType] = useState<"touch" | "face">("touch");
   const [autoLock, setAutoLock] = useState(true);
   const [resourcesOpen, setResourcesOpen] = useState(false);
 
@@ -153,7 +154,39 @@ function Settings() {
           <Row
             icon={Fingerprint}
             label="Biometric unlock"
-            detail="Passkey · Touch ID or Face ID"
+            detail={
+              biometric ? (
+                <span
+                  role="radiogroup"
+                  aria-label="Biometric method"
+                  className="mt-2 flex w-fit gap-1 rounded-full bg-muted p-0.5"
+                >
+                  {(
+                    [
+                      ["touch", "Touch ID"],
+                      ["face", "Face ID"],
+                    ] as const
+                  ).map(([id, label]) => (
+                    <button
+                      key={id}
+                      type="button"
+                      role="radio"
+                      aria-checked={biometricType === id}
+                      onClick={() => setBiometricType(id)}
+                      className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                        biometricType === id
+                          ? "bg-card text-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </span>
+              ) : (
+                "Passkey"
+              )
+            }
             right={
               <Switch
                 checked={biometric}
