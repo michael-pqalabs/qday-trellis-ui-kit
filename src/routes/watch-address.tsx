@@ -5,7 +5,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { shortAddress, walletTokens } from "@/lib/wallet-preview";
+import { useWalletPreview } from "@/components/wallet-preview-provider";
+import { describeNetwork, shortAddress, tokensForNetwork } from "@/lib/wallet-preview";
 import { cn } from "@/lib/utils";
 
 const ADDRESS = /^0x[0-9a-fA-F]{40}$/;
@@ -32,6 +33,7 @@ export const Route = createFileRoute("/watch-address")({
 });
 
 function WatchAddressPage() {
+  const { networkId } = useWalletPreview();
   const [input, setInput] = useState("");
   const [error, setError] = useState("");
   const [watched, setWatched] = useState<string | null>(null);
@@ -124,7 +126,7 @@ function WatchAddressPage() {
                 className="mt-4 flex items-center gap-2 text-xs text-muted-foreground"
               >
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Reading from Aevum…
+                Reading from {describeNetwork(networkId).network?.name}…
               </p>
             ) : (
               <>
@@ -135,7 +137,7 @@ function WatchAddressPage() {
                   </p>
                 )}
                 <ul className="mt-3 divide-y divide-divider">
-                  {walletTokens.map((t) => (
+                  {tokensForNetwork(networkId).map((t) => (
                     <li key={t.id} className="flex items-center justify-between py-2.5 text-sm">
                       <span className="font-medium">{t.symbol}</span>
                       <span className="font-display tabular-nums">{failed ? "—" : "0.00"}</span>

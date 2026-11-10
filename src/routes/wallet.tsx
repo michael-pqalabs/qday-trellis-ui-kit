@@ -20,6 +20,8 @@ import {
   agoLabel,
   shortAddress,
   zeroBalance,
+  nativeTokenId,
+  tokensForChain,
   transactionsFor,
   getPreviewHolding,
   chainForNetwork,
@@ -27,7 +29,6 @@ import {
   totalUsdValue,
   formatUsd,
   describeNetwork,
-  walletTokens,
 } from "@/lib/wallet-preview";
 import { AddWalletMenu, RenameWalletDialog } from "@/components/add-wallet";
 import { NetworkPicker } from "@/components/network-picker";
@@ -35,6 +36,7 @@ import { WalletActions } from "@/components/wallet-actions";
 import { BottomNav } from "@/components/bottom-nav";
 import { AddTokenButton } from "@/components/add-token";
 import { TransactionRow } from "@/components/transaction-row";
+import { TokenMark } from "@/components/token-mark";
 import { useWalletPreview } from "@/components/wallet-preview-provider";
 import {
   DropdownMenu,
@@ -56,8 +58,7 @@ export const Route = createFileRoute("/wallet")({
       { title: "My Wallets — Trellis Wallet" },
       {
         name: "description",
-        content:
-          "Your Trellis Wallet overview: select a wallet, network, and QDAY or USD8 balance.",
+        content: "Your Trellis Wallet overview: select a wallet, network, and token balances.",
       },
       { property: "og:title", content: "My Wallets — Trellis Wallet" },
       {
@@ -86,17 +87,19 @@ function WalletOverview() {
   useEffect(() => {
     if (search.network) setNetworkId(search.network);
   }, [search.network, setNetworkId]);
-  // Rows open their own asset page, so the balance card and Send/Receive always start from QDAY.
-  const tokenId = "qday";
+  // Rows open their own asset page, so the balance card and Send/Receive always start from the native token.
+  const tokenId = nativeTokenId(chainId);
+  const chainTokens = tokensForChain(chainId);
+  const nativeSymbol = chainTokens[0]?.symbol ?? "";
   const [visible, setVisible] = useState(true);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
   const showUsd = isMainnet(networkId);
   const importedTokens = allImportedTokens.filter((token) => token.networkId === networkId);
   const holding = getPreviewHolding(walletId, networkId, tokenId, wallets);
   const { wallet } = holding;
-  // The card shows the wallet total in USD (QDAY at its oracle price plus USD8). Preview balances
-  // are all zero, so the total is too.
-  const totalUsd = totalUsdValue({ QDAY: 0, USD8: 0 });
+  // The card shows the wallet total in USD (each token at its oracle price). Preview balances are
+  // all zero, so the total is too.
+  const totalUsd = totalUsdValue({});
   const { network: chainNetwork, label: where } = describeNetwork(networkId);
   const changeNetwork = (_chainId: string, nextNetworkId: string) => {
     setNetworkId(nextNetworkId);
@@ -238,7 +241,7 @@ function WalletOverview() {
           </div>
           <div className="mt-4 flex items-center justify-between">
             <span className="text-xs text-muted-foreground">
-              {showUsd ? "Total balance" : "QDAY balance"}
+              {showUsd ? "Total balance" : `${nativeSymbol} balance`}
             </span>
             <Button
               variant="ghost"
@@ -256,9 +259,9 @@ function WalletOverview() {
             <span className="font-display text-4xl font-semibold tabular-nums">
               {visible ? (showUsd ? formatUsd(totalUsd) : "0.00") : "••••"}
             </span>
-            {/* Test tokens have no USD value, so testnet shows the native QDAY amount instead. */}
+            {/* Test tokens have no USD value, so testnet shows the native token amount instead. */}
             {!showUsd && (
-              <span className="font-display text-sm font-medium text-primary">QDAY</span>
+              <span className="font-display text-sm font-medium text-primary">{nativeSymbol}</span>
             )}
           </div>
           {!showUsd && (
@@ -345,7 +348,7 @@ function WalletOverview() {
             <AddTokenButton networkId={networkId} where={where} />
           </div>
           <div className="space-y-1">
-            {walletTokens.map((item, index) => {
+            {chainTokens.map((item, index) => {
               const tone =
                 item.tone === "primary"
                   ? "bg-primary/15 text-primary"
@@ -363,11 +366,11 @@ function WalletOverview() {
                     params={{ tokenId: item.id }}
                     aria-label={`${item.name} details`}
                   >
-                    <span
-                      className={`grid h-9 w-9 shrink-0 place-items-center rounded-full font-display text-base font-semibold ${tone}`}
-                    >
-                      {item.mark}
-                    </span>
+                    <TokenMark
+                      id={item.id}
+                      mark={item.mark}
+                      className={`h-9 w-9 text-base ${tone}`}
+                    />
                     <span className="min-w-0 flex-1">
                       <span className="block text-sm font-semibold">{item.name}</span>
                       <span className="mt-1 block text-xs font-normal text-muted-foreground">
@@ -392,7 +395,7 @@ function WalletOverview() {
             {importedTokens.map((item, index) => (
               <div
                 key={item.id}
-                style={{ "--i": walletTokens.length + index } as React.CSSProperties}
+                style={{ "--i": chainTokens.length + index } as React.CSSProperties}
                 className="animate-stagger flex h-16 w-full items-center gap-3 rounded-lg border border-transparent px-3"
               >
                 <span
@@ -436,14 +439,14 @@ function WalletOverview() {
               See all
             </Link>
           </div>
-          {transactionsFor(walletId).length === 0 ? (
+          {transactionsFor(walletId, chainId).length === 0 ? (
             <div className="flex flex-col items-center py-7 text-center" role="status">
               <History className="mb-3 h-6 w-6 text-muted-foreground/50" />
               <p className="text-sm font-medium">No transactions yet</p>
             </div>
           ) : (
             <ul className="mt-2 divide-y divide-divider">
-              {transactionsFor(walletId).map((tx, index) => (
+              {transactionsFor(walletId, chainId).map((tx, index) => (
                 <TransactionRow key={tx.id} tx={tx} visible={visible} index={index} />
               ))}
             </ul>

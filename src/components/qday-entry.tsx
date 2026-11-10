@@ -34,7 +34,8 @@ import {
   validPreviewOTP,
 } from "@/lib/qday-preview";
 import { hasSavedPhrase } from "@/lib/phrase";
-import { signetPassFee } from "@/lib/wallet-preview";
+import { useWalletPreview } from "@/components/wallet-preview-provider";
+import { chainForNetwork, signetPassFee } from "@/lib/wallet-preview";
 import { DeploymentFeeNotice, TransactionConfirm } from "@/components/signet-fee";
 
 export function QDayEntry({ children }: { children: ReactNode }) {
@@ -64,7 +65,8 @@ function QDayOnboarding() {
   const [setupError, setSetupError] = useState(false);
   const [feeAccepted, setFeeAccepted] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const fee = signetPassFee("qday");
+  const { networkId } = useWalletPreview();
+  const fee = signetPassFee(chainForNetwork(networkId).id);
   // Read after hydration: a saved phrase means wallet setup was started but not confirmed yet.
   const [setupStarted, setSetupStarted] = useState(false);
   useEffect(() => setSetupStarted(hasSavedPhrase()), []);

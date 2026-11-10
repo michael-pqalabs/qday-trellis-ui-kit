@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { TokenMark } from "@/components/token-mark";
 import { useWalletPreview } from "@/components/wallet-preview-provider";
 import { ArrowLeft, ArrowUpRight, Check, ChevronDown, ClipboardPaste, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,13 +15,15 @@ import {
 import { checkRecipient } from "@/lib/eth-address";
 import { cn } from "@/lib/utils";
 import {
-  PREVIEW_FEE_TOKEN,
+  chainForNetwork,
+  feeTokenFor,
+  nativeTokenId,
+  tokensForNetwork,
   PREVIEW_NETWORK_FEE,
   formatAmount,
   getPreviewHolding,
   previewSampleBalances,
   shortAddress,
-  walletTokens,
   zeroBalance,
 } from "@/lib/wallet-preview";
 
@@ -67,8 +70,11 @@ const plain = (value: number) => String(Number(value.toFixed(2)));
 function SendPage() {
   const search = Route.useSearch();
   const { wallets, importedTokens, quantumMode } = useWalletPreview();
-  const networkId = search.network ?? "testnet";
-  const [tokenId, setTokenId] = useState(search.token ?? "qday");
+  const { networkId: activeNetworkId } = useWalletPreview();
+  const networkId = search.network ?? activeNetworkId;
+  const chainId = chainForNetwork(networkId).id;
+  const PREVIEW_FEE_TOKEN = feeTokenFor(chainId);
+  const [tokenId, setTokenId] = useState(search.token ?? nativeTokenId(chainId));
   const [sampleBalance, setSampleBalance] = useState(false);
   const { wallet, network } = getPreviewHolding(
     search.wallet ?? "main",
@@ -83,7 +89,7 @@ function SendPage() {
   // Default tokens plus the ones imported for this network. Imported tokens never read a contract,
   // so their balance is always zero.
   const tokens = [
-    ...walletTokens.map((t) => ({
+    ...tokensForNetwork(networkId).map((t) => ({
       id: t.id as string,
       symbol: t.symbol as string,
       name: t.detail as string,
@@ -106,7 +112,7 @@ function SendPage() {
   const balanceText = (t: (typeof tokens)[number]) =>
     t.balance === 0 ? t.zeroText : formatAmount(t.balance);
 
-  // The fee is paid in USD8, so sending USD8 has to cover amount and fee together.
+  // The fee is paid in the stablecoin, so sending it has to cover amount and fee together.
   const feeIsToken = token.symbol === PREVIEW_FEE_TOKEN;
   const feeBalance = tokens.find((t) => t.symbol === PREVIEW_FEE_TOKEN)?.balance ?? 0;
   const amountNum = Number(amount);
@@ -262,12 +268,11 @@ function SendPage() {
                             selected && "bg-primary/10",
                           )}
                         >
-                          <span
-                            aria-hidden="true"
-                            className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary/15 font-display text-sm font-semibold text-primary"
-                          >
-                            {item.mark}
-                          </span>
+                          <TokenMark
+                            id={item.id}
+                            mark={item.mark}
+                            className="h-8 w-8 bg-primary/15 text-sm text-primary"
+                          />
                           <span className="min-w-0 flex-1">
                             <span className="block truncate text-[13px] font-medium">
                               {item.symbol}

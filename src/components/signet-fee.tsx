@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useWalletPreview } from "@/components/wallet-preview-provider";
-import { describeNetwork, signetPassFee } from "@/lib/wallet-preview";
+import { chainForNetwork, describeNetwork, signetPassFee } from "@/lib/wallet-preview";
 import { cn } from "@/lib/utils";
 
 const PREVIEW_ENOUGH_BALANCE = 10;
@@ -29,7 +29,8 @@ function FeeBody({
   onAccept: () => void;
 }) {
   const [balance, setBalance] = useState<"enough" | "low">("enough");
-  const { amount, token } = signetPassFee("qday");
+  const { networkId } = useWalletPreview();
+  const { amount, token } = signetPassFee(chainForNetwork(networkId).id);
   const enough = balance === "enough";
   const available = enough ? PREVIEW_ENOUGH_BALANCE : 0;
 
@@ -90,7 +91,10 @@ function FeeBody({
           </Button>
         ) : (
           <Button asChild className="h-11 text-sm">
-            <Link to="/receive" search={{ wallet: "main", token: "usd8", network: "testnet" }}>
+            <Link
+              to="/receive"
+              search={{ wallet: "main", token: token.toLowerCase(), network: networkId }}
+            >
               Top-Up {token}
             </Link>
           </Button>
@@ -223,7 +227,7 @@ export function TransactionConfirm({
   onConfirm: () => void;
 }) {
   const { networkId } = useWalletPreview();
-  const fee = signetPassFee("qday");
+  const fee = signetPassFee(chainForNetwork(networkId).id);
   const rows: (readonly [string, string])[] = [
     ["Action", action],
     ...details,

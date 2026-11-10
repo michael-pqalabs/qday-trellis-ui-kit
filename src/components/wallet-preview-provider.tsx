@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 import {
+  DEFAULT_CHAIN_ID,
   defaultNetworkId,
   previewWallets,
   type ImportedToken,
@@ -47,7 +48,7 @@ export function WalletPreviewProvider({ children }: { children: ReactNode }) {
       current.map((wallet) => (wallet.id === id ? { ...wallet, name: name.trim() } : wallet)),
     );
   };
-  const [networkId, setNetworkId] = useState(() => defaultNetworkId("qday"));
+  const [networkId, setNetworkId] = useState(() => defaultNetworkId(DEFAULT_CHAIN_ID));
   const [importedTokens, setImportedTokens] = useState<ImportedToken[]>([]);
   const [quantumMode, setQuantumMode] = useState<QuantumMode>("classic");
   const importTokens = (networkId: string, tokens: TokenDraft[]) => {

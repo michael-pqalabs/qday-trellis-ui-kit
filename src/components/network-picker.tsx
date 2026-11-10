@@ -1,18 +1,22 @@
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { ArrowLeft, ChevronDown, Info } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetFooter,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
-import { chainForNetwork, defaultNetworkId, getChain, previewChains } from "@/lib/wallet-preview";
+import {
+  chainForNetwork,
+  DEFAULT_CHAIN_ID,
+  defaultNetworkId,
+  getChain,
+  previewChains,
+} from "@/lib/wallet-preview";
 
 type Option = {
   id: string;
@@ -123,68 +127,6 @@ function OptionGroup({
   );
 }
 
-function BaseSetupPreview({ onBack }: { onBack: () => void }) {
-  const steps = [
-    {
-      title: "Create a Main Wallet smart account",
-      detail: "Your first smart account on Base. We sponsor it, so there is no fee to pay.",
-      tag: "Sponsored",
-    },
-    {
-      title: "Create new SignetPasses",
-      detail: "Each SignetPass is created on its own, and its fee is not sponsored.",
-      tag: "Not sponsored",
-    },
-  ];
-  return (
-    <>
-      <SheetHeader className="text-left">
-        <SheetTitle>Set up Base</SheetTitle>
-        <SheetDescription>
-          Base is available soon. This preview shows what choosing it will involve.
-        </SheetDescription>
-      </SheetHeader>
-      <ol className="space-y-2" aria-label="Base setup steps">
-        {steps.map((step, index) => (
-          <li key={step.title} className="flex gap-3 rounded-lg border px-3 py-3">
-            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-              {index + 1}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="flex flex-wrap items-center gap-2">
-                <span className="text-sm font-medium">{step.title}</span>
-                <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                  {step.tag}
-                </span>
-              </span>
-              <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">
-                {step.detail}
-              </span>
-            </span>
-          </li>
-        ))}
-      </ol>
-      <p className="text-xs leading-relaxed text-muted-foreground">
-        Every Base wallet starts with ETH and USDC. QDay wallets start with QDAY and USD8.
-      </p>
-      <p className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
-        <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-        QDay and Base are not available at the same time. You choose which blockchain manages your
-        wallets.
-      </p>
-      <SheetFooter className="flex-col gap-2 sm:flex-col sm:space-x-0">
-        <Button type="button" className="w-full" disabled>
-          Switch to Base · available soon
-        </Button>
-        <Button type="button" variant="ghost" className="w-full" onClick={onBack}>
-          <ArrowLeft />
-          Back
-        </Button>
-      </SheetFooter>
-    </>
-  );
-}
-
 /**
  * Compact blockchain and network line above the header, plus the modal it opens. The network sits apart
  * from the wallet name so it stays easy to reach without competing with it. The blockchain decides
@@ -200,7 +142,6 @@ export function NetworkPicker({
   onChange: (chainId: string, networkId: string) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [view, setView] = useState<"choose" | "base">("choose");
   const chain = getChain(chainId);
   const network = chain.networks.find((item) => item.id === networkId) ?? chain.networks[0];
 
@@ -211,7 +152,6 @@ export function NetworkPicker({
           type="button"
           variant="ghost"
           onClick={() => {
-            setView("choose");
             setOpen(true);
           }}
           aria-haspopup="dialog"
@@ -238,9 +178,7 @@ export function NetworkPicker({
           side="bottom"
           className="mx-auto flex max-h-[90dvh] w-full max-w-md flex-col gap-5 overflow-y-auto rounded-t-3xl px-5 pb-8 pt-6"
         >
-          {view === "base" ? (
-            <BaseSetupPreview onBack={() => setView("choose")} />
-          ) : (
+          {
             <>
               <SheetHeader className="text-left">
                 <SheetTitle>Blockchain and network</SheetTitle>
@@ -262,14 +200,8 @@ export function NetworkPicker({
                   id: item.id,
                   label: item.name,
                   available: item.available,
-                  tag: item.available
-                    ? item.id === "qday"
-                      ? "Default"
-                      : undefined
-                    : "Available soon",
-                  action: item.available
-                    ? undefined
-                    : { label: "See what Base needs", onClick: () => setView("base") },
+                  tag: item.id === DEFAULT_CHAIN_ID ? "Default" : undefined,
+                  note: item.id === chain.id ? undefined : item.switchNote,
                 }))}
               />
 
@@ -290,7 +222,7 @@ export function NetworkPicker({
                 }))}
               />
             </>
-          )}
+          }
         </SheetContent>
       </Sheet>
     </>

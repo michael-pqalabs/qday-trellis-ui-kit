@@ -18,7 +18,7 @@ import {
   searchTokens,
   shortAddress,
   validateTokenImport,
-  walletTokens,
+  tokensForNetwork,
   type TokenDraft,
 } from "@/lib/wallet-preview";
 import { cn } from "@/lib/utils";
@@ -76,7 +76,10 @@ export function AddTokenButton({ networkId, where }: { networkId: string; where:
   const [submitted, setSubmitted] = useState(false);
 
   const mine = importedTokens.filter((token) => token.networkId === networkId);
-  const existing = [...walletTokens.map((token) => ({ symbol: token.symbol })), ...mine];
+  const existing = [
+    ...tokensForNetwork(networkId).map((token) => ({ symbol: token.symbol })),
+    ...mine,
+  ];
   const results = searchTokens(
     networkId,
     query,

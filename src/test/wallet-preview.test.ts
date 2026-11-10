@@ -15,7 +15,12 @@ import {
   validateWalletName,
   isPhraseLengthValid,
   previewWallets,
-  sampleTransactions,
+  allSampleTransactions,
+  DEFAULT_CHAIN_ID,
+  feeTokenFor,
+  nativeTokenId,
+  tokensForChain,
+  transactionsFor,
   validateTokenImport,
   searchTokens,
   zeroBalance,
@@ -23,8 +28,8 @@ import {
 } from "@/lib/wallet-preview";
 
 describe("Wallet token selection", () => {
-  it("offers exactly QDAY and USD8", () => {
-    expect(walletTokens.map((token) => token.name)).toEqual(["QDAY", "USD8"]);
+  it("offers QDAY and USD8 on QDay, ETH and USDC on Base", () => {
+    expect(walletTokens.map((token) => token.name)).toEqual(["QDAY", "USD8", "ETH", "USDC"]);
   });
   it.each([
     ["qday", "QDAY"],
@@ -48,7 +53,7 @@ describe("Wallet token selection", () => {
   });
   it("sample history only references supported assets", () => {
     expect(
-      sampleTransactions.every((tx) => walletTokens.some((token) => token.id === tx.tokenId)),
+      allSampleTransactions.every((tx) => walletTokens.some((token) => token.id === tx.tokenId)),
     ).toBe(true);
   });
   it("changes the address when selecting a different wallet", () => {
@@ -62,10 +67,23 @@ describe("Wallet token selection", () => {
     expect(holding.network.id).toBe("testnet");
     expect(holding.token.name).toBe("USD8");
   });
-  it("keeps QDay as the default blockchain and Base unavailable for now", () => {
-    expect(previewChains[0]?.id).toBe("qday");
+  it("makes Base the default blockchain and keeps QDay selectable", () => {
+    expect(DEFAULT_CHAIN_ID).toBe("base");
+    expect(previewChains[0]?.id).toBe("base");
     expect(getChain("qday").available).toBe(true);
-    expect(getChain("base").available).toBe(false);
+    expect(getChain("base").available).toBe(true);
+    expect(defaultNetworkId(DEFAULT_CHAIN_ID)).toBe("base-testnet");
+    expect(tokensForChain("base").map((t) => t.symbol)).toEqual(["ETH", "USDC"]);
+    expect(tokensForChain("qday").map((t) => t.symbol)).toEqual(["QDAY", "USD8"]);
+    expect(nativeTokenId("base")).toBe("eth");
+    expect(feeTokenFor("base")).toBe("USDC");
+    expect(feeTokenFor("qday")).toBe("USD8");
+    expect(
+      transactionsFor("main", "base").every(
+        (tx) => walletTokens.find((t) => t.id === tx.tokenId)?.chainId === "base",
+      ),
+    ).toBe(true);
+    expect(transactionsFor("main", "base").length).toBeGreaterThan(0);
     expect(getChain("base").switchNote).toMatch(/Main Wallet smart account/);
   });
   it("names a chain's testnet after the chain and lists mainnet as not yet available", () => {
@@ -79,7 +97,7 @@ describe("Wallet token selection", () => {
     expect(getChain("base").networks.every((n) => n.name !== "Aevum Testnet")).toBe(true);
     expect(defaultNetworkId("qday")).toBe("testnet");
     expect(chainForNetwork("base-testnet").id).toBe("base");
-    expect(chainForNetwork(undefined).id).toBe("qday");
+    expect(chainForNetwork(undefined).id).toBe("base");
   });
   it("numbers new wallets from the existing ones and never repeats a name", () => {
     expect(nextWalletName(previewWallets)).toBe("Wallet 2");

@@ -5,10 +5,11 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useWalletPreview } from "@/components/wallet-preview-provider";
 import {
-  PREVIEW_FEE_TOKEN,
+  chainForNetwork,
+  feeTokenFor,
   PREVIEW_NETWORK_FEE,
   describeNetwork,
-  sampleTransactions,
+  allSampleTransactions,
   shortAddress,
   txDetail,
   txStatusLabel,
@@ -39,7 +40,7 @@ function ActivityDetailPage() {
   const { wallets, networkId, quantumMode } = useWalletPreview();
   const [copied, setCopied] = useState("");
   const [expanded, setExpanded] = useState<string[]>([]);
-  const tx = sampleTransactions.find((t) => t.id === txId);
+  const tx = allSampleTransactions.find((t) => t.id === txId);
   const token = tx ? walletTokens.find((t) => t.id === tx.tokenId) : undefined;
   const back = (
     <Button asChild variant="ghost" size="icon" aria-label="Back to activity">
@@ -115,7 +116,10 @@ function ActivityDetailPage() {
     // Only the sender pays the fee and signs, so these show on sent transfers.
     ...(sent
       ? [
-          { label: `Network fee (${PREVIEW_FEE_TOKEN})`, value: String(PREVIEW_NETWORK_FEE) },
+          {
+            label: `Network fee (${feeTokenFor(chainForNetwork(networkId).id)})`,
+            value: String(PREVIEW_NETWORK_FEE),
+          },
           {
             label: "Signature",
             value: quantumMode === "hybrid" ? "ECDSA + ML-DSA-65" : "ECDSA",

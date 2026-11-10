@@ -5,7 +5,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { ArrowLeft, Check, Copy, Share2, Info } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { getPreviewHolding } from "@/lib/wallet-preview";
+import { chainForNetwork, getPreviewHolding, nativeTokenId } from "@/lib/wallet-preview";
 
 type Search = {
   wallet?: string | undefined;
@@ -40,13 +40,13 @@ export const Route = createFileRoute("/receive")({
 
 function ReceivePage() {
   const search = Route.useSearch();
-  const { wallets } = useWalletPreview();
+  const { wallets, networkId } = useWalletPreview();
   const [copied, setCopied] = useState(false);
   // Every token on this blockchain uses the same address, so there is nothing to pick here.
   const { wallet, network } = getPreviewHolding(
     search.wallet ?? "main",
-    search.network ?? "testnet",
-    "qday",
+    search.network ?? networkId,
+    nativeTokenId(chainForNetwork(search.network ?? networkId).id),
     wallets,
   );
   const groups = wallet.address.slice(2).match(/.{1,4}/g) ?? [];

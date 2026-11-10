@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowDownLeft, ArrowLeft, ArrowUpRight, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TransactionRow } from "@/components/transaction-row";
+import { TokenMark } from "@/components/token-mark";
 import { useWalletPreview } from "@/components/wallet-preview-provider";
 import { transactionsFor, walletTokens } from "@/lib/wallet-preview";
 
@@ -50,9 +51,11 @@ function AssetPage() {
         ) : (
           <>
             <section className="mt-6 flex flex-col items-center rounded-3xl border border-primary/15 bg-card bg-card-hero p-6 text-center shadow-card">
-              <span className="grid h-12 w-12 place-items-center rounded-full bg-primary/15 font-display text-xl font-semibold text-primary">
-                {token.mark}
-              </span>
+              <TokenMark
+                id={token.id}
+                mark={token.mark}
+                className="h-12 w-12 bg-primary/15 text-xl text-primary"
+              />
               <p className="mt-3 text-xs text-muted-foreground">{token.detail}</p>
               <p className="mt-1 font-display text-4xl font-semibold tabular-nums">0.00</p>
               <div className="mt-5 grid w-full grid-cols-2 gap-3">

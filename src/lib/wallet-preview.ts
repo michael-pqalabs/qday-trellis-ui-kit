@@ -36,6 +36,18 @@ export type PreviewChain = {
  */
 export const previewChains: PreviewChain[] = [
   {
+    id: "base",
+    name: "Base",
+    available: true,
+    defaultTokens: ["ETH", "USDC"],
+    switchNote:
+      "Starts with a new Main Wallet smart account (the first one is sponsored), then new SignetPasses (not sponsored).",
+    networks: [
+      { id: "base-testnet", name: "Base Testnet", available: true },
+      { id: "base-mainnet", name: "Mainnet", available: false },
+    ],
+  },
+  {
     id: "qday",
     name: "QDay",
     available: true,
@@ -51,19 +63,10 @@ export const previewChains: PreviewChain[] = [
       },
     ],
   },
-  {
-    id: "base",
-    name: "Base",
-    available: false,
-    defaultTokens: ["ETH", "USDC"],
-    switchNote:
-      "Separate from QDay. Starts with a new Main Wallet smart account (the first one is sponsored), then new SignetPasses (not sponsored).",
-    networks: [
-      { id: "base-testnet", name: "Base Testnet", available: true },
-      { id: "base-mainnet", name: "Mainnet", available: false },
-    ],
-  },
 ];
+
+/** The blockchain every new session starts on. */
+export const DEFAULT_CHAIN_ID = "base";
 
 export function getChain(chainId: string) {
   return previewChains.find((chain) => chain.id === chainId) ?? (previewChains[0] as PreviewChain);
@@ -94,9 +97,55 @@ export function defaultNetworkId(chainId: string) {
 }
 
 export const walletTokens = [
-  { id: "qday", name: "QDAY", symbol: "QDAY", detail: "Native token", mark: "Q", tone: "primary" },
-  { id: "usd8", name: "USD8", symbol: "USD8", detail: "Stablecoin", mark: "$", tone: "foreground" },
+  {
+    id: "qday",
+    chainId: "qday",
+    name: "QDAY",
+    symbol: "QDAY",
+    detail: "Native token",
+    mark: "Q",
+    tone: "primary",
+  },
+  {
+    id: "usd8",
+    chainId: "qday",
+    name: "USD8",
+    symbol: "USD8",
+    detail: "Stablecoin",
+    mark: "$",
+    tone: "foreground",
+  },
+  {
+    id: "eth",
+    chainId: "base",
+    name: "ETH",
+    symbol: "ETH",
+    detail: "Native token",
+    mark: "Ξ",
+    tone: "primary",
+  },
+  {
+    id: "usdc",
+    chainId: "base",
+    name: "USDC",
+    symbol: "USDC",
+    detail: "Stablecoin",
+    mark: "$",
+    tone: "foreground",
+  },
 ] as const;
+
+/** Default tokens of a blockchain: the native token first, then its stablecoin. */
+export function tokensForChain(chainId: string) {
+  return walletTokens.filter((token) => token.chainId === chainId);
+}
+export function tokensForNetwork(networkId: string | undefined) {
+  return tokensForChain(chainForNetwork(networkId).id);
+}
+/** Id of the native token, which the balance card and Send start from. */
+export function nativeTokenId(chainId: string) {
+  return tokensForChain(chainId)[0]?.id ?? "qday";
+}
 
 export type PreviewWallet = {
   id: string;
@@ -192,8 +241,69 @@ export const sampleTransactions: PreviewTx[] = [
   },
 ];
 
-export function transactionsFor(walletId: string) {
-  return sampleTransactions.filter((tx) => tx.walletId === walletId);
+const baseSampleTransactions: PreviewTx[] = [
+  {
+    id: "tx-b1",
+    walletId: "main",
+    kind: "receive",
+    tokenId: "usdc",
+    amount: "120.00",
+    counterparty: "0x91cE4a7B2d3F80e5C6a1b9D04f7E2c3A8b5D6e10",
+    status: "confirmed",
+    minutesAgo: 12,
+  },
+  {
+    id: "tx-b2",
+    walletId: "main",
+    kind: "send",
+    tokenId: "eth",
+    amount: "0.015",
+    counterparty: "0x4F2a9C1e7B3d6A80f5E2c9B1d4A7e3F6c0B8a215",
+    status: "pending",
+    minutesAgo: 45,
+  },
+  {
+    id: "tx-b3",
+    walletId: "main",
+    kind: "send",
+    tokenId: "usdc",
+    amount: "50.00",
+    counterparty: "0x8f3a2c1d9b4e7a6c5f0b3d2e8a1c4b7d9e6f3a5b",
+    status: "confirmed",
+    minutesAgo: 190,
+  },
+  {
+    id: "tx-b4",
+    walletId: "main",
+    kind: "receive",
+    tokenId: "eth",
+    amount: "0.100",
+    counterparty: "0x0B6d3E8a1C5f7A92e4D1b6F3c8A0e5B7d2C9f461",
+    status: "confirmed",
+    minutesAgo: 1500,
+  },
+  {
+    id: "tx-b5",
+    walletId: "main",
+    kind: "send",
+    tokenId: "eth",
+    amount: "0.002",
+    counterparty: "0x5A7e1C3b9D2f4E60a8B5c1D7e3F9a2C4b6E0d873",
+    status: "failed",
+    minutesAgo: 2900,
+  },
+];
+
+/** Every sample row, so a detail screen can open any of them whichever blockchain is active. */
+export const allSampleTransactions = [...sampleTransactions, ...baseSampleTransactions];
+
+/** Sample rows of a wallet, limited to a blockchain when one is given. */
+export function transactionsFor(walletId: string, chainId?: string) {
+  return allSampleTransactions.filter(
+    (tx) =>
+      tx.walletId === walletId &&
+      (!chainId || walletTokens.find((token) => token.id === tx.tokenId)?.chainId === chainId),
+  );
 }
 
 export function shortAddress(address: string) {
@@ -206,11 +316,18 @@ export function agoLabel(minutes: number) {
   return `${Math.floor(minutes / 1440)}d ago`;
 }
 
-/** Illustrative network fee for a transfer. It is paid in the stablecoin (USD8 on QDay), never in QDAY. */
+/** Illustrative network fee for a transfer. It is paid in the chain's stablecoin (USDC on Base, USD8 on QDay), never in the native token. */
 export const PREVIEW_NETWORK_FEE = 0.05;
-export const PREVIEW_FEE_TOKEN = "USD8";
+export function feeTokenFor(chainId: string) {
+  return getChain(chainId).defaultTokens[1] ?? "USDC";
+}
 /** Balances used only when the Send preview switch is on, so the review step can be reached. */
-export const previewSampleBalances: Record<string, number> = { qday: 25, usd8: 120 };
+export const previewSampleBalances: Record<string, number> = {
+  qday: 25,
+  usd8: 120,
+  eth: 0.5,
+  usdc: 120,
+};
 
 export type SendErrors = { recipient?: string; amount?: string };
 export function validateSend(recipient: string, amount: string): SendErrors {
@@ -408,7 +525,7 @@ export const txStatusTone = (status: TxStatus) =>
       : "text-muted-foreground";
 
 /** Illustrative oracle prices in USD. Real prices would come from an oracle; these only shape the preview. */
-export const previewPrices = { QDAY: 0.12, USD8: 1 } as const;
+export const previewPrices = { QDAY: 0.12, USD8: 1, ETH: 3000, USDC: 1 } as const;
 
 /** Wallet total in USD: each token amount times its price (USD8 is the 1 USD stablecoin). */
 export function totalUsdValue(amounts: Partial<Record<keyof typeof previewPrices, number>>) {

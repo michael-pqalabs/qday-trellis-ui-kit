@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { activateQPass, createQPass, validateQPassInput } from "@/lib/qpass";
 import { DeploymentFeeDialog, TransactionConfirm } from "@/components/signet-fee";
 import { QDayEntry } from "@/components/qday-entry";
+import { useWalletPreview } from "@/components/wallet-preview-provider";
+import { chainForNetwork, signetPassFee } from "@/lib/wallet-preview";
 export const Route = createFileRoute("/agentic_/new")({
   head: () => ({
     meta: [
@@ -36,6 +38,9 @@ function CreateQPassPage() {
 }
 function CreateQPass() {
   const navigate = useNavigate();
+  const { networkId } = useWalletPreview();
+  const chain = chainForNetwork(networkId);
+  const feeToken = signetPassFee(chain.id).token;
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [feeAccepted, setFeeAccepted] = useState(false);
@@ -108,7 +113,7 @@ function CreateQPass() {
           )}
           <div className="mt-6 flex items-center justify-between border-y py-4 text-sm">
             <span className="text-muted-foreground">Initial balance</span>
-            <span className="font-semibold">0.00 USD8</span>
+            <span className="font-semibold">0.00 {feeToken}</span>
           </div>
           <Button type="submit" className="mt-6 h-12 w-full">
             Create SignetPass
@@ -129,7 +134,7 @@ function CreateQPass() {
         />
         <p className="mt-4 flex items-center justify-center gap-2 text-center text-[11px] text-muted-foreground">
           <ShieldCheck className="h-3.5 w-3.5" />
-          Owned by your main wallet · USD8 on QDay
+          Owned by your main wallet · {feeToken} on {chain.name}
         </p>
       </main>
     </div>

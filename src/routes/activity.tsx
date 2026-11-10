@@ -6,7 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TransactionRow } from "@/components/transaction-row";
 import { useWalletPreview } from "@/components/wallet-preview-provider";
-import { describeNetwork, transactionsFor, txGroupLabel } from "@/lib/wallet-preview";
+import {
+  chainForNetwork,
+  describeNetwork,
+  transactionsFor,
+  txGroupLabel,
+} from "@/lib/wallet-preview";
 
 type Search = { wallet?: string | undefined };
 type Filter = "all" | "received" | "sent";
@@ -46,7 +51,7 @@ function ActivityPage() {
   const wallet = wallets.find((w) => w.id === search.wallet) ?? wallets[0];
   const [filter, setFilter] = useState<Filter>("all");
   const [refreshing, setRefreshing] = useState(false);
-  const all = wallet ? transactionsFor(wallet.id) : [];
+  const all = wallet ? transactionsFor(wallet.id, chainForNetwork(networkId).id) : [];
   const shown = all.filter(
     (tx) =>
       filter === "all" || (filter === "received" ? tx.kind === "receive" : tx.kind === "send"),
