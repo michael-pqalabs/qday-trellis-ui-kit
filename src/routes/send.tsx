@@ -69,8 +69,7 @@ const plain = (value: number) => String(Number(value.toFixed(2)));
 
 function SendPage() {
   const search = Route.useSearch();
-  const { wallets, importedTokens, quantumMode } = useWalletPreview();
-  const { networkId: activeNetworkId } = useWalletPreview();
+  const { wallets, importedTokens, networkId: activeNetworkId } = useWalletPreview();
   const networkId = search.network ?? activeNetworkId;
   const chainId = chainForNetwork(networkId).id;
   const PREVIEW_FEE_TOKEN = feeTokenFor(chainId);
@@ -311,6 +310,40 @@ function SendPage() {
               </p>
             </section>
 
+            <fieldset className="mt-5">
+              <legend className="mb-2 text-sm font-medium">Signature</legend>
+              <div
+                role="radiogroup"
+                aria-label="Signature scheme"
+                className="grid grid-cols-2 gap-2"
+              >
+                {(
+                  [
+                    ["classic", "Classic", "ECDSA", true],
+                    ["pqc", "PQC", "Coming soon", false],
+                  ] as const
+                ).map(([id, label, detail, available]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    role="radio"
+                    aria-checked={id === "classic"}
+                    aria-disabled={!available}
+                    disabled={!available}
+                    className={cn(
+                      "rounded-xl border px-3 py-2.5 text-left transition-colors",
+                      available
+                        ? "border-primary/50 bg-primary/5"
+                        : "cursor-not-allowed border-border bg-muted/40 text-muted-foreground",
+                    )}
+                  >
+                    <span className="block text-sm font-medium">{label}</span>
+                    <span className="block text-[11px] text-muted-foreground">{detail}</span>
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+
             <div className="mt-5 flex items-center justify-between gap-3 rounded-xl border border-dashed border-border px-3 py-2.5">
               <span className="text-[10px] leading-tight text-muted-foreground">
                 Preview only
@@ -374,7 +407,7 @@ function SendPage() {
                 ["Amount", `${amount} ${token.symbol}`],
                 ["Network", network.name],
                 ["Network fee", `${PREVIEW_NETWORK_FEE} ${PREVIEW_FEE_TOKEN}`],
-                ["Signature", quantumMode === "hybrid" ? "ECDSA + ML-DSA-65" : "ECDSA"],
+                ["Signature", "Classic · ECDSA"],
                 ["Balance after", `${formatAmount(tokenAfter)} ${token.symbol}`],
                 ...(feeIsToken
                   ? []
