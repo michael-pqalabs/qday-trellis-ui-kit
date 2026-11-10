@@ -301,7 +301,7 @@ export function ImportWalletForm({
                 className={cn(
                   "grid h-5 w-5 place-items-center rounded-full text-[10px] font-semibold",
                   active || done
-                    ? "bg-primary text-primary-foreground"
+                    ? "bg-primary/15 text-primary"
                     : "bg-secondary text-muted-foreground",
                 )}
               >

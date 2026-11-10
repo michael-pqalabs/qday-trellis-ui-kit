@@ -3,9 +3,9 @@ import { expect, it } from "vitest";
 
 const css = readFileSync("src/styles.css", "utf8");
 
-it("uses the brand kit divider (#2e3239) on dark surfaces", () => {
+it("uses the brand kit v5 deep-teal divider (#234d53) on dark surfaces", () => {
   const dark = css.slice(css.indexOf(".dark {"));
-  expect(dark).toContain("--divider: #2e3239;");
+  expect(dark).toContain("--divider: #234d53;");
 });
 
 it("keeps a light-mode divider tone and exposes it as a theme token", () => {

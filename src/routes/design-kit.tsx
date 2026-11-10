@@ -177,14 +177,24 @@ function DesignKit() {
             aria-label="Colour theme"
           >
             <Button
-              variant={theme === "light" ? "default" : "ghost"}
+              variant="ghost"
+              className={
+                theme === "light"
+                  ? "border border-primary/50 bg-primary/15 text-primary hover:bg-primary/25 hover:text-primary"
+                  : ""
+              }
               aria-pressed={theme === "light"}
               onClick={() => setTheme("light")}
             >
               Light
             </Button>
             <Button
-              variant={theme === "dark" ? "default" : "ghost"}
+              variant="ghost"
+              className={
+                theme === "dark"
+                  ? "border border-primary/50 bg-primary/15 text-primary hover:bg-primary/25 hover:text-primary"
+                  : ""
+              }
               aria-pressed={theme === "dark"}
               onClick={() => setTheme("dark")}
             >
@@ -197,18 +207,18 @@ function DesignKit() {
           <div className="grid grid-cols-3 gap-3">
             {[
               {
-                label: "Brand",
-                value: theme === "light" ? "#0257FF" : "#1F66FF",
-                className: "bg-brand",
+                label: "Background",
+                value: theme === "light" ? "#F4F7F8" : "#06343A",
+                className: "bg-background border border-border",
               },
               {
                 label: "Primary",
-                value: theme === "light" ? "#0257FF" : "#1F66FF",
+                value: theme === "light" ? "#06343A" : "#60F2FF",
                 className: "bg-primary",
               },
               {
-                label: "Accent",
-                value: theme === "light" ? "Deep cyan" : "Ice cyan",
+                label: "Link",
+                value: theme === "light" ? "#00686F" : "#60F2FF",
                 className: "bg-accent",
               },
             ].map((color) => (
@@ -221,7 +231,9 @@ function DesignKit() {
           </div>
           <div className="mt-6 space-y-2">
             <p className="font-display text-3xl font-semibold">Your keys. Your crypto.</p>
-            <p className="text-sm text-muted-foreground">Manrope · Body / 14</p>
+            <p className="text-sm text-muted-foreground">
+              Inter · Body / 14 · Inter Tight · Display
+            </p>
             <p className="font-mono text-xs text-muted-foreground">0x28…C5 · Monospace / 12</p>
           </div>
         </Section>

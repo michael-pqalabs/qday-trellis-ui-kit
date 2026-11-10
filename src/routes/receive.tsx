@@ -93,7 +93,7 @@ function ReceivePage() {
             <QRCodeSVG
               value={`trellis-preview:${wallet.address}`}
               size={196}
-              fgColor="#101218"
+              fgColor="#06343a"
               bgColor="#ffffff"
               level="M"
               aria-label="Wallet address QR code"

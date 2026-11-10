@@ -41,87 +41,89 @@
   --color-dialog: var(--dialog);
 }
 
+/* Brand kit v5 (2026-11-10): deep teal #06343a ground, cyan #60f2ff accent; dark is the default mode.
+   Role mapping follows colors/tokens.css (bg, surface, border, text, solid, link, focus). */
 :root {
   --radius: 1rem;
-  --brand: #0257ff;
-  --background: #f5f7f9;
-  --foreground: #1b1e24;
+  --brand: #06343a;
+  --background: #f4f7f8;
+  --foreground: #06343a;
   --card: #ffffff;
   --card-foreground: var(--foreground);
   --popover: #ffffff;
   --dialog: #ffffff;
-  --shadow-dialog: 0 24px 64px -16px #1b1e2430;
+  --shadow-dialog: 0 24px 64px -16px #06343a33;
   --popover-foreground: var(--foreground);
   --primary: var(--brand);
   --primary-foreground: #ffffff;
-  --secondary: #e9ebef;
-  --secondary-foreground: #2e3239;
-  --muted: #e9ebef;
-  --muted-foreground: #565b65;
-  --accent: #0279a9;
+  --secondary: #e7eced;
+  --secondary-foreground: #2a3435;
+  --muted: #e7eced;
+  --muted-foreground: #657376;
+  --accent: #00686f;
   --accent-foreground: #ffffff;
   --destructive: #a9524d;
   --destructive-foreground: #ffffff;
   --success: #35824b;
-  --border: #d6d9de;
-  --divider: #e9ebef;
-  --input: #828893;
-  --ring: var(--primary);
-  --overlay: #111318;
-  --glow: #0257ff30;
+  --border: #d3dbdc;
+  --divider: #e7eced;
+  --input: #7c8b8d;
+  --ring: #009aa5;
+  --overlay: #112124;
+  --glow: #06343a1f;
+  /* Decorative halo behind the hero mark: the cyan accent in both modes (deep teal turns grey on light). */
+  --halo: #60f2ff;
   --gradient-hero:
-    radial-gradient(130% 85% at 30% 0%, #0257ff2b, transparent 80%),
-    linear-gradient(160deg, #f2f5fa, #f5f7f9);
-  --shadow-glow: 0 18px 50px -12px var(--glow);
+    radial-gradient(130% 85% at 30% 0%, #60f2ff26, transparent 80%),
+    linear-gradient(160deg, #eef4f5, #f4f7f8);
+  --shadow-glow: 0 16px 40px -14px var(--glow);
   --gradient-card:
-    radial-gradient(130% 150% at 88% -25%, #0257ff17, transparent 62%),
-    linear-gradient(180deg, #ffffff, #fafbfc);
-  --shadow-card: 0 14px 34px -16px #0257ff40, 0 2px 8px -3px #1b1e2412;
+    radial-gradient(130% 150% at 88% -25%, #60f2ff1f, transparent 62%),
+    linear-gradient(180deg, #ffffff, #fafcfc);
+  --shadow-card: 0 10px 28px -18px #06343a40, 0 1px 4px -2px #06343a14;
   --gradient-mesh:
-    radial-gradient(90% 55% at 20% -5%, #0257ff33, transparent 70%),
-    radial-gradient(80% 45% at 0% 105%, #0257ff1f, transparent 70%),
-    linear-gradient(180deg, #eef1f6, #f5f7f9 60%, #eff2f6);
+    radial-gradient(90% 55% at 20% -5%, #60f2ff24, transparent 70%),
+    radial-gradient(80% 45% at 0% 105%, #06343a0f, transparent 70%),
+    linear-gradient(180deg, #eef3f4, #f4f7f8 60%, #eff4f5);
 }
 
 .dark {
-  --brand: #1f66ff;
-  --background: #111318;
-  --foreground: #f5f7f9;
-  --card: #1b1e24;
-  --popover: #2e3239;
-  --dialog: #1b1e24;
-  --shadow-dialog: 0 30px 80px -16px #00000099;
+  --brand: #60f2ff;
+  --background: #06343a;
+  --foreground: #f4f7f8;
+  --card: #174248;
+  --popover: #1d4a50;
+  --dialog: #174248;
+  --shadow-dialog: 0 30px 80px -16px #00000080;
   --primary: var(--brand);
-  --primary-foreground: #ffffff;
-  --secondary: #2e3239;
-  --secondary-foreground: #e9ebef;
-  --muted: #2e3239;
-  --muted-foreground: #9ea3ad;
-  --accent: #8ecaed;
-  --accent-foreground: #002132;
+  --primary-foreground: #06343a;
+  --secondary: #20494f;
+  --secondary-foreground: #e7eced;
+  --muted: #20494f;
+  /* neutral.400 nudged lighter so muted text keeps 4.5:1 on cards (#174248), not only on the ground. */
+  --muted-foreground: #a6b3b5;
+  --accent: #60f2ff;
+  --accent-foreground: #06343a;
   --destructive: #f0ada7;
   --destructive-foreground: #351110;
   --success: #9dd0a6;
-  --border: #42474f;
-  --divider: #2e3239;
-  --input: #828893;
-  --glow: #1f66ff50;
+  --border: #335a60;
+  --divider: #234d53;
+  --input: #659097;
+  --ring: #60f2ff;
+  --overlay: #021417;
+  --glow: #60f2ff33;
   --gradient-hero:
-    radial-gradient(130% 85% at 30% 0%, #1f66ff4d, transparent 80%),
-    linear-gradient(180deg, #111318, #111318);
+    radial-gradient(130% 85% at 30% 0%, #60f2ff26, transparent 80%),
+    linear-gradient(180deg, #06343a, #06343a);
   --gradient-card:
-    radial-gradient(130% 150% at 88% -25%, #1f66ff2e, transparent 62%),
-    linear-gradient(180deg, #20242b, #1b1e24);
-  --shadow-card: 0 18px 44px -18px #00000090, inset 0 1px 0 #ffffff0a;
+    radial-gradient(130% 150% at 88% -25%, #60f2ff1a, transparent 62%),
+    linear-gradient(180deg, #1a464c, #174248);
+  --shadow-card: 0 18px 40px -20px #00000099, inset 0 1px 0 #ffffff0d;
   --gradient-mesh:
-    radial-gradient(95% 55% at 20% -5%, #1f66ff8c, transparent 70%),
-    radial-gradient(85% 50% at 0% 105%, #1f66ff40, transparent 70%),
-    linear-gradient(180deg, #141a2a, #111318 55%, #121624);
-}
-
-/* Bright foreground roles on dark surfaces; filled controls retain brand blue. */
-.dark .text-primary {
-  color: #6ea1ff;
+    radial-gradient(95% 55% at 20% -5%, #60f2ff2e, transparent 70%),
+    radial-gradient(85% 50% at 0% 105%, #60f2ff14, transparent 70%),
+    linear-gradient(180deg, #073b42, #06343a 55%, #052e33);
 }
 
 @layer base {
@@ -245,21 +247,22 @@
 
 /* UI kit accents: sheen, elevation, shimmer and spring motion. */
 :root {
-  --sheen: linear-gradient(180deg, #ffffff26, transparent 55%);
-  --surface: radial-gradient(120% 60% at 50% -10%, #0257ff12, transparent 60%);
-  --shadow-primary: 0 8px 20px -8px #0257ff99, inset 0 1px 0 #ffffff33;
-  --shadow-elevated: 0 24px 60px -20px #19203340, 0 4px 14px -6px #0257ff30;
-  --shimmer-base: #e9ebef;
-  --shimmer-hi: #f5f7f9;
+  --sheen: linear-gradient(180deg, #ffffff1f, transparent 55%);
+  --surface: radial-gradient(120% 60% at 50% -10%, #60f2ff1a, transparent 60%);
+  /* Design kit v5: the one solid action sits on a soft shadow of its own colour, with a light top edge. */
+  --shadow-primary: 0 10px 22px -12px #06343acc, inset 0 1px 0 #ffffff26;
+  --shadow-elevated: 0 20px 50px -24px #06343a40;
+  --shimmer-base: #e7eced;
+  --shimmer-hi: #f4f7f8;
 }
 .dark {
   --surface:
-    radial-gradient(120% 60% at 50% -10%, #1f66ff26, transparent 60%),
-    linear-gradient(180deg, #20242b, #1b1e24);
-  --shadow-primary: 0 8px 22px -8px #1f66ffcc, inset 0 1px 0 #ffffff2e;
-  --shadow-elevated: 0 30px 70px -20px #000000b0, inset 0 1px 0 #ffffff12;
-  --shimmer-base: #2e3239;
-  --shimmer-hi: #42474f;
+    radial-gradient(120% 60% at 50% -10%, #60f2ff1f, transparent 60%),
+    linear-gradient(180deg, #1a464c, #174248);
+  --shadow-primary: 0 10px 26px -10px #60f2ff8c, inset 0 1px 0 #ffffff59;
+  --shadow-elevated: 0 30px 70px -24px #00000080, inset 0 1px 0 #ffffff12;
+  --shimmer-base: #20494f;
+  --shimmer-hi: #335a60;
 }
 @utility sheen {
   background-image: var(--sheen);

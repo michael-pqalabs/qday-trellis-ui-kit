@@ -235,10 +235,12 @@ function WalletOverview() {
             </span>
             {/* Like "Add funds" on a SignetPass: an action that only shows while it applies. */}
             {quantumMode === "classic" && (
+              // Tonal, not solid: brand v5 allows one solid action per screen, and that is Send.
               <Button
                 asChild
                 size="sm"
-                className="relative h-7 shrink-0 gap-1 px-3 text-[11px] shadow-sm shadow-primary/25 after:absolute after:-inset-2 after:content-['']"
+                variant="ghost"
+                className="relative h-7 shrink-0 gap-1 border border-primary/40 bg-primary/15 px-3 text-[11px] font-semibold text-primary hover:bg-primary/25 hover:text-primary after:absolute after:-inset-2 after:content-['']"
               >
                 <Link to="/pq">Enable protection</Link>
               </Button>

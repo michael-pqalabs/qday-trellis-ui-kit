@@ -12,7 +12,7 @@ import type { ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { CommentLayer } from "@/components/comment";
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider, themeInitScript } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { QDayPreviewProvider } from "@/components/qday-preview-provider";
 import { WalletPreviewProvider } from "@/components/wallet-preview-provider";
@@ -80,8 +80,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { name: "theme-color", content: "#f5f7f9", media: "(prefers-color-scheme: light)" },
-      { name: "theme-color", content: "#111318", media: "(prefers-color-scheme: dark)" },
+      { name: "theme-color", content: "#06343a" },
       { title: "Trellis Wallet" },
       { name: "description", content: "Trellis Wallet — your keys, your crypto." },
       { name: "author", content: "Trellis Wallet" },
@@ -91,7 +90,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
-      // Brand kit v4 fonts (Inter Tight, Inter, JetBrains Mono), self-hosted from /public/fonts.
+      // Brand kit v5 fonts (Inter Tight, Inter, JetBrains Mono), self-hosted from /public/fonts.
       { rel: "stylesheet", href: "/fonts/fonts.css" },
       {
         rel: "stylesheet",
@@ -111,8 +110,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark" style={{ colorScheme: "dark" }} suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <HeadContent />
       </head>
       <body>

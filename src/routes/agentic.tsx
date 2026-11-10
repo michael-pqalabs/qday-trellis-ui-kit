@@ -427,7 +427,7 @@ function AgenticPayment() {
                   <TabsList className="flex h-10 w-full justify-start gap-0.5 overflow-x-auto rounded-full bg-secondary/70 p-[3px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     <TabsTrigger
                       value="approvals"
-                      className="h-full min-w-fit flex-1 rounded-full px-4 text-[11px] font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=active]:shadow-primary/25"
+                      className="h-full min-w-fit flex-1 rounded-full px-4 text-[11px] font-semibold border border-transparent data-[state=active]:border-primary/50 data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:shadow-none"
                     >
                       Spending Sessions{" "}
                       {pending.length > 0 && (
@@ -436,19 +436,19 @@ function AgenticPayment() {
                     </TabsTrigger>
                     <TabsTrigger
                       value="agents"
-                      className="h-full min-w-fit flex-1 rounded-full px-4 text-[11px] font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=active]:shadow-primary/25"
+                      className="h-full min-w-fit flex-1 rounded-full px-4 text-[11px] font-semibold border border-transparent data-[state=active]:border-primary/50 data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:shadow-none"
                     >
                       Agents
                     </TabsTrigger>
                     <TabsTrigger
                       value="activity"
-                      className="h-full min-w-fit flex-1 rounded-full px-4 text-[11px] font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=active]:shadow-primary/25"
+                      className="h-full min-w-fit flex-1 rounded-full px-4 text-[11px] font-semibold border border-transparent data-[state=active]:border-primary/50 data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:shadow-none"
                     >
                       Activities
                     </TabsTrigger>
                     <TabsTrigger
                       value="cli"
-                      className="h-full min-w-fit flex-1 rounded-full px-4 text-[11px] font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=active]:shadow-primary/25"
+                      className="h-full min-w-fit flex-1 rounded-full px-4 text-[11px] font-semibold border border-transparent data-[state=active]:border-primary/50 data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:shadow-none"
                     >
                       CLI Logins
                     </TabsTrigger>
@@ -724,7 +724,7 @@ function AgenticPayment() {
                     key={k}
                     type="button"
                     onClick={() => setAction(k)}
-                    className={`rounded-full text-xs font-semibold transition-colors ${action === k ? "bg-primary text-primary-foreground shadow-md shadow-primary/25" : "text-muted-foreground"}`}
+                    className={`rounded-full border text-xs font-semibold transition-colors ${action === k ? "border-primary/50 bg-primary/15 text-primary" : "border-transparent text-muted-foreground"}`}
                   >
                     {k === "fund" ? "From main wallet" : "Receive via QR"}
                   </button>

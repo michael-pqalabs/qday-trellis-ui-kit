@@ -35,7 +35,7 @@ export function BottomNav() {
           <Link
             key={item.to}
             to={item.to}
-            className="flex flex-1 flex-col items-center gap-1 rounded-full px-2 py-2 text-[11px] font-medium transition-colors hover:text-foreground data-[status=active]:bg-primary data-[status=active]:text-primary-foreground"
+            className="flex flex-1 flex-col items-center gap-1 rounded-full px-2 py-2 text-[11px] font-medium transition-colors hover:text-foreground border border-transparent data-[status=active]:border-primary/40 data-[status=active]:bg-primary/15 data-[status=active]:text-primary"
             activeProps={{ "aria-current": "page" as const }}
           >
             <item.icon className="h-5 w-5" />
