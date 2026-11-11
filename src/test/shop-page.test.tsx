@@ -111,8 +111,7 @@ const openFilters = async () => {
   fireEvent.click(screen.getByRole("button", { name: /^Filters/ }));
   return screen.findByRole("dialog", { name: "Filters" });
 };
-const showButton = (dialog: HTMLElement) =>
-  within(dialog).getByRole("button", { name: /^Show \d+ product/ });
+const applyButton = (dialog: HTMLElement) => within(dialog).getByRole("button", { name: "Apply" });
 const pick = (dialog: HTMLElement, group: string, name: string) =>
   fireEvent.click(
     within(within(dialog).getByRole("group", { name: group })).getByRole("button", { name }),
@@ -128,23 +127,22 @@ describe("Shopping: filters popup", () => {
     }
     expect(within(dialog).getByLabelText(/Maximum price in USDC/)).toBeTruthy();
     expect(within(dialog).getByRole("list", { name: "Shops" })).toBeTruthy();
-    expect(within(dialog).getByText(/payable in USDC on Base/)).toBeTruthy();
     // Sorting is a quick control on the page, not a filter.
     expect(within(dialog).queryByRole("group", { name: "Sort by" })).toBeNull();
-    expect(showButton(dialog).textContent).toBe("Show 11 products");
+    expect(applyButton(dialog)).toHaveProperty("disabled", false);
   });
 
-  it("counts the matches live and refuses a filter nothing matches", async () => {
+  it("refuses a filter nothing matches", async () => {
     await renderShop();
     const dialog = await openFilters();
     pick(dialog, "Category", "Stationery");
-    expect(showButton(dialog).textContent).toBe("Show 2 products");
+    expect(applyButton(dialog)).toHaveProperty("disabled", false);
 
     fireEvent.change(within(dialog).getByLabelText(/Maximum price/), { target: { value: "5" } });
-    expect(showButton(dialog).textContent).toBe("Show 1 product");
+    expect(applyButton(dialog)).toHaveProperty("disabled", false);
 
     fireEvent.change(within(dialog).getByLabelText(/Maximum price/), { target: { value: "1" } });
-    expect(showButton(dialog)).toHaveProperty("disabled", true);
+    expect(applyButton(dialog)).toHaveProperty("disabled", true);
     expect(within(dialog).getByRole("status").textContent).toMatch(/No products match/);
   });
 
@@ -153,7 +151,7 @@ describe("Shopping: filters popup", () => {
     const dialog = await openFilters();
     pick(dialog, "Category", "Stationery");
     fireEvent.change(within(dialog).getByLabelText(/Maximum price/), { target: { value: "5" } });
-    fireEvent.click(showButton(dialog));
+    fireEvent.click(applyButton(dialog));
 
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "Filters" })).toBeNull());
     expect(productNames()).toEqual(["View Sticker pack"]);
@@ -177,7 +175,10 @@ describe("Shopping: filters popup", () => {
 
     // Reopening starts from what is applied, not from the dropped draft.
     const again = await openFilters();
-    expect(showButton(again).textContent).toBe("Show 11 products");
+    fireEvent.click(applyButton(again));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Filters" })).toBeNull());
+    expect(screen.queryByRole("list", { name: "Applied filters" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Filters" })).toBeTruthy();
   });
 
   it("rejects a price that is not valid", async () => {
@@ -187,7 +188,7 @@ describe("Shopping: filters popup", () => {
       target: { value: "1.2345678" },
     });
     expect(within(dialog).getByRole("alert").textContent).toMatch(/up to 6 decimals/);
-    expect(showButton(dialog)).toHaveProperty("disabled", true);
+    expect(applyButton(dialog)).toHaveProperty("disabled", true);
     fireEvent.change(within(dialog).getByLabelText(/Maximum price/), {
       target: { value: "49.99" },
     });
@@ -199,10 +200,14 @@ describe("Shopping: filters popup", () => {
     const dialog = await openFilters();
     pick(dialog, "Tags", "desk");
     pick(dialog, "Tags", "phone");
-    expect(showButton(dialog).textContent).toBe("Show 1 product");
+    fireEvent.click(applyButton(dialog));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Filters" })).toBeNull());
+    expect(products()).toHaveLength(1);
 
-    for (const tag of ["gift", "kitchen", "charging"]) pick(dialog, "Tags", tag);
-    const tags = within(dialog).getByRole("group", { name: "Tags" });
+    const again = await openFilters();
+
+    for (const tag of ["gift", "kitchen", "charging"]) pick(again, "Tags", tag);
+    const tags = within(again).getByRole("group", { name: "Tags" });
     expect(within(tags).getByRole("button", { name: "audio" })).toHaveProperty("disabled", true);
     // A picked tag can still be taken off.
     expect(within(tags).getByRole("button", { name: "desk" })).toHaveProperty("disabled", false);
@@ -212,8 +217,7 @@ describe("Shopping: filters popup", () => {
     await renderShop();
     const dialog = await openFilters();
     fireEvent.click(within(dialog).getByRole("checkbox", { name: /Cable Corner/ }));
-    expect(showButton(dialog).textContent).toBe("Show 4 products");
-    fireEvent.click(showButton(dialog));
+    fireEvent.click(applyButton(dialog));
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "Filters" })).toBeNull());
     expect(productNames().every((n) => n && !/mug|notebook|tote/i.test(n))).toBe(true);
     expect(screen.getByRole("button", { name: "Remove filter Cable Corner" })).toBeTruthy();
@@ -225,9 +229,9 @@ describe("Shopping: filters popup", () => {
     expect(productNames()).toContain("View Wireless charger");
     const dialog = await openFilters();
     pick(dialog, "Ships to", "Vietnam");
-    expect(showButton(dialog)).toHaveProperty("disabled", true);
+    expect(applyButton(dialog)).toHaveProperty("disabled", true);
     pick(dialog, "Ships to", "United States");
-    fireEvent.click(showButton(dialog));
+    fireEvent.click(applyButton(dialog));
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "Filters" })).toBeNull());
     expect(productNames()).toContain("View Wireless charger");
     expect(
@@ -246,7 +250,7 @@ describe("Shopping: filters popup", () => {
     const dialog = await openFilters();
     pick(dialog, "Category", "Home");
     fireEvent.click(within(dialog).getByRole("button", { name: "Reset" }));
-    fireEvent.click(showButton(dialog));
+    fireEvent.click(applyButton(dialog));
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "Filters" })).toBeNull());
     expect(screen.getByLabelText("Sort products")).toHaveProperty("value", "price_desc");
   });
@@ -256,7 +260,6 @@ describe("Shopping: filters popup", () => {
     const dialog = await openFilters();
     pick(dialog, "Price presets", "Under 10");
     expect(within(dialog).getByLabelText(/Maximum price/)).toHaveProperty("value", "10");
-    expect(showButton(dialog).textContent).toBe("Show 3 products");
     pick(dialog, "Price presets", "Under 10");
     expect(within(dialog).getByLabelText(/Maximum price/)).toHaveProperty("value", "");
   });
@@ -267,7 +270,7 @@ describe("Shopping: filters popup", () => {
     pick(dialog, "Category", "Apparel");
     pick(dialog, "Tags", "gift");
     fireEvent.click(within(dialog).getByRole("button", { name: "Reset" }));
-    expect(showButton(dialog).textContent).toBe("Show 11 products");
+    expect(applyButton(dialog)).toHaveProperty("disabled", false);
     fireEvent.click(within(dialog).getByRole("button", { name: "Close" }));
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "Filters" })).toBeNull());
 
@@ -293,7 +296,8 @@ describe("Shopping: cart, checkout and orders", () => {
     fireEvent.click(screen.getByRole("button", { name: "Increase quantity of Dot-grid notebook" }));
     // 3 notebooks (3 × 9.50) and one phone stand (14.00).
     expect(screen.getByText("28.50 USDC")).toBeTruthy();
-    expect(screen.getByText("42.50 USDC")).toBeTruthy();
+    // The cart has no separate total row: the Checkout button carries the amount.
+    expect(screen.getByRole("button", { name: "Checkout · 42.50 USDC" })).toBeTruthy();
 
     // Only 3 phone stands exist.
     for (let i = 0; i < 5; i++) {

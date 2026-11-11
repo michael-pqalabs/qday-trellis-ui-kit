@@ -1,10 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { Bot, ShoppingBag, Wallet } from "lucide-react";
+import { Bot, Wallet } from "lucide-react";
 
 const items = [
   { to: "/wallet", label: "Trellis Wallet", icon: Wallet },
   { to: "/agentic", label: "Agentic Payments", icon: Bot },
-  { to: "/shop", label: "Shopping", icon: ShoppingBag },
 ] as const;
 
 export function BottomNav() {
@@ -29,7 +28,7 @@ export function BottomNav() {
           WebkitMaskImage: "linear-gradient(to top, black 55%, transparent)",
         }}
       />
-      <div className="relative z-10 flex w-full max-w-sm items-center gap-1 rounded-full border border-primary/20 bg-card p-1.5 shadow-glow">
+      <div className="relative z-10 flex w-full max-w-85 items-center gap-1 rounded-full border border-primary/20 bg-card p-1.5 shadow-glow">
         {items.map((item) => (
           // Both tabs stay reachable before Signet sign-in, so users can always return to their
           // self-custody wallet while Signet setup is incomplete.

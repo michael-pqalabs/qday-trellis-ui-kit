@@ -92,12 +92,15 @@ export function QuantityStepper({
   max,
   onChange,
   className,
+  compact = false,
 }: {
   name: string;
   quantity: number;
   max: number;
   onChange: (quantity: number) => void;
   className?: string;
+  /** Smaller buttons for dense lists such as the cart. */
+  compact?: boolean;
 }) {
   return (
     <div
@@ -111,14 +114,20 @@ export function QuantityStepper({
         variant="ghost"
         size="icon"
         aria-label={`Decrease quantity of ${name}`}
-        className="h-8 w-8 rounded-full text-primary hover:bg-primary/15 hover:text-primary"
+        className={cn(
+          "rounded-full text-primary hover:bg-primary/15 hover:text-primary",
+          compact ? "h-6 w-6" : "h-8 w-8",
+        )}
         onClick={() => onChange(quantity - 1)}
       >
-        <Minus className="!h-4 !w-4" />
+        <Minus className={compact ? "!h-3.5 !w-3.5" : "!h-4 !w-4"} />
       </Button>
       <span
         aria-label={`Quantity of ${name}`}
-        className="min-w-8 text-center text-sm font-semibold text-primary"
+        className={cn(
+          "text-center font-semibold text-primary",
+          compact ? "min-w-6 text-xs" : "min-w-8 text-sm",
+        )}
       >
         {quantity}
       </span>
@@ -128,10 +137,13 @@ export function QuantityStepper({
         size="icon"
         aria-label={`Increase quantity of ${name}`}
         disabled={quantity >= max}
-        className="h-8 w-8 rounded-full text-primary hover:bg-primary/15 hover:text-primary"
+        className={cn(
+          "rounded-full text-primary hover:bg-primary/15 hover:text-primary",
+          compact ? "h-6 w-6" : "h-8 w-8",
+        )}
         onClick={() => onChange(quantity + 1)}
       >
-        <Plus className="!h-4 !w-4" />
+        <Plus className={compact ? "!h-3.5 !w-3.5" : "!h-4 !w-4"} />
       </Button>
     </div>
   );

@@ -465,12 +465,12 @@ function ShopPage() {
                     {lines.map(({ product, quantity, total: lineTotal, payable }) => (
                       <li
                         key={product.id}
-                        className="flex gap-3 rounded-2xl border border-border/60 bg-card p-3 shadow-sm"
+                        className="flex gap-2.5 rounded-xl border border-border/60 bg-card p-2 shadow-sm"
                       >
                         <ProductThumb
                           product={product}
-                          className="h-20 w-20 rounded-xl"
-                          iconClassName="h-8 w-8"
+                          className="h-14 w-14 rounded-lg"
+                          iconClassName="h-6 w-6"
                         />
                         <div className="flex min-w-0 flex-1 flex-col">
                           <div className="flex items-start justify-between gap-2">
@@ -484,10 +484,10 @@ function ShopPage() {
                               variant="ghost"
                               size="icon"
                               aria-label={`Remove ${product.name}`}
-                              className="-mr-1 -mt-1 h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+                              className="-mr-1 -mt-1 h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive"
                               onClick={() => update((s) => removeFromCart(s, product.id))}
                             >
-                              <Trash2 className="!h-4 !w-4" />
+                              <Trash2 className="!h-3.5 !w-3.5" />
                             </Button>
                           </div>
                           {!payable && (
@@ -495,16 +495,17 @@ function ShopPage() {
                               Not accepted on {chainName}
                             </p>
                           )}
-                          <div className="mt-auto flex items-end justify-between gap-2 pt-2">
+                          <div className="mt-auto flex items-end justify-between gap-2 pt-1.5">
                             <QuantityStepper
                               name={product.name}
                               quantity={quantity}
                               max={maxQuantity(product)}
                               onChange={(n) => update((s) => setQuantity(s, product.id, n))}
-                              className="w-28"
+                              compact
+                              className="w-24"
                             />
                             <div className="text-right">
-                              <p className="text-sm font-semibold">
+                              <p className="text-sm font-medium">
                                 {formatAtomic(lineTotal)} {stable}
                               </p>
                               {quantity > 1 && (
@@ -518,12 +519,6 @@ function ShopPage() {
                       </li>
                     ))}
                   </ul>
-                  <div className="mt-4 flex items-center justify-between rounded-xl bg-primary/5 px-3 py-3">
-                    <span className="text-sm font-medium">Total</span>
-                    <span className="text-sm font-semibold">
-                      {formatAtomic(total)} {stable}
-                    </span>
-                  </div>
                   {hasUnpayable && (
                     <p role="alert" className="mt-2 text-center text-xs text-destructive">
                       Some items cannot be paid on {chainName}. Remove them, or switch the
@@ -706,7 +701,6 @@ function ShopPage() {
           search={search}
           chainId={chain.id}
           stable={stable}
-          chainName={chainName}
           onApply={(next) => {
             setFilters(next);
             setShown(SHOP_PAGE_SIZE);

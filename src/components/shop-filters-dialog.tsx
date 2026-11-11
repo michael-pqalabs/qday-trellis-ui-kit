@@ -1,9 +1,6 @@
-import { useEffect, useState, type ReactNode } from "react";
-import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 import {
   MAX_TAGS,
   filtersToQuery,
@@ -15,6 +12,9 @@ import {
   validateMaxPrice,
   type ShopFilters,
 } from "@/lib/shop-preview";
+import { cn } from "@/lib/utils";
+import { Check } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
 
 const PRICE_PRESETS = ["10", "25", "50"];
 
@@ -41,7 +41,7 @@ function Section({
   return (
     <section className="border-b border-border/50 px-5 py-5 last:border-b-0">
       <div className="flex items-baseline justify-between gap-3">
-        <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+        <h3 className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
           {title}
         </h3>
         {aside && <span className="text-[11px] font-medium text-primary">{aside}</span>}
@@ -66,7 +66,6 @@ export function ShopFiltersDialog({
   search,
   chainId,
   stable,
-  chainName,
   onApply,
 }: {
   open: boolean;
@@ -75,7 +74,6 @@ export function ShopFiltersDialog({
   search: string;
   chainId: string;
   stable: string;
-  chainName: string;
   onApply: (filters: ShopFilters) => void;
 }) {
   const [draft, setDraft] = useState<ShopFilters>(applied);
@@ -97,7 +95,7 @@ export function ShopFiltersDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="left-1/2 top-0 flex h-dvh w-full max-w-md -translate-x-1/2 translate-y-0 flex-col gap-0 rounded-none p-0">
-        <div className="sticky top-0 z-10 border-b border-border/50 bg-dialog/90 py-4 pl-5 pr-16 backdrop-blur">
+        <div className="sticky top-0 z-10 border-b border-border/50 bg-dialog/90 pt-4 pb-2 px-4 backdrop-blur">
           <div className="flex items-center justify-between gap-3">
             <DialogTitle className="text-lg">Filters</DialogTitle>
             <Button
@@ -113,9 +111,6 @@ export function ShopFiltersDialog({
               Reset
             </Button>
           </div>
-          <DialogDescription className="mt-0.5 text-[11px]">
-            Products payable in {stable} on {chainName}
-          </DialogDescription>
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto">
@@ -287,7 +282,7 @@ export function ShopFiltersDialog({
               onOpenChange(false);
             }}
           >
-            Show {matches} {matches === 1 ? "product" : "products"}
+            Apply
           </Button>
         </div>
       </DialogContent>
