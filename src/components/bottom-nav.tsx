@@ -1,9 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { Bot, Wallet } from "lucide-react";
+import { Bot, ShoppingBag, Wallet } from "lucide-react";
 
 const items = [
   { to: "/wallet", label: "Trellis Wallet", icon: Wallet },
   { to: "/agentic", label: "Agentic Payments", icon: Bot },
+  { to: "/shop", label: "Shopping", icon: ShoppingBag },
 ] as const;
 
 export function BottomNav() {
@@ -28,14 +29,14 @@ export function BottomNav() {
           WebkitMaskImage: "linear-gradient(to top, black 55%, transparent)",
         }}
       />
-      <div className="relative z-10 flex w-full max-w-xs items-center gap-1 rounded-full border border-primary/20 bg-card p-1.5 shadow-glow">
+      <div className="relative z-10 flex w-full max-w-sm items-center gap-1 rounded-full border border-primary/20 bg-card p-1.5 shadow-glow">
         {items.map((item) => (
           // Both tabs stay reachable before Signet sign-in, so users can always return to their
           // self-custody wallet while Signet setup is incomplete.
           <Link
             key={item.to}
             to={item.to}
-            className="flex flex-1 flex-col items-center gap-1 rounded-full px-2 py-2 text-[11px] font-medium transition-colors hover:text-foreground border border-transparent data-[status=active]:border-primary/40 data-[status=active]:bg-primary/15 data-[status=active]:text-primary"
+            className="flex flex-1 flex-col items-center gap-1 rounded-full px-1 py-2 text-[11px] whitespace-nowrap font-medium transition-colors hover:text-foreground border border-transparent data-[status=active]:border-primary/40 data-[status=active]:bg-primary/15 data-[status=active]:text-primary"
             activeProps={{ "aria-current": "page" as const }}
           >
             <item.icon className="h-5 w-5" />

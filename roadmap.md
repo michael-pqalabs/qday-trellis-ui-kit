@@ -43,3 +43,11 @@
 - [x] Add wallet prerequisite and eight-digit OTP preview through Agentic Payments.
 - [x] Add five sequential setup steps, with manual Passkey and activation previews.
 - [x] Gate TrellisPass creation and bottom navigation; verify restart, logout and layouts.
+
+# Shopping
+
+- [x] Shopping tab in the bottom nav: search (Bazaar rules), five results per page.
+- [x] Full-screen filters popup: sort, category, tags, maximum price, shops, ships to, with a live result count.
+- [x] Product dialog, cart with quantity limits, orders list.
+- [x] Checkout from Trellis: pick the paying account, Passkey confirmation, preview-only balance switch.
+- [ ] Decide how the real purchase is paid and shipped (shop login, shipping address book, order status from the merchant).

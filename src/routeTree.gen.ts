@@ -25,6 +25,7 @@ import { Route as RecoveryRouteImport } from './routes/recovery'
 import { Route as ResetDataRouteImport } from './routes/reset-data'
 import { Route as SendRouteImport } from './routes/send'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ShopRouteImport } from './routes/shop'
 import { Route as TokenApprovalsRouteImport } from './routes/token-approvals'
 import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as WatchAddressRouteImport } from './routes/watch-address'
@@ -114,6 +115,11 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ShopRoute = ShopRouteImport.update({
+  id: '/shop',
+  path: '/shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TokenApprovalsRoute = TokenApprovalsRouteImport.update({
   id: '/token-approvals',
   path: '/token-approvals',
@@ -172,6 +178,7 @@ export interface FileRoutesByFullPath {
   '/reset-data': typeof ResetDataRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
+  '/shop': typeof ShopRoute
   '/token-approvals': typeof TokenApprovalsRoute
   '/wallet': typeof WalletRoute
   '/watch-address': typeof WatchAddressRoute
@@ -198,6 +205,7 @@ export interface FileRoutesByTo {
   '/reset-data': typeof ResetDataRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
+  '/shop': typeof ShopRoute
   '/token-approvals': typeof TokenApprovalsRoute
   '/wallet': typeof WalletRoute
   '/watch-address': typeof WatchAddressRoute
@@ -225,6 +233,7 @@ export interface FileRoutesById {
   '/reset-data': typeof ResetDataRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
+  '/shop': typeof ShopRoute
   '/token-approvals': typeof TokenApprovalsRoute
   '/wallet': typeof WalletRoute
   '/watch-address': typeof WatchAddressRoute
@@ -253,6 +262,7 @@ export interface FileRouteTypes {
     | '/reset-data'
     | '/send'
     | '/settings'
+    | '/shop'
     | '/token-approvals'
     | '/wallet'
     | '/watch-address'
@@ -279,6 +289,7 @@ export interface FileRouteTypes {
     | '/reset-data'
     | '/send'
     | '/settings'
+    | '/shop'
     | '/token-approvals'
     | '/wallet'
     | '/watch-address'
@@ -305,6 +316,7 @@ export interface FileRouteTypes {
     | '/reset-data'
     | '/send'
     | '/settings'
+    | '/shop'
     | '/token-approvals'
     | '/wallet'
     | '/watch-address'
@@ -332,6 +344,7 @@ export interface RootRouteChildren {
   ResetDataRoute: typeof ResetDataRoute
   SendRoute: typeof SendRoute
   SettingsRoute: typeof SettingsRoute
+  ShopRoute: typeof ShopRoute
   TokenApprovalsRoute: typeof TokenApprovalsRoute
   WalletRoute: typeof WalletRoute
   WatchAddressRoute: typeof WatchAddressRoute
@@ -456,6 +469,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/shop': {
+      id: '/shop'
+      path: '/shop'
+      fullPath: '/shop'
+      preLoaderRoute: typeof ShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/token-approvals': {
       id: '/token-approvals'
       path: '/token-approvals'
@@ -532,6 +552,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetDataRoute: ResetDataRoute,
   SendRoute: SendRoute,
   SettingsRoute: SettingsRoute,
+  ShopRoute: ShopRoute,
   TokenApprovalsRoute: TokenApprovalsRoute,
   WalletRoute: WalletRoute,
   WatchAddressRoute: WatchAddressRoute,
