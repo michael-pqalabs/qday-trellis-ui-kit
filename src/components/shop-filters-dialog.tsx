@@ -20,7 +20,7 @@ const PRICE_PRESETS = ["10", "25", "50"];
 
 const chip = (active: boolean) =>
   cn(
-    "h-9 rounded-full border px-3.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40",
+    "h-9 rounded-full border px-3.5 text-xs font-medium transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-40",
     active
       ? "border-primary/40 bg-primary/15 text-primary"
       : "border-border/60 bg-card text-muted-foreground hover:text-foreground",
@@ -41,7 +41,9 @@ function Section({
   return (
     <section className="border-b border-border/50 px-5 py-5 last:border-b-0">
       <div className="flex items-baseline justify-between gap-3">
-        <h3 className="text-sm font-semibold">{title}</h3>
+        <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+          {title}
+        </h3>
         {aside && <span className="text-[11px] font-medium text-primary">{aside}</span>}
       </div>
       {hint && <p className="mt-0.5 text-[11px] text-muted-foreground">{hint}</p>}
@@ -95,9 +97,9 @@ export function ShopFiltersDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="left-1/2 top-0 flex h-dvh w-full max-w-md -translate-x-1/2 translate-y-0 flex-col gap-0 rounded-none p-0">
-        <div className="border-b border-border/50 py-4 pl-5 pr-16">
+        <div className="sticky top-0 z-10 border-b border-border/50 bg-dialog/90 py-4 pl-5 pr-16 backdrop-blur">
           <div className="flex items-center justify-between gap-3">
-            <DialogTitle>Filters</DialogTitle>
+            <DialogTitle className="text-lg">Filters</DialogTitle>
             <Button
               type="button"
               variant="ghost"
@@ -278,7 +280,7 @@ export function ShopFiltersDialog({
           )}
           <Button
             type="button"
-            className="h-12 w-full"
+            className="h-12 w-full text-sm font-semibold"
             disabled={priceError !== null || matches === 0}
             onClick={() => {
               onApply({ ...draft, maxPrice: draft.maxPrice.trim() });

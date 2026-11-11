@@ -83,7 +83,7 @@ export function CheckoutDialog({
         onOpenChange(next);
       }}
     >
-      <DialogContent className="max-w-sm gap-5">
+      <DialogContent className="max-h-[92dvh] max-w-sm gap-4 overflow-y-auto">
         <div className="pr-8">
           <DialogTitle>Checkout</DialogTitle>
           <DialogDescription className="mt-1 text-xs">
@@ -94,7 +94,7 @@ export function CheckoutDialog({
 
         <div className="rounded-2xl bg-primary/10 px-4 py-3.5 text-center">
           <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Total</p>
-          <p className="mt-0.5 text-3xl font-semibold leading-tight">
+          <p className="mt-0.5 text-xl font-semibold leading-tight">
             {formatAtomic(total)}{" "}
             <span className="text-lg font-medium text-muted-foreground">{stable}</span>
           </p>
@@ -102,7 +102,11 @@ export function CheckoutDialog({
 
         <fieldset disabled={confirming} className="min-w-0">
           <legend className="mb-2 text-xs font-medium text-muted-foreground">Pay from</legend>
-          <div role="radiogroup" aria-label="Pay from" className="space-y-1.5">
+          <div
+            role="radiogroup"
+            aria-label="Pay from"
+            className="max-h-48 space-y-1.5 overflow-y-auto overscroll-contain pr-1"
+          >
             {accounts.map((a) => {
               const selected = account?.id === a.id;
               const short = checkoutProblem(shop, chainId, a) !== null;

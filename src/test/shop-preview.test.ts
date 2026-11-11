@@ -29,6 +29,7 @@ import {
   searchWords,
   setQuantity,
   shipOrder,
+  deliverOrder,
   shopCategories,
   shopCatalog,
   toAtomic,
@@ -247,6 +248,8 @@ describe("paying", () => {
     const shipped = shipOrder(placed.state, placed.order.id);
     expect(shipped.orders[0]?.status).toBe("shipped");
     expect(shipOrder(shipped, "ORD-NONE").orders[0]?.status).toBe("shipped");
+    expect(deliverOrder(placed.state, placed.order.id).orders[0]?.status).toBe("paid");
+    expect(deliverOrder(shipped, placed.order.id).orders[0]?.status).toBe("delivered");
   });
 });
 

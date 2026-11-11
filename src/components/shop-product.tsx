@@ -175,37 +175,50 @@ export function ProductCard({
   onQuantity: (quantity: number) => void;
 }) {
   const available = inStock(product);
+  const note = stockNote(product);
   return (
-    <li className="flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm">
+    <li className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card p-2.5 shadow-sm transition-colors hover:border-primary/40">
       <button
         type="button"
         onClick={onOpen}
         aria-label={`View ${product.name}`}
-        className="flex flex-1 flex-col text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+        className="flex min-w-0 flex-1 items-center gap-3 rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <span className="relative block w-full shrink-0">
-          <ProductThumb
-            product={product}
-            className={cn("aspect-[4/3] w-full", !available && "opacity-40 grayscale")}
-          />
-          <StockBadge product={product} />
-        </span>
-        <span className="flex flex-1 flex-col px-3 pt-2.5">
-          <span className="line-clamp-2 text-[13px] font-medium leading-[1.15rem]">
-            {product.name}
+        <ProductThumb
+          product={product}
+          className={cn("h-16 w-16 rounded-xl", !available && "opacity-40 grayscale")}
+          iconClassName="h-7 w-7"
+        />
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-medium">{product.name}</span>
+          <span className="block truncate text-[11px] text-muted-foreground">
+            {product.merchant.name} · {product.category}
           </span>
-          <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
-            {product.merchant.name}
-          </span>
-          <span className="mt-auto flex items-baseline gap-1 pt-2">
-            <span className="text-[15px] font-semibold">{formatPrice(product.price)}</span>
-            <span className="text-[11px] text-muted-foreground">{stable}</span>
+          <span className="mt-1 flex items-baseline gap-1.5">
+            <span className="text-sm font-bold">{formatPrice(product.price)}</span>
+            <span className="text-[10px] text-muted-foreground">{stable}</span>
+            {note && (
+              <span
+                className={cn(
+                  "ml-1 text-[10px] font-medium",
+                  available ? "text-primary" : "text-destructive",
+                )}
+              >
+                {note}
+              </span>
+            )}
           </span>
         </span>
       </button>
-      <div className="mt-auto px-3 pb-3 pt-2.5">
+      <div className="shrink-0">
         {inCart > 0 ? (
-          <QuantityStepper name={product.name} quantity={inCart} max={max} onChange={onQuantity} />
+          <QuantityStepper
+            name={product.name}
+            quantity={inCart}
+            max={max}
+            onChange={onQuantity}
+            className="w-28"
+          />
         ) : (
           <Button
             type="button"
@@ -214,7 +227,7 @@ export function ProductCard({
             aria-label={`Add ${product.name} to cart`}
             disabled={!available}
             onClick={onAdd}
-            className="h-9 w-full border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+            className="h-9 rounded-full border-primary/30 bg-primary/10 px-3 font-semibold text-primary hover:bg-primary/20 hover:text-primary active:scale-95"
           >
             {available ? (
               <>

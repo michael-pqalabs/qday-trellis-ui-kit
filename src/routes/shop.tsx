@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ArrowUpDown,
   ChevronDown,
+  CircleCheck,
   PackageCheck,
   RotateCcw,
   Search,
@@ -56,6 +57,10 @@ import {
   searchWords,
   setQuantity,
   shipOrder,
+  deliverOrder,
+  ORDER_STEPS,
+  ORDER_STATUS_LABEL,
+  shopCategories,
   shopMerchants,
   type PayAccount,
   type ShopFilters,
@@ -251,7 +256,7 @@ function ShopPage() {
               <div className="relative">
                 <Search
                   aria-hidden="true"
-                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                  className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
                 />
                 <Input
                   type="search"
@@ -263,7 +268,7 @@ function ShopPage() {
                     setSearch(e.target.value);
                     setShown(SHOP_PAGE_SIZE);
                   }}
-                  className="pl-9 pr-9"
+                  className="h-11 rounded-2xl border-border/60 bg-card pl-10 pr-9 shadow-sm"
                 />
                 {search && (
                   <button
@@ -278,6 +283,36 @@ function ShopPage() {
                     <X className="h-3.5 w-3.5" />
                   </button>
                 )}
+              </div>
+
+              <div
+                role="group"
+                aria-label="Quick categories"
+                className="-mx-5 mt-3 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              >
+                {[undefined, ...shopCategories(chain.id)].map((c) => {
+                  const on = filters.category === c;
+                  return (
+                    <button
+                      key={c ?? "all"}
+                      type="button"
+                      aria-pressed={on}
+                      aria-label={c ? `Quick category ${c}` : "Quick category all"}
+                      onClick={() => {
+                        setFilters((f) => ({ ...f, category: c }));
+                        setShown(SHOP_PAGE_SIZE);
+                      }}
+                      className={cn(
+                        "h-8 shrink-0 rounded-full border px-3.5 text-xs font-medium transition-all active:scale-95",
+                        on
+                          ? "border-primary/40 bg-primary/15 text-primary"
+                          : "border-border/60 bg-card text-muted-foreground hover:text-foreground",
+                      )}
+                    >
+                      {c ?? "All"}
+                    </button>
+                  );
+                })}
               </div>
 
               <div className="mt-3 flex items-center justify-between gap-2">
@@ -354,7 +389,11 @@ function ShopPage() {
               <div className="mt-3" />
 
               {page.items.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-border px-4 py-8 text-center">
+                <div className="rounded-3xl border border-dashed border-border bg-card/50 px-4 py-10 text-center">
+                  <Search
+                    aria-hidden="true"
+                    className="mx-auto mb-3 h-8 w-8 text-muted-foreground/60"
+                  />
                   <p className="text-sm font-medium">No products found</p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     Try other words, or fewer filters.
@@ -367,7 +406,10 @@ function ShopPage() {
                 </div>
               ) : (
                 <>
-                  <ul className="grid grid-cols-2 gap-3" aria-label="Products">
+                  <p className="mb-2 text-[11px] font-medium text-muted-foreground">
+                    {page.total} {page.total === 1 ? "result" : "results"}
+                  </p>
+                  <ul className="space-y-2" aria-label="Products">
                     {page.items.map((product) => (
                       <ProductCard
                         key={product.id}
@@ -399,7 +441,11 @@ function ShopPage() {
 
             <TabsContent value="cart" className="mt-4">
               {lines.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-border px-4 py-8 text-center">
+                <div className="rounded-3xl border border-dashed border-border bg-card/50 px-4 py-10 text-center">
+                  <ShoppingCart
+                    aria-hidden="true"
+                    className="mx-auto mb-3 h-8 w-8 text-muted-foreground/60"
+                  />
                   <p className="text-sm font-medium">Your cart is empty</p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     Add products from Browse, then pay from here.
@@ -474,7 +520,7 @@ function ShopPage() {
                   </ul>
                   <div className="mt-4 flex items-center justify-between rounded-xl bg-primary/5 px-3 py-3">
                     <span className="text-sm font-medium">Total</span>
-                    <span className="text-base font-semibold">
+                    <span className="text-sm font-semibold">
                       {formatAtomic(total)} {stable}
                     </span>
                   </div>
@@ -513,15 +559,18 @@ function ShopPage() {
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-sm font-semibold">{order.id}</span>
                         <Badge
-                          variant={order.status === "shipped" ? "default" : "outline"}
+                          variant={order.status === "paid" ? "outline" : "default"}
                           className="gap-1"
+                          data-testid="order-status"
                         >
-                          {order.status === "shipped" ? (
+                          {order.status === "delivered" ? (
+                            <CircleCheck className="h-3 w-3" />
+                          ) : order.status === "shipped" ? (
                             <Truck className="h-3 w-3" />
                           ) : (
                             <PackageCheck className="h-3 w-3" />
                           )}
-                          {order.status === "shipped" ? "Shipped" : "Paid"}
+                          {ORDER_STATUS_LABEL[order.status]}
                         </Badge>
                       </div>
                       <p className="text-[11px] text-muted-foreground">
@@ -532,15 +581,29 @@ function ShopPage() {
                           minute: "2-digit",
                         })}
                       </p>
-                      <div className="mt-3 flex gap-1" aria-hidden="true">
-                        <span className="h-1 flex-1 rounded-full bg-primary" />
-                        <span
-                          className={cn(
-                            "h-1 flex-1 rounded-full",
-                            order.status === "shipped" ? "bg-primary" : "bg-border",
-                          )}
-                        />
-                      </div>
+                      <ol className="mt-3 grid grid-cols-3 gap-1" aria-label="Order progress">
+                        {ORDER_STEPS.map((step, i) => {
+                          const done = ORDER_STEPS.indexOf(order.status) >= i;
+                          return (
+                            <li key={step} className="space-y-1">
+                              <span
+                                className={cn(
+                                  "block h-1 rounded-full",
+                                  done ? "bg-primary" : "bg-border",
+                                )}
+                              />
+                              <span
+                                className={cn(
+                                  "block text-[10px]",
+                                  done ? "font-medium text-primary" : "text-muted-foreground",
+                                )}
+                              >
+                                {ORDER_STATUS_LABEL[step]}
+                              </span>
+                            </li>
+                          );
+                        })}
+                      </ol>
                       <ul className="mt-3 space-y-1 text-xs">
                         {order.lines.map((line) => (
                           <li key={line.productId} className="flex justify-between gap-3">
@@ -591,6 +654,19 @@ function ShopPage() {
                 >
                   <Truck />
                   Preview: merchant ships the oldest paid order
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-2 w-full border-dashed text-xs"
+                  disabled={!state.orders.some((o) => o.status === "shipped")}
+                  onClick={() => {
+                    const oldest = [...state.orders].reverse().find((o) => o.status === "shipped");
+                    if (oldest) update((s) => deliverOrder(s, oldest.id));
+                  }}
+                >
+                  <CircleCheck />
+                  Preview: deliver the oldest shipped order
                 </Button>
                 <Button
                   variant="ghost"

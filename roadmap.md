@@ -50,4 +50,5 @@
 - [x] Full-screen filters popup: sort, category, tags, maximum price, shops, ships to, with a live result count.
 - [x] Product dialog, cart with quantity limits, orders list.
 - [x] Checkout from Trellis: pick the paying account, Passkey confirmation, preview-only balance switch.
+- [x] Browse as a list with quick category chips and a result count; orders show Paid, Shipped and Delivered with a preview button for each step.
 - [ ] Decide how the real purchase is paid and shipped (shop login, shipping address book, order status from the merchant).

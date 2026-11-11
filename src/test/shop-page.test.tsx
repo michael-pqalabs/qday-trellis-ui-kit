@@ -343,7 +343,7 @@ describe("Shopping: cart, checkout and orders", () => {
       { name: "Orders" },
       { timeout: PASSKEY_CONFIRM_MS + 2000 },
     );
-    expect(within(orders).getByText("Paid")).toBeTruthy();
+    expect(within(orders).getByTestId("order-status").textContent).toBe("Paid");
     expect(within(orders).getByText(/^ORD-[0-9A-F]{6}$/)).toBeTruthy();
     expect(within(orders).getByText("1 × Dot-grid notebook")).toBeTruthy();
     // The cart was emptied by the order.
@@ -352,7 +352,13 @@ describe("Shopping: cart, checkout and orders", () => {
     fireEvent.click(
       screen.getByRole("button", { name: /Preview: merchant ships the oldest paid order/ }),
     );
-    expect(within(screen.getByRole("list", { name: "Orders" })).getByText("Shipped")).toBeTruthy();
+    const status = () =>
+      within(screen.getByRole("list", { name: "Orders" })).getByTestId("order-status").textContent;
+    expect(status()).toBe("Shipped");
+    fireEvent.click(
+      screen.getByRole("button", { name: /Preview: deliver the oldest shipped order/ }),
+    );
+    expect(status()).toBe("Delivered");
   }, 10_000);
 
   it("keeps the cart and orders for the session, and the preview button clears them", async () => {

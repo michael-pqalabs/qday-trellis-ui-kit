@@ -464,7 +464,15 @@ export interface CartLine {
   quantity: number;
 }
 
-export type OrderStatus = "paid" | "shipped";
+export type OrderStatus = "paid" | "shipped" | "delivered";
+
+/** The three steps every order goes through, in order. */
+export const ORDER_STEPS: readonly OrderStatus[] = ["paid", "shipped", "delivered"];
+export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
+  paid: "Paid",
+  shipped: "Shipped",
+  delivered: "Delivered",
+};
 
 export interface ShopOrder {
   id: string;
@@ -646,6 +654,16 @@ export function shipOrder(state: ShopState, orderId: string): ShopState {
     ...state,
     orders: state.orders.map((o) =>
       o.id === orderId && o.status === "paid" ? { ...o, status: "shipped" } : o,
+    ),
+  };
+}
+
+/** Preview helper: a shipped order arrives. */
+export function deliverOrder(state: ShopState, orderId: string): ShopState {
+  return {
+    ...state,
+    orders: state.orders.map((o) =>
+      o.id === orderId && o.status === "shipped" ? { ...o, status: "delivered" } : o,
     ),
   };
 }
