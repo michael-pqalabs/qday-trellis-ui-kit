@@ -1,9 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { Bot, Wallet } from "lucide-react";
+import { Bot, ShoppingBag, Wallet } from "lucide-react";
 
 const items = [
   { to: "/wallet", label: "Trellis Wallet", icon: Wallet },
   { to: "/agentic", label: "Agentic Payments", icon: Bot },
+  { to: "/shop", label: "Shopping", icon: ShoppingBag },
 ] as const;
 
 export function BottomNav() {

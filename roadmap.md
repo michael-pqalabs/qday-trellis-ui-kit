@@ -46,7 +46,7 @@
 
 # Shopping
 
-- [x] Shopping page at `/shop`, outside the bottom nav (a shop of its own domain): search (Bazaar rules), five results per page.
+- [x] Shopping tab in the bottom nav: search (Bazaar rules), five results per page.
 - [x] Full-screen filters popup: sort, category, tags, maximum price, shops, ships to, with one Apply button.
 - [x] Product dialog, cart with quantity limits, orders list.
 - [x] Checkout from Trellis: pick the paying account, Passkey confirmation, preview-only balance switch.
